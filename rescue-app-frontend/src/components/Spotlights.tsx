@@ -31,7 +31,6 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
               height={521}
               alt="Spotlights"
               className={"object-cover"}
-              placeholder="blur"
               blurDataURL={data.image.src}
             />
           </div>

@@ -1,14 +1,38 @@
+'use client';
+
+import { useEffect, useState } from "react";
 import { Container } from "@/components/Container";
 import { Partners } from "@/components/Partners";
 import { SectionTitle } from "@/components/SectionTitle";
 import { Spotlights } from "@/components/Spotlights";
+import { fetchSpotlights } from "@/components/data";
 //import { Video } from "@/components/Video";
 import { Testimonials } from "@/components/Testimonials";
 import { Faq } from "@/components/Faq";
 import { Donate } from "@/components/Donate";
 
-import { spotlightOne, spotlightTwo } from "@/components/data";
 export default function Home() {
+  const [spotlightOne, setSpotlightOne] = useState(null);
+  const [spotlightTwo, setSpotlightTwo] = useState(null);
+
+  useEffect(() => {
+    const loadSpotlights = async () => {
+      const spotlights = await fetchSpotlights();
+      if (spotlights.length > 0) {
+        setSpotlightOne(spotlights[0]);
+      }
+      if (spotlights.length > 1) {
+        setSpotlightTwo(spotlights[1]);
+      }
+    };
+
+    loadSpotlights();
+  }, []);
+
+  if (!spotlightOne || !spotlightTwo) {
+    return <div>Loading...</div>; // Show a loading state while data is being fetched
+  }
+
   return (
     <Container>
       <Spotlights data={spotlightOne} />
