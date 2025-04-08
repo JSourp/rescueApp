@@ -30,7 +30,17 @@ export default function Home() {
   }, []);
 
   if (!spotlightOne || !spotlightTwo) {
-    return <div>Loading...</div>; // Show a loading state while data is being fetched
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          textAlign: "center",
+        }}
+      >
+        Loading something adorable...
+      </div>
+    ); // Show a loading state while data is being fetched
   }
 
   return (
