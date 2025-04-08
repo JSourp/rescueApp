@@ -39,7 +39,7 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
 
         <div
           className={`flex flex-wrap items-center w-full lg:w-1/2 ${
-            data.imgPos === "right" ? "lg:justify-end" : ""
+            data.imgPos === "right" ? "lg:justify-end lg:pl-10" : "lg:pr-20"
           }`}>
           <div>
             <div className="flex flex-col w-full mt-4">
