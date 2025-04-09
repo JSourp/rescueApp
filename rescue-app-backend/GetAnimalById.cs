@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using rescue_app_backend.Data;
 using rescue_app_backend.Models;
+using System.Text.Json;
 
 namespace rescue_app_backend;
 
@@ -20,8 +21,8 @@ public class GetAnimalById
     }
 
     [Function("GetAnimalById")]
-    public async Task<IActionResult> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "animals/{id}")] HttpRequestData req,
+    public async Task<HttpResponseData> Run(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "animals/{id:int}")] HttpRequestData req,
         int id,
         FunctionContext executionContext)
     {
@@ -33,15 +34,31 @@ public class GetAnimalById
 
             if (animal == null)
             {
-                return new NotFoundResult();
+                var notFoundResponse = req.CreateResponse(HttpStatusCode.NotFound);
+                await notFoundResponse.WriteStringAsync("Animal not found.");
+                return notFoundResponse;
             }
 
-            return new OkObjectResult(animal);
+            // Serialize the animal object to JSON
+            var jsonResponse = JsonSerializer.Serialize(animal, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = false
+            });
+
+            // Create the HTTP response
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            response.Headers.Add("Content-Type", "application/json");
+            await response.WriteStringAsync(jsonResponse);
+
+            return response;
         }
         catch (Exception ex)
         {
             logger.LogError($"Error getting animal by ID: {ex.Message}");
-            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+            var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
+            await errorResponse.WriteStringAsync("An error occurred while fetching the animal.");
+            return errorResponse;
         }
     }
 }
