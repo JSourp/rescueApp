@@ -58,7 +58,7 @@ export const fetchSpotlights = async () => {
   }
 };
 
-const calculateAge = (dateOfBirth) => {
+export const calculateAge = (dateOfBirth) => {
   const birthDate = new Date(dateOfBirth);
   const today = new Date();
 
