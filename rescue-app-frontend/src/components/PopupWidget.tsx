@@ -25,33 +25,57 @@ export function PopupWidget() {
   const userName = useWatch({ control, name: "name", defaultValue: "Someone" });
 
   const onSubmit = async (data: any, e: any) => {
-    console.log(data);
-    await fetch("https://api.web3forms.com/submit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify(data, null, 2),
-    })
-      .then(async (response) => {
-        let json = await response.json();
-        if (json.success) {
-          setIsSuccess(true);
-          setMessage(json.message);
-          e.target.reset();
-          reset();
-        } else {
-          setIsSuccess(false);
-          setMessage(json.message);
+    e.preventDefault();
+    setIsSuccess(false);
+    setSubmissionError(null);
+    //   setMessage(""); // You might not need this if you're setting a more specific loading message
+
+    try {
+        const response = await fetch('/api/send-email', { // Your Azure Function endpoint
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+                toEmail: 'contact@secondchanceanimalrescueandsanctuary.com', // Replace with your actual email
+                subject: `Website Inquiry from ${data.name || 'Visitor'}`, // More informative subject
+                body: `
+                    Name: ${data.name}
+                    Email: ${data.email}
+                    Phone: ${data.phone || 'Not provided'}
+                    Message: ${data.message}
+                `, // Include all form data in the body
+            }),
+        });
+
+        if (!response.ok) {
+            let errorText = "Failed to send message.";
+            try {
+                const errorJson = await response.json();
+                if (errorJson && errorJson.message) {
+                    errorText = errorJson.message;
+                }
+            } catch (jsonError) {
+                console.error("Error parsing error response:", jsonError);
+            }
+            throw new Error(errorText || `HTTP error! Status: ${response.status}`);
         }
-      })
-      .catch((error) => {
+
+        const responseData = await response.text(); // Or response.json() if your API returns JSON
+        setIsSuccess(true);
+        setMessage(responseData || "Thank you! Your message has been sent."); // Success message
+        e.target.reset();
+        reset();
+
+    } catch (error: any) {
         setIsSuccess(false);
-        setMessage("Client Error. Please check the console.log for more info");
-        console.log(error);
-      });
-  };
+        setMessage(error.message || 'An unexpected error occurred. Please try again.');
+        console.error("Form Submission Error:", error);
+    } finally {
+        // setLoading(false); // If you add a loading state, set it here
+    }
+};
 
   return (
     <div>
@@ -128,21 +152,6 @@ export function PopupWidget() {
                   {!isSubmitSuccessful && (
                     <form onSubmit={handleSubmit(onSubmit)} noValidate>
                       <input
-                        type="hidden"
-                        value="YOUR_ACCESS_KEY_HERE"
-                        {...register("apikey")}
-                      />
-                      <input
-                        type="hidden"
-                        value={`${userName} sent a message from Nextly`}
-                        {...register("subject")}
-                      />
-                      <input
-                        type="hidden"
-                        value="Nextly Template"
-                        {...register("from_name")}
-                      />
-                      <input
                         type="checkbox"
                         className="hidden"
                         style={{ display: "none" }}
@@ -151,14 +160,14 @@ export function PopupWidget() {
 
                       <div className="mb-4">
                         <label
-                          htmlFor="full_name"
+                          htmlFor="name"
                           className="block mb-2 text-sm text-gray-600 dark:text-gray-400"
                         >
                           Full Name
                         </label>
                         <input
                           type="text"
-                          id="full_name"
+                          id="name"
                           placeholder="John Doe"
                           {...register("name", {
                             required: "Full name is required",
@@ -205,6 +214,37 @@ export function PopupWidget() {
                         {errors.email && (
                           <div className="mt-1 text-sm text-red-400 invalid-feedback">
                             {errors.email.message as string}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Phone Number Field */}
+                      <div className="mb-4">
+                        <label
+                          htmlFor="phone"
+                          className="block mb-2 text-sm text-gray-600 dark:text-gray-400"
+                        >
+                          Phone Number (Optional)
+                        </label>
+                        <input
+                          type="tel"
+                          id="phone"
+                          placeholder="(555) 867-5309"
+                          {...register("phone", {
+                            pattern: {
+                              value: /^\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/,
+                              message: "Please enter a valid phone number",
+                            },
+                          })}
+                          className={`w-full px-3 py-2 text-gray-600 placeholder-gray-300 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring ${
+                            errors.phone
+                              ? "border-red-600 focus:border-red-600 ring-red-100"
+                              : "border-gray-300 focus:border-indigo-600 ring-indigo-100"
+                          }`}
+                        />
+                        {errors.phone && (
+                          <div className="mt-1 text-sm text-red-400 invalid-feedback">
+                            {errors.phone.message as string}
                           </div>
                         )}
                       </div>
