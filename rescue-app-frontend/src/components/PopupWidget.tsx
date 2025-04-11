@@ -27,7 +27,6 @@ export function PopupWidget() {
   const onSubmit = async (data: any, e: any) => {
     e.preventDefault();
     setIsSuccess(false);
-    setSubmissionError(null);
     //   setMessage(""); // You might not need this if you're setting a more specific loading message
 
     try {

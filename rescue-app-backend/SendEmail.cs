@@ -5,6 +5,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Net.Http;
+using Microsoft.AspNetCore.Http;
 
 namespace rescueApp_backend;
 
@@ -63,10 +64,10 @@ public class SendEmail
 
         var web3FormsData = new Dictionary<string, string>
         {
-            { "apikey", apiKey },
-            { "subject", data.subject },
-            { "email", data.toEmail },
-            { "message", data.body }
+            { "apikey", apiKey ?? string.Empty },
+            { "subject", data.subject ?? string.Empty },
+            { "email", data.toEmail ?? string.Empty },
+            { "message", data.body ?? string.Empty }
         };
 
         var content = new FormUrlEncodedContent(web3FormsData);
@@ -76,8 +77,8 @@ public class SendEmail
     // Define a class to represent the expected request body
     public class EmailRequest
     {
-        public string toEmail { get; set; }
-        public string subject { get; set; }
-        public string body { get; set; }
+        public string? toEmail { get; set; }
+        public string? subject { get; set; }
+        public string? body { get; set; }
     }
 }
