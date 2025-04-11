@@ -50,10 +50,10 @@ export default function AnimalDetailsPage() {
       } finally {
         setLoading(false);
       }
-    };
+    }
 
     loadAnimal();
-  }, [id]); // Re-fetch data if the id changes
+  }, [animalId]); // Re-fetch data if the animalId changes
 
   if (loading) {
     return <div>Loading animal details...</div>;

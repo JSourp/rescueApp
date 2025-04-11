@@ -13,8 +13,8 @@ export const Testimonials = () => {
         <div className="lg:col-span-2 xl:col-auto">
           <div className="flex flex-col justify-between w-full h-full bg-gray-100 px-14 rounded-2xl py-14 dark:bg-trueGray-800">
             <p className="text-2xl leading-normal ">
-              Adopting Leo from Second Chance was one of the <Mark>best decisions</Mark> I've ever made.
-              He's brought so much joy and laughter into our home.
+              Adopting Leo from Second Chance was one of the <Mark>best decisions</Mark> I&apos;ve ever made.
+              He&apos;s brought so much joy and laughter into our home.
               The staff were incredibly helpful and supportive throughout the entire process.
             </p>
 
@@ -29,8 +29,8 @@ export const Testimonials = () => {
           <div className="flex flex-col justify-between w-full h-full bg-gray-100 px-14 rounded-2xl py-14 dark:bg-trueGray-800">
             <p className="text-2xl leading-normal ">
               Volunteering at Second Chance has been <Mark>incredibly rewarding</Mark>.
-              It's a great way to give back to the community and make a real difference in the lives of animals.
-              I've learned so much and met some amazing people.
+              It&apos;s a great way to give back to the community and make a real difference in the lives of animals.
+              I&apos;ve learned so much and met some amazing people.
             </p>
 
             <Avatar

@@ -69,7 +69,7 @@ export default function Home() {
       <Donate />
 
       <SectionTitle preTitle="FAQ" title="Frequently Asked Questions">
-        Have questions? We've got answers!
+        Have questions? We&apos;ve got answers!
       </SectionTitle>
       <Faq />
 
