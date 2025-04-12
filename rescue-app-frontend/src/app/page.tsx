@@ -40,7 +40,7 @@ export default function Home() {
       >
         Loading something adorable...
       </div>
-    ); // Show a loading state while data is being fetched.
+    ); // Show a loading state while data is being fetched
   }
 
   return (
