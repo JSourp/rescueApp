@@ -36,7 +36,7 @@ export function PopupWidget() {
           Accept: "application/json",
         },
         body: JSON.stringify({
-          access_key: process.env.WEB3FORMS_API_KEY,
+          access_key: "fe8276ad-8329-4a67-bb58-60e71bb083bd",
           name: data.name,
           email: data.email,
           phone: data.phone || "Not provided",
