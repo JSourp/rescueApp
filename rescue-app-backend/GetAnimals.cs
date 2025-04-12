@@ -91,7 +91,7 @@ namespace rescue_app_backend
 
 
                 // --- Apply Sorting ---
-                // Assuming 'dateadded' is a DateTime property representing intake date
+                // Assuming 'dateAdded' is a DateTime property representing intake date
                 logger.LogInformation("Applying sorting - SortBy: {SortBy}", string.IsNullOrEmpty(sortBy) ? "name (default)" : sortBy);
                 switch (sortBy?.ToLowerInvariant()) // Use null-conditional operator for safety
                 {

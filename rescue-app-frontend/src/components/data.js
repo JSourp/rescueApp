@@ -19,7 +19,7 @@ export const fetchSpotlights = async () => {
     // Filter and sort the data to match the query
     const filteredData = data
       .filter((animal) =>
-        ["With Foster", "Available"].includes(animal.adoptionstatus)
+        ["With Foster", "Available"].includes(animal.adoptionStatus)
       )
       .sort((a, b) => a.id - b.id)
       .slice(0, 2); // Get the top two results
@@ -28,11 +28,11 @@ export const fetchSpotlights = async () => {
     return filteredData.map((animal) => ({
       title: `Meet ${animal.name}`,
       desc: animal.story,
-      image: animal.imageurl,
+      image: animal.imageUrl,
       bullets: [
         {
           title: "Age:",
-          desc: calculateAge(animal.dateofbirth),
+          desc: calculateAge(animal.dateOfBirth),
           icon: <ArrowRightCircleIcon />,
         },
         {
@@ -47,7 +47,7 @@ export const fetchSpotlights = async () => {
         },
         {
           title: "Adoption Status:",
-          desc: animal.adoptionstatus,
+          desc: animal.adoptionStatus,
           icon: <ArrowRightStartOnRectangleIcon />,
         },
       ],

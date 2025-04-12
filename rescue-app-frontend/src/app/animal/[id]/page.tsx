@@ -73,7 +73,7 @@ export default function AnimalDetailsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
           <Image
-            src={animal.imageurl || '/placeholder-image.jpg'}
+            src={animal.imageUrl || '/placeholder-image.jpg'}
             alt={animal.name || 'Animal image'}
             width={600}
             height={400}
@@ -83,9 +83,9 @@ export default function AnimalDetailsPage() {
         <div>
           <p className="text-gray-700 mb-4">{animal.story}</p>
           <p className="text-gray-700 mb-2">Breed: {animal.breed}</p>
-          <p className="text-gray-700 mb-2">Age: {calculateAge(animal.dateofbirth)}</p>
+          <p className="text-gray-700 mb-2">Age: {calculateAge(animal.dateOfBirth)}</p>
           <p className="text-gray-700 mb-2">Gender: {animal.gender}</p>
-          <p className="text-gray-700 mb-2">Adoption Status: {animal.adoptionstatus}</p>
+          <p className="text-gray-700 mb-2">Adoption Status: {animal.adoptionStatus}</p>
           {/* Add more details as needed */}
           <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4">
             Contact Us About {animal.name}
