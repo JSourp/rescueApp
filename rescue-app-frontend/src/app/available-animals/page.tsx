@@ -232,7 +232,7 @@ export default function AvailableAnimalsPage() {
                                 </h2>
                             </div>
                             <Image
-                                src={animal.imageurl || '/placeholder-image.png'}
+                                src={animal.imageUrl || '/placeholder-image.png'}
                                 alt={animal.name || 'Animal image'}
                                 width={400}
                                 height={300}
@@ -241,9 +241,9 @@ export default function AvailableAnimalsPage() {
                             />
                             </Link>
                             <div className="p-4 text-center">
-                                <p className="text-sm text-gray-600 dark:text-gray-400">{animal.breed} ({animal.animaltype})</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">{animal.breed} ({animal.animalType})</p>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">{animal.gender}</p>
-                                <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mt-1">{animal.adoptionstatus}</p>
+                                <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mt-1">{animal.adoptionStatus}</p>
                             </div>
                         </div>
                         ))

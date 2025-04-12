@@ -59,7 +59,7 @@ namespace rescue_app_backend
                 if (!string.IsNullOrEmpty(animalType))
                 {
                     string lowerAnimalType = animalType.ToLowerInvariant();
-                    query = query.Where(a => a.animaltype != null && a.animaltype.Equals(lowerAnimalType, StringComparison.InvariantCultureIgnoreCase));
+                    query = query.Where(a => a.animalType != null && a.animalType.Equals(lowerAnimalType, StringComparison.InvariantCultureIgnoreCase));
                      logger.LogInformation("Applying filter - AnimalType: {AnimalType}", animalType);
                 }
 
@@ -84,7 +84,7 @@ namespace rescue_app_backend
                     {
                         logger.LogInformation("Applying filter - Adoption Statuses: {Statuses}", string.Join(", ", desiredStatuses));
                         // Check if the animal's status is contained in the desired list
-                        query = query.Where(a => a.adoptionstatus != null && desiredStatuses.Contains(a.adoptionstatus.ToLowerInvariant()));
+                        query = query.Where(a => a.adoptionStatus != null && desiredStatuses.Contains(a.adoptionStatus.ToLowerInvariant()));
                     }
                 }
                 // --- End of Adoption Status Filter ---
@@ -96,10 +96,10 @@ namespace rescue_app_backend
                 switch (sortBy?.ToLowerInvariant()) // Use null-conditional operator for safety
                 {
                     case "longest": // Longest stay = oldest intake date = Ascending order
-                        query = query.OrderBy(a => a.dateadded);
+                        query = query.OrderBy(a => a.dateAdded);
                         break;
                     case "shortest": // Shortest stay = newest intake date = Descending order
-                        query = query.OrderByDescending(a => a.dateadded);
+                        query = query.OrderByDescending(a => a.dateAdded);
                         break;
                     // Add more sorting options here if needed (e.g., by name, age)
                     // case "nameasc":
