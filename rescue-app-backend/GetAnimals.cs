@@ -132,10 +132,20 @@ namespace rescue_app_backend
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error getting animals. Request Query: {Query}", req.Url.Query);
+                // Log the full exception details, including inner exceptions and stack trace
+                logger.LogError(ex, "Error getting animals. Query: {Query}. ExceptionType: {ExceptionType}, Message: {ExceptionMessage}, StackTrace: {StackTrace}",
+                    req.Url.Query, ex.GetType().FullName, ex.Message, ex.StackTrace);
+
+                // Also log inner exception if it exists, as it often contains the root cause
+                if (ex.InnerException != null)
+                {
+                    logger.LogError(ex.InnerException, "Inner Exception Details. Type: {InnerType}, Message: {InnerMessage}",
+                        ex.InnerException.GetType().FullName, ex.InnerException.Message);
+                }
+
                 var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
-                // Avoid sending detailed exception messages to the client
-                await errorResponse.WriteStringAsync("An error occurred while processing your request.");
+                // IMPORTANT: Keep sending a generic message to the client for security
+                await errorResponse.WriteStringAsync("An internal error occurred while processing your request.");
                 return errorResponse;
             }
         }
