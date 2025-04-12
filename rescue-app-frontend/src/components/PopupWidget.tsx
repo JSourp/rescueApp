@@ -27,6 +27,12 @@ export function PopupWidget() {
     setMessage("");
 
     try {
+      // Check if the submission is likely from a bot
+      if (data.botcheck) {
+        console.warn("Bot submission detected. Ignoring.");
+        setMessage("Submission ignored due to bot detection.");
+        return; // Exit early without sending the email
+      }
       const response = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
         headers: {
@@ -38,8 +44,7 @@ export function PopupWidget() {
           name: data.name,
           email: data.email,
           phone: data.phone || "Not provided",
-          message: `${data.message}\n\nBotcheck: ${
-          data.botcheck ? "Might be a bot" : "Likely a legitimate user"}`,
+          message: data.message,
         }),
       });
 
