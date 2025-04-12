@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Animal } from '@/types/animal';
+import { Animal } from '@/types/animal'; // Assuming you have this type definition
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -13,7 +13,7 @@ async function fetchAnimalTypes(): Promise<string[]> {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
     const data = await response.json();
-    return data;
+    return data as string[];
   } catch (error) {
     console.error('Error fetching animal types:', error);
     return [];
@@ -26,23 +26,41 @@ async function fetchAvailableAnimals(filters: {
   breed: string;
 }, sortBy: string): Promise<Animal[]> {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-  let url = `${apiBaseUrl}/animals?`;
 
-  if (filters.gender) {
-    url += `gender=${filters.gender}&`;
-  }
-  if (filters.animalType) {
-    url += `animalType=${filters.animalType}&`;
-  }
-  if (filters.breed) {
-    url += `breed=${filters.breed}&`;
-  }
-  if (sortBy) {
-    url += `sortBy=${sortBy}&`;
-  }
+  // Define the statuses considered "available" for this public page
+  const availableStatuses = [
+      'Available',
+      'Adoption Pending',
+      'Available - In Foster'
+  ];
 
-  // Remove the trailing '&' if it exists
-  url = url.slice(0, -1);
+  // Format statuses for the URL query parameter (comma-separated, URL-encoded spaces)
+  const statusQueryValue = availableStatuses
+      .map(status => encodeURIComponent(status)) // Encodes spaces etc. e.g., "Available%20-%20In%20Foster"
+      .join(','); // Joins with comma e.g., "Available,Adoption%20Pending,Available%20-%20In%20Foster"
+
+  // Build the query parameters
+  const queryParams = new URLSearchParams();
+
+  // Add fixed adoption statuses
+  queryParams.append('adoptionStatus', statusQueryValue);
+
+  // Add user-selectable filters
+  function appendQueryParam(queryParams: URLSearchParams, key: string, value: string) {
+    if (value) {
+      queryParams.append(key, value);
+    }
+  }
+  appendQueryParam(queryParams, 'gender', filters.gender);
+  appendQueryParam(queryParams, 'animalType', filters.animalType);
+  appendQueryParam(queryParams, 'breed', filters.breed);
+  appendQueryParam(queryParams, 'sortBy', sortBy);
+
+  const url = `${apiBaseUrl}/animals?${queryParams.toString()}`;
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.log("Fetching animals from URL:", url);
+  }
 
   try {
     const response = await fetch(url, {
@@ -50,7 +68,10 @@ async function fetchAvailableAnimals(filters: {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+       // Log the response body for more details on error
+       const errorBody = await response.text();
+       console.error('API Error Response Body:', errorBody);
+       throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
     const data = await response.json();
@@ -61,16 +82,24 @@ async function fetchAvailableAnimals(filters: {
   }
 }
 
+
 export default function AvailableAnimalsPage() {
-  const [animals, setAnimals] = useState<Animal[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [genderFilter, setGenderFilter] = useState('');
+  const [animals, setAnimals] = useState<Animal[]>([]); // Array of Animal objects
+  const [loading, setLoading] = useState<boolean>(true); // Boolean for loading state
+  const [error, setError] = useState<string | null>(null); // Error message or null
+  const [genderFilter, setGenderFilter] = useState<string>(''); // String for gender filter
+  const [animalTypes, setAnimalTypes] = useState<string[]>([]); // Array of animal types
   const [ageGroupFilter, setAgeGroupFilter] = useState('');
   const [animalTypeFilter, setAnimalTypeFilter] = useState('');
   const [breedFilter, setBreedFilter] = useState('');
-  const [animalTypes, setAnimalTypes] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('longest'); // Default sorting
+
+  // Define the sort options
+  const sortingOptions = [
+    { value: 'longest', label: 'Longest Stay' },
+    { value: 'shortest', label: 'Shortest Stay' },
+    // Add other sort options like 'nameAsc', 'nameDesc', 'ageAsc', 'ageDesc' if backend supports
+  ];
 
   useEffect(() => {
     const loadData = async () => {
@@ -78,6 +107,7 @@ export default function AvailableAnimalsPage() {
       setError(null);
 
       try {
+          // Pass the breedFilter state to the fetch function
         const [fetchedAnimals, fetchedAnimalTypes] = await Promise.all([
           fetchAvailableAnimals({ gender: genderFilter, animalType: animalTypeFilter, breed: breedFilter }, sortBy),
           fetchAnimalTypes(),
@@ -87,14 +117,16 @@ export default function AvailableAnimalsPage() {
         setAnimalTypes(fetchedAnimalTypes);
 
       } catch (err) {
-        setError('Failed to load animals');
+         // Log the actual error for more details
+         console.error("Error during data loading:", err);
+         setError(err instanceof Error ? err.message : 'Failed to load animals');
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, [genderFilter, ageGroupFilter, animalTypeFilter, breedFilter, sortBy]);
+  }, [genderFilter, animalTypeFilter, breedFilter, sortBy]);
 
   const handleAnimalTypeFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setAnimalTypeFilter(e.target.value);
@@ -104,9 +136,24 @@ export default function AvailableAnimalsPage() {
     setGenderFilter(e.target.value);
   };
 
+  // --- ADDED HANDLERS FOR OTHER FILTERS (Example) ---
+  // Would need UI elements (like input fields or selects) for these
+  // const handleBreedFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setBreedFilter(e.target.value);
+  // };
+  // const handleAgeGroupFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  //   setAgeGroupFilter(e.target.value);
+  // };
+  // --- END OF ADDED HANDLERS ---
+
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSortBy(e.target.value);
   };
+
+  // --- JSX (UI Code) ---
+  // (Keep existing JSX for Loading, Error, and the main return)
+  // Add UI elements (like <input> or <select>) if want users
+  // to actively filter by Breed or Age Group, using handlers like the examples above.
 
   if (loading) {
     return (
@@ -141,52 +188,81 @@ export default function AvailableAnimalsPage() {
       <h1 className="text-3xl font-bold mb-6">Available Animals</h1>
 
       {/* Filtering Options */}
-      <div className="flex flex-wrap items-center mb-4">
-        <select value={animalTypeFilter} onChange={handleAnimalTypeFilterChange} className="mr-4">
+      <div className="flex flex-wrap items-center mb-4 gap-4"> {/* Added gap for spacing */}
+        <select value={animalTypeFilter} onChange={handleAnimalTypeFilterChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600" aria-label="Filter by Animal Type">
           <option value="">All Types</option>
           {animalTypes.map(type => (
             <option key={type} value={type}>{type}</option>
           ))}
         </select>
-        <select value={genderFilter} onChange={handleGenderFilterChange} className="mr-4">
+        <select value={genderFilter} onChange={handleGenderFilterChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600" aria-label="Filter by Animal Genders">
           <option value="">All Genders</option>
           <option value="Male">Male</option>
           <option value="Female">Female</option>
+          {/* Add 'Unknown' or other genders if applicable */}
         </select>
-        {/* Add other filters here */}
-        <select value={sortBy} onChange={handleSortChange}>
-          <option value="longest">Longest Stay</option>
-          <option value="shortest">Shortest Stay</option>
+        <input
+           type="text"
+           placeholder="Filter by Breed"
+           value={breedFilter}
+           onChange={(e) => setBreedFilter(e.target.value)} // Simplified handler
+           className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+         />
+        <select value={sortBy} onChange={handleSortChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+          {sortingOptions.map(option => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
         </select>
+        
       </div>
 
       {/* Animal Grid */}
         <div className="flex justify-center">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {animals.map((animal) => (
-                <div
-                    key={animal.id}
-                    className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
-                >
-                    <Link href={`/animal/${animal.id}`}>
-                    <div className="text-center">
-                        <h2 className="text-xl font-semibold py-2 text-gray-900 dark:text-gray-100">
-                        {animal.name}
-                        </h2>
-                    </div>
-                    <Image
-                        src={animal.imageurl || '/placeholder-image.jpg'}
-                        alt={animal.name || 'Animal image'}
-                        width={400}
-                        height={300}
-                        className="w-full h-64 object-cover"
-                    />
-                    </Link>
-                    <div className="p-4 text-center">
-                    {/* Add more animal details here */}
-                    </div>
-                </div>
-                ))}
+                {animals.length > 0 ? (
+                     animals.map((animal) => (
+                        <div
+                            key={animal.id}
+                            className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105" // Added hover effect
+                        >
+                            <Link href={`/animal/${animal.id}`} className="block"> {/* Make entire card clickable */}
+                            <div className="text-center">
+                                <h2 className="text-xl font-semibold py-2 text-gray-900 dark:text-gray-100 truncate px-2"> {/* Added truncate */}
+                                {animal.name}
+                                </h2>
+                            </div>
+                            <Image
+                                src={animal.imageurl || '/placeholder-image.png'}
+                                alt={animal.name || 'Animal image'}
+                                width={400}
+                                height={300}
+                                className="w-full h-64 object-cover" // Ensure consistent image size
+                                priority={animals.indexOf(animal) < 4} // Prioritize loading images for first few animals
+                            />
+                            </Link>
+                            <div className="p-4 text-center">
+                                <p className="text-sm text-gray-600 dark:text-gray-400">{animal.breed} ({animal.animaltype})</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">{animal.gender}</p>
+                                <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mt-1">{animal.adoptionstatus}</p>
+                            </div>
+                        </div>
+                        ))
+                ) : (
+                  <p className="col-span-full text-center text-gray-500 dark:text-gray-400">
+                    No animals match the current filters.
+                    <button
+                      onClick={() => {
+                        setGenderFilter('');
+                        setAnimalTypeFilter('');
+                        setBreedFilter('');
+                        setSortBy('longest');
+                      }}
+                      className="ml-2 text-indigo-600 hover:underline"
+                    >
+                      Reset Filters
+                    </button>
+                  </p>
+                )}
             </div>
         </div>
     </div>

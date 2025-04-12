@@ -40,7 +40,7 @@ export function PopupWidget() {
           Accept: "application/json",
         },
         body: JSON.stringify({
-          access_key: "fe8276ad-8329-4a67-bb58-60e71bb083bd",
+          access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
           name: data.name,
           email: data.email,
           phone: data.phone || "Not provided",
