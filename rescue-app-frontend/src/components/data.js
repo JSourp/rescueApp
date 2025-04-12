@@ -19,7 +19,7 @@ export const fetchSpotlights = async () => {
     // Filter and sort the data to match the query
     const filteredData = data
       .filter((animal) =>
-        ["With Foster", "Available"].includes(animal.adoptionStatus)
+        ["With Foster", "Available"].includes(animal.adoption_status)
       )
       .sort((a, b) => a.id - b.id)
       .slice(0, 2); // Get the top two results
@@ -28,11 +28,11 @@ export const fetchSpotlights = async () => {
     return filteredData.map((animal) => ({
       title: `Meet ${animal.name}`,
       desc: animal.story,
-      image: animal.imageUrl,
+      image: animal.image_url,
       bullets: [
         {
           title: "Age:",
-          desc: calculateAge(animal.dateOfBirth),
+          desc: calculateAge(animal.date_of_birth),
           icon: <ArrowRightCircleIcon />,
         },
         {
@@ -47,7 +47,7 @@ export const fetchSpotlights = async () => {
         },
         {
           title: "Adoption Status:",
-          desc: animal.adoptionStatus,
+          desc: animal.adoption_status,
           icon: <ArrowRightStartOnRectangleIcon />,
         },
       ],
@@ -58,8 +58,8 @@ export const fetchSpotlights = async () => {
   }
 };
 
-export const calculateAge = (dateOfBirth) => {
-  const birthDate = new Date(dateOfBirth);
+export const calculateAge = (date_of_birth) => {
+  const birthDate = new Date(date_of_birth);
   const today = new Date();
 
   let years = today.getFullYear() - birthDate.getFullYear();

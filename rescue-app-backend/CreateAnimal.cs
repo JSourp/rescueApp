@@ -42,12 +42,12 @@ public class CreateAnimal
             }
 
             // Ensure DateTime values are UTC
-            if (animalToCreate.dateOfBirth.HasValue)
+            if (animalToCreate.date_of_birth.HasValue)
             {
-                animalToCreate.dateOfBirth = DateTime.SpecifyKind(animalToCreate.dateOfBirth.Value, DateTimeKind.Utc);
+                animalToCreate.date_of_birth = DateTime.SpecifyKind(animalToCreate.date_of_birth.Value, DateTimeKind.Utc);
             }
-            animalToCreate.dateAdded = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
-            animalToCreate.dateUpdated = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
+            animalToCreate.date_added = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
+            animalToCreate.date_updated = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
 
             // Add the animal to the database
             _dbContext.Animals.Add(animalToCreate);

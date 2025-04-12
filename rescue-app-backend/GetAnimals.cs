@@ -37,9 +37,9 @@ namespace rescue_app_backend
                 var queryParams = HttpUtility.ParseQueryString(req.Url.Query);
 
                 string? gender = queryParams["gender"];
-                string? animalType = queryParams["animalType"];
+                string? animal_type = queryParams["animal_type"];
                 string? breed = queryParams["breed"];
-                string? adoptionStatusParam = queryParams["adoptionStatus"];
+                string? adoptionStatusParam = queryParams["adoption_status"];
                 string? sortBy = queryParams["sortBy"];
 
                 // Start with the base queryable
@@ -56,11 +56,11 @@ namespace rescue_app_backend
                 }
 
                 // Animal Type Filter (Case-insensitive)
-                if (!string.IsNullOrEmpty(animalType))
+                if (!string.IsNullOrEmpty(animal_type))
                 {
-                    string lowerAnimalType = animalType.ToLowerInvariant();
-                    query = query.Where(a => a.animalType != null && a.animalType.Equals(lowerAnimalType, StringComparison.InvariantCultureIgnoreCase));
-                     logger.LogInformation("Applying filter - AnimalType: {AnimalType}", animalType);
+                    string lowerAnimalType = animal_type.ToLowerInvariant();
+                    query = query.Where(a => a.animal_type != null && a.animal_type.Equals(lowerAnimalType, StringComparison.InvariantCultureIgnoreCase));
+                     logger.LogInformation("Applying filter - AnimalType: {AnimalType}", animal_type);
                 }
 
                 // Breed Filter (Case-insensitive, exact match - consider Contains if needed)
@@ -84,22 +84,22 @@ namespace rescue_app_backend
                     {
                         logger.LogInformation("Applying filter - Adoption Statuses: {Statuses}", string.Join(", ", desiredStatuses));
                         // Check if the animal's status is contained in the desired list
-                        query = query.Where(a => a.adoptionStatus != null && desiredStatuses.Contains(a.adoptionStatus.ToLowerInvariant()));
+                        query = query.Where(a => a.adoption_status != null && desiredStatuses.Contains(a.adoption_status.ToLowerInvariant()));
                     }
                 }
                 // --- End of Adoption Status Filter ---
 
 
                 // --- Apply Sorting ---
-                // Assuming 'dateAdded' is a DateTime property representing intake date
+                // Assuming 'date_added' is a DateTime property representing intake date
                 logger.LogInformation("Applying sorting - SortBy: {SortBy}", string.IsNullOrEmpty(sortBy) ? "name (default)" : sortBy);
                 switch (sortBy?.ToLowerInvariant()) // Use null-conditional operator for safety
                 {
                     case "longest": // Longest stay = oldest intake date = Ascending order
-                        query = query.OrderBy(a => a.dateAdded);
+                        query = query.OrderBy(a => a.date_added);
                         break;
                     case "shortest": // Shortest stay = newest intake date = Descending order
-                        query = query.OrderByDescending(a => a.dateAdded);
+                        query = query.OrderByDescending(a => a.date_added);
                         break;
                     // Add more sorting options here if needed (e.g., by name, age)
                     // case "nameasc":

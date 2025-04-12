@@ -22,7 +22,7 @@ async function fetchAnimalTypes(): Promise<string[]> {
 
 async function fetchAvailableAnimals(filters: {
   gender: string;
-  animalType: string;
+  animal_type: string;
   breed: string;
 }, sortBy: string): Promise<Animal[]> {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -43,7 +43,7 @@ async function fetchAvailableAnimals(filters: {
   const queryParams = new URLSearchParams();
 
   // Add fixed adoption statuses
-  queryParams.append('adoptionStatus', statusQueryValue);
+  queryParams.append('adoption_status', statusQueryValue);
 
   // Add user-selectable filters
   function appendQueryParam(queryParams: URLSearchParams, key: string, value: string) {
@@ -52,7 +52,7 @@ async function fetchAvailableAnimals(filters: {
     }
   }
   appendQueryParam(queryParams, 'gender', filters.gender);
-  appendQueryParam(queryParams, 'animalType', filters.animalType);
+  appendQueryParam(queryParams, 'animal_type', filters.animal_type);
   appendQueryParam(queryParams, 'breed', filters.breed);
   appendQueryParam(queryParams, 'sortBy', sortBy);
 
@@ -109,7 +109,7 @@ export default function AvailableAnimalsPage() {
       try {
           // Pass the breedFilter state to the fetch function
         const [fetchedAnimals, fetchedAnimalTypes] = await Promise.all([
-          fetchAvailableAnimals({ gender: genderFilter, animalType: animalTypeFilter, breed: breedFilter }, sortBy),
+          fetchAvailableAnimals({ gender: genderFilter, animal_type: animalTypeFilter, breed: breedFilter }, sortBy),
           fetchAnimalTypes(),
         ]);
 
@@ -232,7 +232,7 @@ export default function AvailableAnimalsPage() {
                                 </h2>
                             </div>
                             <Image
-                                src={animal.imageUrl || '/placeholder-image.png'}
+                                src={animal.image_url || '/placeholder-image.png'}
                                 alt={animal.name || 'Animal image'}
                                 width={400}
                                 height={300}
@@ -241,9 +241,9 @@ export default function AvailableAnimalsPage() {
                             />
                             </Link>
                             <div className="p-4 text-center">
-                                <p className="text-sm text-gray-600 dark:text-gray-400">{animal.breed} ({animal.animalType})</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">{animal.breed} ({animal.animal_type})</p>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">{animal.gender}</p>
-                                <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mt-1">{animal.adoptionStatus}</p>
+                                <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mt-1">{animal.adoption_status}</p>
                             </div>
                         </div>
                         ))

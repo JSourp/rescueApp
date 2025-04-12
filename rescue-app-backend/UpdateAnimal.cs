@@ -51,16 +51,16 @@ public class UpdateAnimal
             }
 
             // Update the animal's properties
-            existingAnimal.animalType = animalToUpdate.animalType ?? existingAnimal.animalType;
+            existingAnimal.animal_type = animalToUpdate.animal_type ?? existingAnimal.animal_type;
             existingAnimal.name = animalToUpdate.name ?? existingAnimal.name;
             existingAnimal.breed = animalToUpdate.breed ?? existingAnimal.breed;
-            existingAnimal.dateOfBirth = animalToUpdate.dateOfBirth ?? existingAnimal.dateOfBirth;
+            existingAnimal.date_of_birth = animalToUpdate.date_of_birth ?? existingAnimal.date_of_birth;
             existingAnimal.gender = animalToUpdate.gender ?? existingAnimal.gender;
             existingAnimal.weight = animalToUpdate.weight ?? existingAnimal.weight;
             existingAnimal.story = animalToUpdate.story ?? existingAnimal.story;
-            existingAnimal.adoptionStatus = animalToUpdate.adoptionStatus ?? existingAnimal.adoptionStatus;
-            existingAnimal.imageUrl = animalToUpdate.imageUrl ?? existingAnimal.imageUrl;
-            existingAnimal.dateUpdated = DateTime.UtcNow;
+            existingAnimal.adoption_status = animalToUpdate.adoption_status ?? existingAnimal.adoption_status;
+            existingAnimal.image_url = animalToUpdate.image_url ?? existingAnimal.image_url;
+            existingAnimal.date_updated = DateTime.UtcNow;
 
             // Save the changes to the database
             await _dbContext.SaveChangesAsync();

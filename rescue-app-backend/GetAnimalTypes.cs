@@ -31,7 +31,7 @@ public class GetAnimalTypes
         {
             // Fetch distinct animal types from the database
             var animalTypes = await _dbContext.Animals
-                .Select(a => a.animalType)
+                .Select(a => a.animal_type)
                 .Distinct()
                 .ToListAsync();
 
