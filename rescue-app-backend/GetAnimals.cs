@@ -73,26 +73,30 @@ namespace rescue_app_backend
 
                 // --- Adoption Status Filter ---
                 if (!string.IsNullOrEmpty(adoptionStatusParam))
-                {
-                    // Split the comma-separated string, trim whitespace, convert to lower, filter out empty
-                    List<string> desiredStatuses = adoptionStatusParam.Split(',')
-                        .Select(s => s.Trim().ToLowerInvariant())
-                        .Where(s => !string.IsNullOrEmpty(s))
-                        .ToList();
+            {
+                // Split the comma-separated string, trim whitespace, convert to lower, filter out empty
+                List<string> desiredStatuses = adoptionStatusParam.Split(',')
+                                                    .Select(s => s.Trim().ToLowerInvariant()) // Keep input statuses lowercase
+                                                    .Where(s => !string.IsNullOrEmpty(s))
+                                                    .ToList();
 
-                    if (desiredStatuses.Any()) // Only apply filter if list has items
-                    {
-                        logger.LogInformation("Applying filter - Adoption Statuses: {Statuses}", string.Join(", ", desiredStatuses));
-                        // Check if the animal's status is contained in the desired list
-                        query = query.Where(a => a.adoption_status != null && desiredStatuses.Contains(a.adoption_status.ToLowerInvariant()));
-                    }
+                if (desiredStatuses.Any())
+                {
+                    logger.LogInformation("Filtering by adoption statuses (case-insensitive): {Statuses}", string.Join(", ", desiredStatuses));
+
+                    // Try using ToLower() instead of ToLowerInvariant() for translation
+                    // This attempts to translate to SQL LOWER(adoption_status)
+                    // It compares the lowercased DB value against the lowercased desiredStatuses list
+                    query = query.Where(a => a.adoption_status != null && desiredStatuses.Contains(a.adoption_status.ToLower()));
                 }
+            }
+
                 // --- End of Adoption Status Filter ---
 
 
                 // --- Apply Sorting ---
                 // Assuming 'date_added' is a DateTime property representing intake date
-                logger.LogInformation("Applying sorting - SortBy: {SortBy}", string.IsNullOrEmpty(sortBy) ? "name (default)" : sortBy);
+                logger.LogInformation("Applying sorting - SortBy: {SortBy}", string.IsNullOrEmpty(sortBy) ? "id (default)" : sortBy);
                 switch (sortBy?.ToLowerInvariant()) // Use null-conditional operator for safety
                 {
                     case "longest": // Longest stay = oldest intake date = Ascending order
@@ -105,8 +109,8 @@ namespace rescue_app_backend
                     // case "nameasc":
                     //    query = query.OrderBy(a => a.name);
                     //    break;
-                    default: // Default sort by name if sortBy is missing or unrecognized
-                        query = query.OrderBy(a => a.name);
+                    default: // Default sort by id if sortBy is missing or unrecognized
+                        query = query.OrderBy(a => a.id);
                         break;
                 }
                 // Consider adding a secondary sort for consistency, e.g., .ThenBy(a => a.Id)
@@ -132,6 +136,7 @@ namespace rescue_app_backend
             }
             catch (Exception ex)
             {
+                // --- Start Dev Only Block ---
                 // Log the full exception details, including inner exceptions and stack trace
                 logger.LogError(ex, "Error getting animals. Query: {Query}. ExceptionType: {ExceptionType}, Message: {ExceptionMessage}, StackTrace: {StackTrace}",
                     req.Url.Query, ex.GetType().FullName, ex.Message, ex.StackTrace);
@@ -147,6 +152,14 @@ namespace rescue_app_backend
                 // IMPORTANT: Keep sending a generic message to the client for security
                 await errorResponse.WriteStringAsync("An internal error occurred while processing your request.");
                 return errorResponse;
+                // --- End Dev Only Block ---
+
+                // --- Prod Block ---
+                //logger.LogError(ex, "Error getting animals. Request Query: {Query}", req.Url.Query);
+                //var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
+                //// Avoid sending detailed exception messages to the client
+                //await errorResponse.WriteStringAsync("An error occurred while processing your request.");
+                //return errorResponse;
             }
         }
     }

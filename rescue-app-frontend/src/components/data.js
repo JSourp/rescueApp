@@ -19,7 +19,7 @@ export const fetchSpotlights = async () => {
     // Filter and sort the data to match the query
     const filteredData = data
       .filter((animal) =>
-        ["With Foster", "Available"].includes(animal.adoption_status)
+        ["Available", "Adoption Pending", "Available - In Foster"].includes(animal.adoption_status)
       )
       .sort((a, b) => a.id - b.id)
       .slice(0, 2); // Get the top two results

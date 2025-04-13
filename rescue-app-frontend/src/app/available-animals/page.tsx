@@ -34,16 +34,14 @@ async function fetchAvailableAnimals(filters: {
       'Available - In Foster'
   ];
 
-  // Format statuses for the URL query parameter (comma-separated, URL-encoded spaces)
-  const statusQueryValue = availableStatuses
-      .map(status => encodeURIComponent(status)) // Encodes spaces etc. e.g., "Available%20-%20In%20Foster"
-      .join(','); // Joins with comma e.g., "Available,Adoption%20Pending,Available%20-%20In%20Foster"
+  // Join the raw status strings with a comma
+  const rawStatusQueryValue = availableStatuses.join(',');
 
   // Build the query parameters
   const queryParams = new URLSearchParams();
 
-  // Add fixed adoption statuses
-  queryParams.append('adoption_status', statusQueryValue);
+  // Append the RAW comma-separated string.
+  queryParams.append('adoption_status', rawStatusQueryValue);
 
   // Add user-selectable filters
   function appendQueryParam(queryParams: URLSearchParams, key: string, value: string) {
@@ -201,13 +199,6 @@ export default function AvailableAnimalsPage() {
           <option value="Female">Female</option>
           {/* Add 'Unknown' or other genders if applicable */}
         </select>
-        <input
-           type="text"
-           placeholder="Filter by Breed"
-           value={breedFilter}
-           onChange={(e) => setBreedFilter(e.target.value)} // Simplified handler
-           className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-         />
         <select value={sortBy} onChange={handleSortChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
           {sortingOptions.map(option => (
             <option key={option.value} value={option.value}>{option.label}</option>

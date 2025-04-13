@@ -1,0 +1,3 @@
+--UPDATE public.animals
+--SET adoption_status='Adoption Pending'
+--WHERE id IN (1,12);
