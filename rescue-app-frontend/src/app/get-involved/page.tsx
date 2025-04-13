@@ -56,7 +56,7 @@ export default function GetInvolvedPage() {
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
           <h2 className="text-2xl font-semibold mb-4 text-orange-600 dark:text-orange-400">Volunteer Your Time</h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
-            Our volunteers are the backbone of our rescue! From dog walking and cat socializing to helping at events or with administrative tasks, your time makes a huge difference. Let us know how you'd like to help.
+            Our volunteers are the backbone of our rescue! From dog walking and cat socializing to helping at events or with administrative tasks, your time makes a huge difference. Let us know how you&apos;d like to help.
           </p>
           <button
             onClick={() => setShowVolunteerForm(true)}
