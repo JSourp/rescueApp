@@ -47,57 +47,54 @@ namespace rescue_app_backend
 
                 // --- Apply Filtering ---
 
-                // Gender Filter (Case-insensitive)
+                // Gender Filter (Case-insensitive using ToLower)
                 if (!string.IsNullOrEmpty(gender))
                 {
-                    string lowerGender = gender.ToLowerInvariant();
-                    query = query.Where(a => a.gender != null && a.gender.Equals(lowerGender, StringComparison.InvariantCultureIgnoreCase));
+                    string lowerGender = gender.ToLower();
+                    // Convert DB property to lower and compare with lower parameter value
+                    query = query.Where(a => a.gender != null && a.gender.ToLower() == lowerGender);
                     logger.LogInformation("Applying filter - Gender: {Gender}", gender);
                 }
 
-                // Animal Type Filter (Case-insensitive)
+                // Animal Type Filter (Case-insensitive using ToLower)
                 if (!string.IsNullOrEmpty(animal_type))
                 {
-                    string lowerAnimalType = animal_type.ToLowerInvariant();
-                    query = query.Where(a => a.animal_type != null && a.animal_type.Equals(lowerAnimalType, StringComparison.InvariantCultureIgnoreCase));
-                     logger.LogInformation("Applying filter - AnimalType: {AnimalType}", animal_type);
+                    string lowerAnimalType = animal_type.ToLower();
+                    // Convert DB property to lower and compare with lower parameter value
+                    query = query.Where(a => a.animal_type != null && a.animal_type.ToLower() == lowerAnimalType);
+                    logger.LogInformation("Applying filter - AnimalType: {AnimalType}", animal_type);
                 }
 
-                // Breed Filter (Case-insensitive, exact match - consider Contains if needed)
+                // Breed Filter (Case-insensitive using ToLower, exact match)
                 if (!string.IsNullOrEmpty(breed))
                 {
-                    string lowerBreed = breed.ToLowerInvariant();
-                    query = query.Where(a => a.breed != null && a.breed.Equals(lowerBreed, StringComparison.InvariantCultureIgnoreCase));
-                     logger.LogInformation("Applying filter - Breed: {Breed}", breed);
+                    string lowerBreed = breed.ToLower();
+                    // Convert DB property to lower and perform partial compare with lower parameter value
+                    query = query.Where(a => a.breed != null && a.breed.ToLower().Contains(lowerBreed));
+                    logger.LogInformation("Applying filter - Breed: {Breed}", breed);
                 }
 
                 // --- Adoption Status Filter ---
+                // This uses a different pattern (Contains)
                 if (!string.IsNullOrEmpty(adoptionStatusParam))
-            {
-                // Split the comma-separated string, trim whitespace, convert to lower, filter out empty
-                List<string> desiredStatuses = adoptionStatusParam.Split(',')
-                                                    .Select(s => s.Trim().ToLowerInvariant()) // Keep input statuses lowercase
-                                                    .Where(s => !string.IsNullOrEmpty(s))
-                                                    .ToList();
-
-                if (desiredStatuses.Any())
                 {
-                    logger.LogInformation("Filtering by adoption statuses (case-insensitive): {Statuses}", string.Join(", ", desiredStatuses));
-
-                    // Try using ToLower() instead of ToLowerInvariant() for translation
-                    // This attempts to translate to SQL LOWER(adoption_status)
-                    // It compares the lowercased DB value against the lowercased desiredStatuses list
-                    query = query.Where(a => a.adoption_status != null && desiredStatuses.Contains(a.adoption_status.ToLower()));
+                    List<string> desiredStatuses = adoptionStatusParam.Split(',')
+                                                        .Select(s => s.Trim().ToLower())
+                                                        .Where(s => !string.IsNullOrEmpty(s))
+                                                        .ToList();
+                    if (desiredStatuses.Count != 0)
+                    {
+                        logger.LogInformation("Filtering by adoption statuses (case-insensitive): {Statuses}", string.Join(", ", desiredStatuses));
+                        query = query.Where(a => a.adoption_status != null && desiredStatuses.Contains(a.adoption_status.ToLower()));
+                    }
                 }
-            }
-
-                // --- End of Adoption Status Filter ---
+                // --- End of Filters ---
 
 
                 // --- Apply Sorting ---
                 // Assuming 'date_added' is a DateTime property representing intake date
                 logger.LogInformation("Applying sorting - SortBy: {SortBy}", string.IsNullOrEmpty(sortBy) ? "id (default)" : sortBy);
-                switch (sortBy?.ToLowerInvariant()) // Use null-conditional operator for safety
+                switch (sortBy?.ToLower()) // Use null-conditional operator for safety
                 {
                     case "longest": // Longest stay = oldest intake date = Ascending order
                         query = query.OrderBy(a => a.date_added);

@@ -5,6 +5,9 @@ import { useParams } from 'next/navigation';
 import { Animal } from '@/types/animal'; // Adjust import path
 import Image from 'next/image';
 import { calculateAge } from "@/components/data";
+import { PopupWidget }  from "@/components/PopupWidget";
+import Modal from '@/components/Modal';
+import AnimalInquiryForm from '@/components/AnimalInquiryForm';
 
 async function fetchAnimal(id: string): Promise<Animal | null> {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL; // Adjust URL if needed
@@ -32,6 +35,7 @@ export default function AnimalDetailsPage() {
   const [animal, setAnimal] = useState<Animal | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showInquiryForm, setShowInquiryForm] = useState(false);
 
   useEffect(() => {
     const loadAnimal = async () => {
@@ -76,8 +80,9 @@ export default function AnimalDetailsPage() {
             src={animal.image_url || '/placeholder-image.jpg'}
             alt={animal.name || 'Animal image'}
             width={600}
-            height={400}
-            className="w-full h-auto rounded-lg"
+            height={450}
+            className="w-full h-auto rounded-lg object-cover"
+            priority // Prioritize image on details page
           />
         </div>
         <div>
@@ -87,11 +92,26 @@ export default function AnimalDetailsPage() {
           <p className="text-gray-700 mb-2">Gender: {animal.gender}</p>
           <p className="text-gray-700 mb-2">Adoption Status: {animal.adoption_status}</p>
           {/* Add more details as needed */}
-          <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4">
-            Contact Us About {animal.name}
+          <button
+             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
+             onClick={() => setShowInquiryForm(true)}
+           >
+             Contact Us About {animal.name}
           </button>
         </div>
       </div>
+
+      {/* Conditionally render the Modal containing the Inquiry Form */}
+      {showInquiryForm && (
+        <Modal onClose={() => setShowInquiryForm(false)}> {/* Pass close handler */}
+          <AnimalInquiryForm
+             animalName={animal.name ?? 'this animal'} // Handle potential null name
+             animalId={animal.id}
+             onClose={() => setShowInquiryForm(false)} // Pass close handler down
+           />
+        </Modal>
+      )}
+
     </div>
   );
 }
