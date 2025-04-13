@@ -22,7 +22,7 @@ export default function GetInvolvedPage() {
         There are many ways to support Second Chance Animal Rescue & Sanctuary. Find the perfect fit for you!
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
         {/* Adoption Section */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
@@ -67,14 +67,14 @@ export default function GetInvolvedPage() {
         </div>
 
          {/* Partner/Sponsor Section */}
-         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col md:col-span-2 lg:col-span-1 lg:col-start-2"> {/* Centering example for last item */}
+         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
            <h2 className="text-2xl font-semibold mb-4 text-purple-600 dark:text-purple-400">Partner or Sponsor</h2>
            <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
              As a new rescue, community partnerships and sponsorships are vital. Support from local businesses and individuals helps us provide essential care, supplies, and facilities. Contact us to learn about opportunities.
            </p>
            <button
             onClick={() => setShowPartnershipSponsorshipForm(true)}
-            className="mt-auto w-full bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded transition duration-300"
+            className="mt-auto w-full bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition duration-300"
           >
             Inquire About Partnership/Sponsorship
           </button>

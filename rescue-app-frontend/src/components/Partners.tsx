@@ -7,7 +7,7 @@ export const Partners = () => {
 		<Container>
 		  <div className="flex flex-col justify-center">
 			<div className="text-xl text-center text-gray-700 dark:text-white">
-			  Thank you to our event partners and sponsors!
+			  Thank you to our partners and sponsors!
 			</div>
   
 			<div className="flex flex-wrap justify-center gap-5 mt-10 md:justify-around">
