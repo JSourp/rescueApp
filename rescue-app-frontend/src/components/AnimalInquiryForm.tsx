@@ -137,7 +137,7 @@ export default function AnimalInquiryForm({ animalName, animalId, onClose }: Ani
                     type="tel"
                     id="phone"
                     {...register("phone")} // Basic validation from PopupWidget was removed, add if needed
-                    placeholder="(555) 123-4567"
+                    placeholder="(555) 867-5309"
                     className={`w-full px-3 py-2 placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700 border ${errors.phone ? 'border-red-500 dark:border-red-600 focus:border-red-500 dark:focus:border-red-600 ring-red-100 dark:ring-red-900' : 'border-gray-300 dark:border-gray-600 focus:border-indigo-500 dark:focus:border-indigo-500 ring-indigo-100 dark:ring-indigo-900'} rounded-md focus:outline-none focus:ring text-gray-900 dark:text-gray-100`}
                     />
                     {errors.phone && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.phone.message}</p>}
