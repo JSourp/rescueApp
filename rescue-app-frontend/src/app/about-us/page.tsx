@@ -9,7 +9,7 @@ export default function AboutUs() {
             <ul>
                 <li>Jane Doe - Director</li>
                 <li>John Smith - Treasurer</li>
-                <li>Emily Brown - Volunteer Coordinator</li>
+                <li>Sarah Brown - Volunteer Coordinator</li>
             </ul>
             <h2>Our EIN</h2>
             <p>123-456789</p>

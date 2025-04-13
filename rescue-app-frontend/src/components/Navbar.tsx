@@ -7,8 +7,8 @@ import { Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react
 export const Navbar = () => {
   const navigation = [
     { label: "Available Animals", href: "/available-animals" },
-    { label: "Get Involved", href: "/" },
-    { label: "About Us", href: "/" },
+    { label: "Get Involved", href: "/get-involved" },
+    { label: "About Us", href: "/about-us" },
   ];
 
   return (
