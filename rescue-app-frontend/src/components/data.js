@@ -8,78 +8,104 @@ import {
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+// Keep calculateAge function as is (make sure it handles null dateOfBirth)
+export const calculateAge = (dateOfBirth) => {
+  if (!dateOfBirth) {
+    return "Unknown";
+  }
+  try {
+    const birthDate = new Date(dateOfBirth);
+    // Add check for invalid date
+    if (isNaN(birthDate.getTime())) {
+        return "Unknown";
+    }
+    const today = new Date();
+
+    let years = today.getFullYear() - birthDate.getFullYear();
+    let months = today.getMonth() - birthDate.getMonth();
+
+    if (months < 0 || (months === 0 && today.getDate() < birthDate.getDate())) {
+      years--;
+      months = (months + 12) % 12; // Correct month calculation
+    }
+
+    const yearText = years > 0 ? `${years} ${years === 1 ? "year" : "years"}` : "";
+    const monthText = months > 0 ? `${months} ${months === 1 ? "month" : "months"}` : "";
+
+    if (!yearText && !monthText) return "Less than a month old"; // Handle very young age
+
+    return [yearText, monthText].filter(Boolean).join(" and ");
+  } catch (e) {
+      console.error("Error calculating age for date:", dateOfBirth, e);
+      return "Unknown";
+  }
+};
+
+
 export const fetchSpotlights = async () => {
   try {
-    const response = await fetch(`${apiBaseUrl}/animals`);
+    // Consider adding the status filter directly to the API call if possible
+    // ?adoption_status=Available,Available%20-%20In%20Foster&limit=2&sortBy=idAsc (or similar)
+    // This avoids fetching ALL animals client-side
+    const response = await fetch(`${apiBaseUrl}/animals`); // Fetches all animals currently
     if (!response.ok) {
       throw new Error("Failed to fetch spotlight data");
     }
     const data = await response.json();
 
-    // Filter and sort the data to match the query
+    // Assuming API returns camelCase now due to backend serialization settings
     const filteredData = data
-      .filter((animal) =>
-        ["Available", "Adoption Pending", "Available - In Foster"].includes(animal.adoption_status)
+      .filter((animal) => // Use 'any' or define a proper type if available
+        ["Available", "Available - In Foster"].includes(animal.adoptionStatus)
+        // Note: Excluding "Adoption Pending" from spotlight usually makes sense
       )
+      // Sort by ID ascending (adjust if different criteria needed)
       .sort((a, b) => a.id - b.id)
-      .slice(0, 2); // Get the top two results
+      .slice(0, 2); // Get the first two results
 
-    // Map the filtered data to the required structure
+    // Map the filtered data, PRESERVING id and name
     return filteredData.map((animal) => ({
-      title: `Meet ${animal.name}`,
-      desc: animal.story,
-      image: animal.image_url,
+      id: animal.id,
+      name: animal.name,
+      title: `Meet ${animal.name}`, // Title for display
+      desc: animal.story,          // Use story for description
+      image: animal.imageUrl || '/placeholder-image.png', // provide fallback
       bullets: [
-        {
-          title: "Age:",
-          desc: calculateAge(animal.date_of_birth),
-          icon: <ArrowRightCircleIcon />,
-        },
-        {
-          title: "Gender:",
-          desc: animal.gender,
-          icon: <ArrowRightEndOnRectangleIcon />,
-        },
         {
           title: "Breed:",
           desc: animal.breed,
           icon: <ArrowRightIcon />,
         },
         {
-          title: "Adoption Status:",
-          desc: animal.adoption_status,
-          icon: <ArrowRightStartOnRectangleIcon />,
+          title: "Age:",
+          desc: calculateAge(animal.dateOfBirth),
+          icon: <ArrowRightIcon />,
+        },
+        {
+          title: "Gender:",
+          desc: animal.gender,
+          icon: <ArrowRightIcon />,
         },
       ],
     }));
   } catch (error) {
     console.error("Error fetching spotlight data:", error);
-    return [];
+    return []; // Return empty array on error
   }
-};
-
-export const calculateAge = (date_of_birth) => {
-  const birthDate = new Date(date_of_birth);
-  const today = new Date();
-
-  let years = today.getFullYear() - birthDate.getFullYear();
-  let months = today.getMonth() - birthDate.getMonth();
-
-  // Adjust for negative months (when the current month is earlier than the birth month)
-  if (months < 0) {
-    years -= 1;
-    months += 12;
-  }
-
-  // Handle singular/plural and omit "0 years" or "0 months"
-  const yearText = years > 0 ? `${years} ${years === 1 ? "year" : "years"}` : "";
-  const monthText = months > 0 ? `${months} ${months === 1 ? "month" : "months"}` : "";
-
-  // Combine year and month text, omitting "and" if one is empty
-  return [yearText, monthText].filter(Boolean).join(" and ");
 };
 
 const SpotlightData = () => {
+  // Define a type for the state based on the mapped structure
+  /**
+   * @typedef {Object} SpotlightAnimal
+   * @property {number} id
+   * @property {string} name
+   * @property {string} title
+   * @property {string | null} desc
+   * @property {string} image
+   * @property {{ title: string; desc: string | null; icon: React.ReactNode }[]} bullets
+   */
+
   const [spotlightOne, setSpotlightOne] = useState(null);
   const [spotlightTwo, setSpotlightTwo] = useState(null);
 
@@ -88,16 +114,20 @@ const SpotlightData = () => {
       const spotlights = await fetchSpotlights();
       if (spotlights.length > 0) {
         setSpotlightOne(spotlights[0]);
+      } else {
+        setSpotlightOne(null); // Handle case where no spotlights are found
       }
       if (spotlights.length > 1) {
         setSpotlightTwo(spotlights[1]);
+      } else {
+        setSpotlightOne(null); // Handle case where only one is found
       }
     };
 
     loadSpotlights();
-  }, []);
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   return { spotlightOne, spotlightTwo };
 };
 
-export default SpotlightData;
+export default SpotlightData; // Export the hook for use in components
