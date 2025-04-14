@@ -84,9 +84,9 @@ export default function GetInvolvedPage() {
 
       {/* --- Modals for Forms --- */}
       {showAdoptForm && (
-        <Modal onClose={() => setShowAdoptForm(false)}>
-          <AdoptionForm onClose={() => setShowAdoptForm(false)} />
-        </Modal>
+          <Modal onClose={() => setShowAdoptForm(false)}>
+            <AdoptionForm onClose={() => setShowAdoptForm(false)} />
+          </Modal>
       )}
 
       {showFosterForm && (

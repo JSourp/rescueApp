@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { calculateAge } from "@/components/data";
 import { PopupWidget }  from "@/components/PopupWidget";
 import Modal from '@/components/Modal';
-import AnimalInquiryForm from '@/components/AnimalInquiryForm';
+import AdoptionForm from '@/components/AdoptionForm';
 
 async function fetchAnimal(id: string): Promise<Animal | null> {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL; // Adjust URL if needed
@@ -35,7 +35,7 @@ export default function AnimalDetailsPage() {
   const [animal, setAnimal] = useState<Animal | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showInquiryForm, setShowInquiryForm] = useState(false);
+  const [showAdoptionForm, setshowAdoptionForm] = useState(false);
 
   useEffect(() => {
     const loadAnimal = async () => {
@@ -94,7 +94,7 @@ export default function AnimalDetailsPage() {
           {/* Add more details as needed */}
           <button
              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
-             onClick={() => setShowInquiryForm(true)}
+             onClick={() => setshowAdoptionForm(true)}
            >
              Contact Us About {animal.name}
           </button>
@@ -102,14 +102,14 @@ export default function AnimalDetailsPage() {
       </div>
 
       {/* Conditionally render the Modal containing the Inquiry Form */}
-      {showInquiryForm && (
-        <Modal onClose={() => setShowInquiryForm(false)}> {/* Pass close handler */}
-          <AnimalInquiryForm
-             animalName={animal.name ?? 'this animal'} // Handle potential null name
-             animalId={animal.id}
-             onClose={() => setShowInquiryForm(false)} // Pass close handler down
-           />
-        </Modal>
+      {showAdoptionForm && animal && ( // Rename state if desired, e.g., showAdoptionForm
+          <Modal onClose={() => setshowAdoptionForm(false)}>
+            <AdoptionForm
+              animalName={animal.name ?? undefined} // Pass optional props
+              animalId={animal.id}                  // Pass optional props
+              onClose={() => setshowAdoptionForm(false)}
+            />
+          </Modal>
       )}
 
     </div>
