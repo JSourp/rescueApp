@@ -8,13 +8,13 @@ import {
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-// Keep calculateAge function as is (make sure it handles null dateOfBirth)
-export const calculateAge = (dateOfBirth) => {
-  if (!dateOfBirth) {
+// Keep calculateAge function as is (make sure it handles null date_of_birth)
+export const calculateAge = (date_of_birth) => {
+  if (!date_of_birth) {
     return "Unknown";
   }
   try {
-    const birthDate = new Date(dateOfBirth);
+    const birthDate = new Date(date_of_birth);
     // Add check for invalid date
     if (isNaN(birthDate.getTime())) {
         return "Unknown";
@@ -36,7 +36,7 @@ export const calculateAge = (dateOfBirth) => {
 
     return [yearText, monthText].filter(Boolean).join(" and ");
   } catch (e) {
-      console.error("Error calculating age for date:", dateOfBirth, e);
+      console.error("Error calculating age for date:", date_of_birth, e);
       return "Unknown";
   }
 };
@@ -56,7 +56,7 @@ export const fetchSpotlights = async () => {
     // Assuming API returns camelCase now due to backend serialization settings
     const filteredData = data
       .filter((animal) => // Use 'any' or define a proper type if available
-        ["Available", "Available - In Foster"].includes(animal.adoptionStatus)
+        ["Available", "Available - In Foster"].includes(animal.adoption_status)
         // Note: Excluding "Adoption Pending" from spotlight usually makes sense
       )
       // Sort by ID ascending (adjust if different criteria needed)
@@ -69,7 +69,7 @@ export const fetchSpotlights = async () => {
       name: animal.name,
       title: `Meet ${animal.name}`, // Title for display
       desc: animal.story,          // Use story for description
-      image: animal.imageUrl || '/placeholder-image.png', // provide fallback
+      image: animal.image_url || '/placeholder-image.png', // provide fallback
       bullets: [
         {
           title: "Breed:",
@@ -78,7 +78,7 @@ export const fetchSpotlights = async () => {
         },
         {
           title: "Age:",
-          desc: calculateAge(animal.dateOfBirth),
+          desc: calculateAge(animal.date_of_birth),
           icon: <ArrowRightIcon />,
         },
         {
