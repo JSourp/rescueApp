@@ -32,7 +32,7 @@ export default function GetInvolvedPage() {
           </p>
           <button
             onClick={() => setShowAdoptForm(true)}
-            className="mt-auto w-full bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded transition duration-300"
+            className="bg-blue-500 hover:bg-blue-700 mt-auto w-full text-white font-bold py-2 px-4 rounded transition duration-300"
           >
             Apply to Adopt
           </button>

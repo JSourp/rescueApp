@@ -92,7 +92,7 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
                  <button
                      onClick={() => setShowAdoptForm(true)}
                      // Consistent styling (using Adoption Indigo theme)
-                     className="w-full sm:w-auto px-6 py-3 bg-indigo-500 hover:bg-indigo-700 text-white font-bold rounded-md transition duration-300"
+                     className="bg-blue-500 hover:bg-blue-700 w-full sm:w-auto px-6 py-3 text-white font-bold rounded-md transition duration-300"
                  >
                      Apply to Adopt {data.name}
                  </button>
