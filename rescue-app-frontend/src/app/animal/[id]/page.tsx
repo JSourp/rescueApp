@@ -8,6 +8,7 @@ import { calculateAge } from "@/components/data";
 import { PopupWidget }  from "@/components/PopupWidget";
 import Modal from '@/components/Modal';
 import AdoptionForm from '@/components/AdoptionForm';
+import { format, differenceInDays } from "date-fns";
 
 async function fetchAnimal(id: string): Promise<Animal | null> {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL; // Adjust URL if needed
@@ -71,6 +72,15 @@ export default function AnimalDetailsPage() {
     return <div>Animal not found.</div>; // Handle the case where the animal is not found
   }
 
+  // Format the intake date
+  const intakeDate = format(new Date(animal.date_added), "MMM dd yyyy"); // Format as "Apr 09 2025"
+
+  // Calculate the number of days the animal has been with you
+  const daysWithUs = differenceInDays(new Date(), new Date(animal.date_added));
+
+  // Determine the correct label for "day" or "days"
+  const daysLabel = daysWithUs === 1 ? "day" : "days";
+
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-4xl font-bold mb-6">{animal.name}</h1>
@@ -87,11 +97,14 @@ export default function AnimalDetailsPage() {
         </div>
         <div>
           <p className="text-gray-700 mb-4">{animal.story}</p>
+          <p className="text-gray-700 mb-2">Type: {animal.animal_type}</p>
           <p className="text-gray-700 mb-2">Breed: {animal.breed}</p>
           <p className="text-gray-700 mb-2">Age: {calculateAge(animal.date_of_birth)}</p>
           <p className="text-gray-700 mb-2">Gender: {animal.gender}</p>
+          <p className="text-gray-700 mb-2">Weight (in lbs): {animal.weight}</p>
+          {/*<p className="text-gray-700 mb-2">Intake date: {intakeDate}</p>*/}
+          <p className="text-gray-700 mb-2">Days with us: {daysWithUs} {daysLabel}</p>
           <p className="text-gray-700 mb-2">Adoption Status: {animal.adoption_status}</p>
-          {/* Add more details as needed */}
           <button
              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
              onClick={() => setshowAdoptionForm(true)}

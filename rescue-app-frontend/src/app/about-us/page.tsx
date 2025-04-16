@@ -5,12 +5,12 @@ import Link from "next/link";
 
 export default function AboutUsPage() {
   const boardMembers = [
-    "Jordan Brunelle",
-    "Kelsey Brunelle",
-    "Chris Robinson",
-    "Emily Robinson",
-    "Chanell Sourp",
-    "Jon Sourp",
+    "Alex Carter", //"Jordan Brunelle",
+    "Jamie Davis", //"Kelsey Brunelle",
+    "Taylor Johnson", //"Chris Robinson",
+    "Morgan Lee", //"Emily Robinson",
+    "Jordan Smith", //"Chanell Sourp",
+    "Naomi Williams", //"Jon Sourp",
   ];
 
   const ein = "123-456789"; // Replace with your actual EIN
@@ -77,6 +77,7 @@ export default function AboutUsPage() {
 
         {/* Section: Non-Profit Status */}
         <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">Our Commitment to You</h2>
+        {/* "with 501(c)(3) status" once obtained */}
         <p>
           Second Chance Animal Rescue and Sanctuary is a registered non-profit organization [pending 501(c)(3) status]. Our Employer Identification Number (EIN) is: <strong>{ein}</strong>. We promise to be responsible stewards of your generous support and maintain open communication about our operations and finances.
         </p>
