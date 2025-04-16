@@ -21,12 +21,12 @@ export default function DonatePage() {
           Online Donations - Coming Soon!
         </h2>
         <p className="text-gray-700 dark:text-gray-300 mb-6 text-center">
-          We're incredibly grateful for your interest in supporting us financially! We are currently in the process of finalizing our official non-profit status and obtaining our EIN (Employer Identification Number).
+                  We&apos;re incredibly grateful for your interest in supporting us financially! We are currently in the process of finalizing our official non-profit status and obtaining our EIN (Employer Identification Number).
         </p>
         {/* Highlight Box for Status */}
         <div className="mb-8 p-4 bg-indigo-50 dark:bg-gray-700 border-l-4 border-indigo-500 dark:border-indigo-400 rounded-r-md">
              <p className="text-indigo-800 dark:text-indigo-200 font-medium">
-                Once our EIN is confirmed, we'll be launching our secure online donation portal through Donorbox. Thank you for your patience!
+                      Once our EIN is confirmed, we&apos;ll be launching our secure online donation portal through Donorbox. Thank you for your patience!
             </p>
          </div>
 
@@ -72,7 +72,7 @@ export default function DonatePage() {
            <div>
               <strong className="font-medium text-gray-900 dark:text-gray-100">Spread the Word:</strong>
               <p className="text-gray-700 dark:text-gray-300 inline ml-1">
-                  Follow us on social media and share our animals' stories! Every share increases their chance of finding a home.
+                          Follow us on social media and share our animals&apos; stories! Every share increases their chance of finding a home.
               </p>
              {/* Add social media links here if desired */}
              {/*
@@ -85,7 +85,7 @@ export default function DonatePage() {
         </div>
 
         <p className="mt-10 text-center text-gray-600 dark:text-gray-400 italic">
-          Thank you for your understanding and support as we get established. We couldn't do this without you!
+                  Thank you for your understanding and support as we get established. We couldn&apos;t do this without you!
         </p>
       </div>
     </Container>
