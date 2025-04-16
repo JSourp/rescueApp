@@ -61,7 +61,11 @@ export default function AnimalDetailsPage() {
   }, [animalId]); // Re-fetch data if the animalId changes
 
   if (loading) {
-    return <div>Loading animal details...</div>;
+    return (
+      <div className="text-center py-10 text-gray-500 dark:text-gray-400">
+        Loading something adorable...
+      </div>
+    );
   }
 
   if (error) {

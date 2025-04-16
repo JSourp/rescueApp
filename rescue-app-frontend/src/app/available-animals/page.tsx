@@ -155,13 +155,7 @@ export default function AvailableAnimalsPage() {
 
   if (loading) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          textAlign: "center",
-        }}
-      >
+      <div className="text-center py-10 text-gray-500 dark:text-gray-400">
         Loading something adorable...
       </div>
     );
@@ -204,7 +198,7 @@ export default function AvailableAnimalsPage() {
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
-        
+
       </div>
 
       {/* Animal Grid */}

@@ -68,7 +68,7 @@ export default function Home() {
         {/* Conditionally render Spotlights based on loading and data */}
         {loadingSpotlights && (
            <div className="text-center py-10 text-gray-500 dark:text-gray-400">
-             Loading spotlights...
+            Loading something adorable...
            </div>
         )}
         {errorSpotlights && (
