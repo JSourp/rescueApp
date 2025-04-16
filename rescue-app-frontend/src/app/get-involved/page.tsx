@@ -66,20 +66,33 @@ export default function GetInvolvedPage() {
           </button>
         </div>
 
-         {/* Partner/Sponsor Section */}
-         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
-           <h2 className="text-2xl font-semibold mb-4 text-purple-600 dark:text-purple-400">Partner or Sponsor</h2>
-           <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
-             As a new rescue, community partnerships and sponsorships are vital. Support from local businesses and individuals helps us provide essential care, supplies, and facilities. Contact us to learn about opportunities.
-           </p>
-           <button
+        {/* Partner/Sponsor Section */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
+          <h2 className="text-2xl font-semibold mb-4 text-purple-600 dark:text-purple-400">Partner or Sponsor</h2>
+          <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
+            As a new rescue, community partnerships and sponsorships are vital. Support from local businesses and individuals helps us provide essential care, supplies, and facilities. Contact us to learn about opportunities.
+          </p>
+          <button
             onClick={() => setShowPartnershipSponsorshipForm(true)}
             className="mt-auto w-full bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition duration-300"
           >
             Inquire About Partnership/Sponsorship
           </button>
-         </div>
+        </div>
 
+        {/* Donations Section */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
+          <h2 className="text-2xl font-semibold mb-4 text-green-600 dark:text-green-400">Make a Donation</h2>
+          <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
+            Your donations help us provide food, medical care, and shelter for rescued animals. Every dollar counts and goes directly to the care of our animals. Thank you for your support!
+          </p>
+          <button
+            onClick={() => window.location.href = '/donate'}
+            className="mt-auto w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition duration-300"
+          >
+            Donate Now
+          </button>
+        </div>
       </div>
 
       {/* --- Modals for Forms --- */}

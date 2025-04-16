@@ -1,5 +1,6 @@
 import React from "react";
 import { Container } from "@/components/Container";
+import Link from "next/link";
 
 export const Donate = () => {
   return (
@@ -11,14 +12,9 @@ export const Donate = () => {
           </h2>
         </div>
         <div className="flex-shrink-0 w-full text-center lg:w-auto">
-          <a
-            href="https://github.com/web3templates"
-            target="_blank"
-            rel="noopener"
-            className="inline-block py-3 mx-auto text-lg font-medium text-center text-indigo-600 bg-white hover:bg-gray-100 rounded-md px-7 lg:px-10 lg:py-5 "
-          >
+          <Link href="/donate" className="inline-block py-3 mx-auto text-lg font-medium text-center text-indigo-600 bg-white hover:bg-gray-100 rounded-md px-7 lg:px-10 lg:py-5">
             Donate Today
-          </a>
+          </Link>
         </div>
       </div>
     </Container>

@@ -15,7 +15,7 @@ Key Accomplishments:
     -   About Us
     -   Available Animals
     -   Get Involved
-    -   Donating
+    -   Donate
     -   Home Page
 -   Establishment of basic navigation to allow users to move between pages.
 -   Initial configuration of the project with TypeScript, ESLint, and Tailwind CSS.
