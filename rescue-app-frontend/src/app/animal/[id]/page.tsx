@@ -15,7 +15,7 @@ async function fetchAnimal(id: string): Promise<Animal | null> {
 
   try {
     const response = await fetch(`${apiBaseUrl}/animals/${id}`, { // Use the id in the URL
-      cache: 'no-store',
+      cache: 'no-store', // Disable caching for fresh data
     });
 
     if (!response.ok) {
