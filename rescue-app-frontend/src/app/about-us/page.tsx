@@ -15,6 +15,9 @@ export default function AboutUsPage() {
 
   const ein = "123-456789"; // Replace with your actual EIN
 
+  // Dynamically calculate the number of board members
+  const boardMemberCount = boardMembers.length;
+
   return (
     <Container className="py-12 md:py-16">
       {/* Optional Hero Image */}
@@ -66,7 +69,7 @@ export default function AboutUsPage() {
         {/* Section: Meet the Team */}
         <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">Our Team</h2>
         <p>
-          Second Chance is guided by a dedicated board of six individuals. We come from varied backgrounds, united by years of hands-on animal welfare volunteering and a shared passion for creating a better future for animals in our community. We don&apos;t focus on titles; we focus on teamwork and leveraging our collective experience to serve the animals first.
+          Second Chance is guided by a dedicated board of {boardMemberCount} individuals. We come from varied backgrounds, united by years of hands-on animal welfare volunteering and a shared passion for creating a better future for animals in our community. We don&apos;t focus on titles; we focus on teamwork and leveraging our collective experience to serve the animals first.
         </p>
         {/* Simple List - Add more detail later if desired */}
         <ul className="list-disc list-inside">

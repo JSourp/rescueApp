@@ -97,13 +97,13 @@ export default function AnimalDetailsPage() {
         </div>
         <div>
           <p className="text-gray-700 mb-4">{animal.story}</p>
-          <p className="text-gray-700 mb-2">Type: {animal.animal_type}</p>
+          <p className="text-gray-700 mb-2">Species: {animal.animal_type}</p>
           <p className="text-gray-700 mb-2">Breed: {animal.breed}</p>
           <p className="text-gray-700 mb-2">Age: {calculateAge(animal.date_of_birth)}</p>
           <p className="text-gray-700 mb-2">Gender: {animal.gender}</p>
-          <p className="text-gray-700 mb-2">Weight (in lbs): {animal.weight}</p>
+          <p className="text-gray-700 mb-2">Weight: {animal.weight} lbs</p>
           {/*<p className="text-gray-700 mb-2">Intake date: {intakeDate}</p>*/}
-          <p className="text-gray-700 mb-2">Days with us: {daysWithUs} {daysLabel}</p>
+          <p className="text-gray-700 mb-2">Time with us: {daysWithUs} {daysLabel}</p>
           <p className="text-gray-700 mb-2">Adoption Status: {animal.adoption_status}</p>
           <button
              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
