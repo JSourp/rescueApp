@@ -22,7 +22,7 @@ export default function GetInvolvedPage() {
         There are many ways to support Second Chance Animal Rescue & Sanctuary. Find the perfect fit for you!
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"> {/* consider adding lg:grid-cols-3 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 
         {/* Adoption Section */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
@@ -67,7 +67,7 @@ export default function GetInvolvedPage() {
         </div>
 
         {/* Partner/Sponsor Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col md:col-span-2 lg:col-span-1 lg:col-start-2"> {/* Centering example for last item */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
           <h2 className="text-2xl font-semibold mb-4 text-purple-600 dark:text-purple-400">Partner or Sponsor</h2>
 
           <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
@@ -82,7 +82,7 @@ export default function GetInvolvedPage() {
         </div>
 
         {/* Donations Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col md:col-span-2 lg:col-span-1 lg:col-start-2"> {/* Adjust column span for larger screens and centering within the div */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col md:col-span-2 lg:col-span-1 lg:col-start-2"> {/* Centering example for last item */}
           <h2 className="text-2xl font-semibold mb-4 text-green-600 dark:text-green-400">Make a Donation</h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
             Your donations help us provide food, medical care, and shelter for rescued animals. Every dollar counts and goes directly to the care of our animals. Thank you for your support!
