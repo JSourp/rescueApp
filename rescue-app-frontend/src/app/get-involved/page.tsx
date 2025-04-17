@@ -22,7 +22,7 @@ export default function GetInvolvedPage() {
         There are many ways to support Second Chance Animal Rescue & Sanctuary. Find the perfect fit for you!
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center">
 
         {/* Adoption Section */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
