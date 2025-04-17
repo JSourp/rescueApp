@@ -235,7 +235,7 @@ export function PopupWidget() {
                         )}
                       </div>
 
-                      <div className="mb-4">
+                      <div className="mb-3">
                         <label
                           htmlFor="message"
                           className="block mb-2 text-sm text-gray-600 dark:text-gray-400"
@@ -243,13 +243,13 @@ export function PopupWidget() {
                           Your Message
                         </label>
                         <textarea
-                          rows={4}
+                          rows={3}
                           id="message"
                           {...register("message", {
                             required: "Enter your Message",
                           })}
                           placeholder="Your Message"
-                          className={`w-full px-3 py-2 text-gray-600 placeholder-gray-300 bg-white border border-gray-300 rounded-md h-28 focus:outline-none focus:ring ${
+                          className={`w-full px-3 py-2 text-gray-600 placeholder-gray-300 bg-white border border-gray-300 rounded-md h-21 focus:outline-none focus:ring ${
                             errors.message
                               ? "border-red-600 focus:border-red-600 ring-red-100"
                               : "border-gray-300 focus:border-indigo-600 ring-indigo-100"

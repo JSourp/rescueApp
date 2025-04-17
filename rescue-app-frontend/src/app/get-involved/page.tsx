@@ -22,10 +22,9 @@ export default function GetInvolvedPage() {
         There are many ways to support Second Chance Animal Rescue & Sanctuary. Find the perfect fit for you!
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 justify-items-center">
-
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center">
         {/* Adoption Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xl">
           <h2 className="text-2xl font-semibold mb-4 text-indigo-600 dark:text-indigo-400">Adopt a Friend</h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
             Ready to open your heart and home? Adopting a rescued animal provides a second chance at a happy life. Browse our available animals and submit an application to start the process.
@@ -39,7 +38,7 @@ export default function GetInvolvedPage() {
         </div>
 
         {/* Fostering Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xl">
           <h2 className="text-2xl font-semibold mb-4 text-teal-600 dark:text-teal-400">Foster an Animal</h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
             Foster homes provide temporary care for animals before they find their forever families. By fostering, you help us save more lives and provide animals with a loving home environment while they wait.
@@ -53,7 +52,7 @@ export default function GetInvolvedPage() {
         </div>
 
         {/* Volunteering Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xl">
           <h2 className="text-2xl font-semibold mb-4 text-orange-600 dark:text-orange-400">Volunteer Your Time</h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
             Our volunteers are the backbone of our rescue! From dog walking and cat socializing to helping at events or with administrative tasks, your time makes a huge difference. Let us know how you&apos;d like to help.
@@ -67,7 +66,7 @@ export default function GetInvolvedPage() {
         </div>
 
         {/* Partner/Sponsor Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xl">
           <h2 className="text-2xl font-semibold mb-4 text-purple-600 dark:text-purple-400">Partner or Sponsor</h2>
 
           <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
@@ -82,7 +81,7 @@ export default function GetInvolvedPage() {
         </div>
 
         {/* Donations Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col lg:col-span-3 lg:justify-self-center"> {/* Centering example for last item */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col justify-self-center md:col-span-2 max-w-xl">
           <h2 className="text-2xl font-semibold mb-4 text-green-600 dark:text-green-400">Make a Donation</h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
             Your donations help us provide food, medical care, and shelter for rescued animals. Every dollar counts and goes directly to the care of our animals. Thank you for your support!
