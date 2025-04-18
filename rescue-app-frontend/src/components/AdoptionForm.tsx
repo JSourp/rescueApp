@@ -371,7 +371,7 @@ export default function AdoptionForm({ animalName, animalId, onClose }: Adoption
               <div className="mb-4 p-3 bg-blue-50 dark:bg-gray-700 border-l-4 border-blue-500 dark:border-blue-400 rounded-r-md">
                 <label className={`${labelBaseClasses} flex items-center cursor-pointer`}>
                   <input type="checkbox" id="landlord_permission" {...register("landlord_permission", { required: "Landlord permission is required if renting" })} className={`form-checkbox h-5 w-5 text-indigo-600 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded mr-2 ${errors.landlord_permission ? 'border-red-500 dark:border-red-600' : ''}`} />
-                  <span className="text-sm text-gray-800 dark:text-gray-200">I confirm I have my landlord's permission for a pet of this type/size.</span>
+                  <span className="text-sm text-gray-800 dark:text-gray-200">I confirm I have my landlord&apos;s permission for a pet of this type/size.</span>
                 </label>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">We may need to verify this with your landlord later in the process.</p>
                 {errors.landlord_permission && <p className={errorTextClasses}>{errors.landlord_permission.message}</p>}

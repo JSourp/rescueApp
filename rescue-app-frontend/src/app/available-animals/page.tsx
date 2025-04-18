@@ -182,7 +182,7 @@ export default function AvailableAnimalsPage() {
       {/* Filtering Options */}
       <div className="flex flex-wrap items-center mb-4 gap-4"> {/* Added gap for spacing */}
         <select value={animalTypeFilter} onChange={handleAnimalTypeFilterChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600" aria-label="Filter by Animal Type">
-          <option value="">All Types</option>
+          <option value="">All Species</option>
           {animalTypes.map(type => (
             <option key={type} value={type}>{type}</option>
           ))}

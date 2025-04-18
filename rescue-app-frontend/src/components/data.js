@@ -44,27 +44,18 @@ export const calculateAge = (date_of_birth) => {
 
 export const fetchSpotlights = async () => {
   try {
-    // Consider adding the status filter directly to the API call if possible
-    // ?adoption_status=Available,Available%20-%20In%20Foster&limit=2&sortBy=idAsc (or similar)
-    // This avoids fetching ALL animals client-side
-    const response = await fetch(`${apiBaseUrl}/animals`); // Fetches all animals currently
+    // Added the status filter directly to the API call
+    // Fetches all animals currently "Available" or "Available - In Foster"
+    // Excludes only "Adoption Pending" animals from spotlight, compared to the available-animals page
+    // and sorts them by the longest time in the shelter, limiting to 2 results
+    const response = await fetch(`${apiBaseUrl}/animals?adoption_status=Available,Available%20-%20In%20Foster&sortBy=longest&limit=2`);
     if (!response.ok) {
       throw new Error("Failed to fetch spotlight data");
     }
     const data = await response.json();
 
-    // Assuming API returns camelCase now due to backend serialization settings
-    const filteredData = data
-      .filter((animal) => // Use 'any' or define a proper type if available
-        ["Available", "Available - In Foster"].includes(animal.adoption_status)
-        // Note: Excluding "Adoption Pending" from spotlight usually makes sense
-      )
-      // Sort by ID ascending (adjust if different criteria needed)
-      .sort((a, b) => a.id - b.id)
-      .slice(0, 2); // Get the first two results
-
-    // Map the filtered data, PRESERVING id and name
-    return filteredData.map((animal) => ({
+    // Map the API response directly to the required structure
+    return data.map((animal) => ({
       id: animal.id,
       name: animal.name,
       title: `Meet ${animal.name}`, // Title for display
