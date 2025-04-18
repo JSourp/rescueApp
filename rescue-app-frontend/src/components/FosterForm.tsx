@@ -1,266 +1,640 @@
+// src/components/FosterForm.tsx
 "use client";
 import React, { useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
+import Tippy from '@tippyjs/react';
+import 'tippy.js/dist/tippy.css';
 
+// Define the shape of your foster form data
 interface FosterFormData {
-  // Contact Info
-  first_name: string;
-  last_name: string;
-  spouse_partner_roommate?: string; // Optional
-  street_address: string;
-  apt_unit?: string; // Optional
-  city: string;
-  state_province: string;
-  zip_postal_code: string;
-  primary_phone: string;
-  primary_phone_type: 'Cell' | 'Home' | 'Work' | ''; // Enum-like type
-  secondary_phone?: string; // Optional
-  secondary_phone_type?: 'Cell' | 'Home' | 'Work' | ''; // Optional
-  primary_email: string;
-  secondary_email?: string; // Optional
-  how_heard?: string; // Optional text/select
+	// Applicant Information
+	first_name: string;
+	last_name: string;
+	spouse_partner_roommate?: string;
+	street_address: string;
+	apt_unit?: string;
+	city: string;
+	state_province: string;
+	zip_postal_code: string;
+	primary_phone: string;
+	primary_phone_type: 'Cell' | 'Home' | 'Work' | '';
+	secondary_phone?: string;
+	secondary_phone_type?: 'Cell' | 'Home' | 'Work' | '';
+	primary_email: string;
+	secondary_email?: string;
+	how_heard?: string;
 
-  // Foster Specific
-  /* Coming soon
-  Have you ever fostered an animal? Y/N
-  Share your reasons for wanting to foster for Second Chance. (open text)
-  Will you be the primary caretaker of the foster animal(s)?
-  What year were you born? (YYYY)
-  How many people live in your household?
-  */
+	// Household & Home Environment
+	adults_in_home: string;
+	children_in_home?: string;
+	has_allergies?: 'Yes' | 'No' | 'Unsure' | '';
+	household_aware_foster: 'Yes' | 'No' | '';
+	dwelling_type: 'House' | 'Apartment' | 'Condo/Townhouse' | 'Mobile Home' | 'Other' | '';
+	rent_or_own: 'Rent' | 'Own' | '';
+	landlord_permission?: boolean;
+	yard_type?: 'Fenced' | 'Unfenced' | 'Patio/Balcony Only' | 'None' | '';
+	separation_plan: string;
 
-  // Submission related (hidden/internal)
-  subject: string;
-  botcheck?: string;
+	// Current Pet Information
+	has_current_pets: 'Yes' | 'No' | '';
+	current_pets_details?: string;
+	current_pets_spayed_neutered?: 'Yes' | 'No' | 'Some' | 'N/A' | '';
+	current_pets_vaccinations?: 'Yes' | 'No' | 'N/A' | '';
+	vet_clinic_name?: string;
+	vet_phone?: string;
+
+	// Foster Experience & Preferences
+	has_fostered_before: 'Yes' | 'No' | '';
+	previous_foster_details?: string;
+	why_foster: string;
+	foster_animal_types: string[];
+	willing_medical: 'Yes' | 'No' | 'Maybe' | '';
+	willing_behavioral: 'Yes' | 'No' | 'Maybe' | '';
+	commitment_length: 'Short-term (<1 month)' | 'Medium-term (1-3 months)' | 'Longer-term (3+ months)' | 'Flexible' | '';
+	can_transport: 'Yes' | 'No' | 'Maybe' | '';
+	previous_pets_details?: string;
+	transport_explanation?: string;
+
+	// Submission related
+	subject: string;
+	botcheck?: string;
 }
 
+// --- Tooltip Components ---
+const InfoIcon = () => (
+	<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 inline align-middle">
+		<path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+	</svg>
+);
+const TooltipButton = ({ content, label }: { content: string, label: string }) => (
+	<Tippy content={content} placement="top" animation="shift-away-subtle">
+		<button type="button" aria-label={label} className="ml-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none align-middle">
+			<InfoIcon />
+		</button>
+	</Tippy>
+);
+
 interface FosterFormProps {
-  onClose: () => void;
+	onClose: () => void;
 }
 
 export default function FosterForm({ onClose }: FosterFormProps) {
-  const prefilledSubject = `Foster Application`;
+	const defaultSubject = `Foster Application`; // Generic subject for foster
 
-  const {
-	register,
-	handleSubmit,
-	reset,
-	control, // Needed for controlled components like radio groups if used
-	formState: { errors, isSubmitting },
-  } = useForm<FosterFormData>({
-	mode: "onTouched",
-	defaultValues: {
-	  subject: prefilledSubject,
-	  primary_phone_type: '', // Set initial default for selects
-	  secondary_phone_type: '',
-	}
-  });
+	const {
+		register,
+		handleSubmit,
+		reset,
+		watch,
+		formState: { errors, isSubmitting },
+	} = useForm<FosterFormData>({
+		mode: "onTouched",
+		defaultValues: { // Set defaults for all fields needing one
+			subject: defaultSubject,
+			primary_phone_type: '', secondary_phone_type: '', has_allergies: '',
+			household_aware_foster: '', dwelling_type: '', rent_or_own: '',
+			landlord_permission: false, yard_type: '', has_current_pets: '',
+			current_pets_spayed_neutered: '', current_pets_vaccinations: '',
+			has_fostered_before: '', willing_medical: '', willing_behavioral: '',
+			commitment_length: '', can_transport: '', foster_animal_types: [],
+		}
+	});
 
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState("");
+	// Watch values for conditional rendering
+	const rentOrOwnValue = watch("rent_or_own");
+	const hasCurrentPetsValue = watch("has_current_pets");
+	const hasFosteredBeforeValue = watch("has_fostered_before");
 
-  // Re-use the onSubmit logic, adjusting the payload for web3forms
-  const onSubmit = async (data: FosterFormData) => {
-	setIsSuccess(false);
-	setSubmitMessage("");
-	console.log("Foster Form Data:", data);
+	const [isSuccess, setIsSuccess] = useState(false);
+	const [submitMessage, setSubmitMessage] = useState("");
 
-	try {
-	  if (data.botcheck) {
-		console.warn("Bot submission detected. Ignoring.");
-		setSubmitMessage("Submission ignored due to bot detection.");
-		return;
-	  }
+	const onSubmit = async (data: FosterFormData) => {
+		setIsSuccess(false);
+		setSubmitMessage("");
+		console.log("Foster Form Data:", data);
 
-	  // Prepare data for web3forms (flatten array, etc.)
-	  const payload = {
-		  ...data,
-		  access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
-		  from_name: "Rescue App Foster Application",
-		  // Remove botcheck before sending
-		  botcheck: undefined,
-	  }
+		// Basic check for landlord permission if renting
+		if (data.rent_or_own === 'Rent' && !data.landlord_permission) {
+			setSubmitMessage("Please confirm you have landlord permission if you are renting.");
+			return;
+		}
+		// Check that at least one animal type is selected
+		if (!data.foster_animal_types || data.foster_animal_types.length === 0) {
+			setSubmitMessage("Please select at least one type of animal you are interested in fostering.");
+			return; // Or set focus to the field
+		}
 
-	  const response = await fetch("https://api.web3forms.com/submit", {
-		method: "POST",
-		headers: {
-		  "Content-Type": "application/json",
-		  Accept: "application/json",
-		},
-		body: JSON.stringify(payload),
-	  });
+		try {
+			if (data.botcheck) {
+				console.warn("Bot submission detected. Ignoring.");
+				setSubmitMessage("Submission ignored due to bot detection.");
+				return;
+			}
 
-	  const result = await response.json();
-	  if (result.success) {
-		setIsSuccess(true);
-		setSubmitMessage("Thank you! Your foster application has been submitted. Someone from our team will follow up with you shortly.");
-		reset(); // Reset form fields after successful submission
-	  } else {
-		throw new Error(result.message || "Failed to send application.");
-	  }
-	} catch (error: any) {
-	  setIsSuccess(false);
-	  setSubmitMessage(error.message || "An unexpected error occurred. Please try again.");
-	  console.error("Form Submission Error:", error);
-	}
-  };
+			const payload = {
+				...data,
+				foster_animal_types: data.foster_animal_types?.join(', '), // Convert array to string for submission
+				access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
+				from_name: "Rescue App Foster Application",
+				botcheck: undefined,
+			}
 
+			const response = await fetch("https://api.web3forms.com/submit", {
+				method: "POST",
+				headers: { "Content-Type": "application/json", Accept: "application/json" },
+				body: JSON.stringify(payload),
+			});
 
-  // --- FORM JSX ---
-  // Use grid layout for address fields, etc.
-  return (
-	 <div className="flex flex-col max-h-[85vh]">
-		{/* Header */}
-		<div className="flex-shrink-0 p-5 bg-orange-600">
-			 <h3 className="text-lg text-white text-center font-semibold">Foster Application</h3>
-		</div>
+			const result = await response.json();
+			if (result.success) {
+				setIsSuccess(true);
+				setSubmitMessage("Thank you! Your foster application has been submitted. Our foster coordinator will be in touch soon!");
 
-		 {/* Form Area - Make scrollable */}
-		<div className="flex-grow p-6 bg-gray-50 dark:bg-gray-800 overflow-y-auto">
-			{!isSuccess ? (
-				<form onSubmit={handleSubmit(onSubmit)} noValidate>
-					{/* Honeypot & Hidden Subject */}
-					<input type="checkbox" className="hidden" style={{ display: "none" }} {...register("botcheck")} />
-					<input type="hidden" {...register("subject")} />
+				// Delay the form closure to let the user see the success message
+				setTimeout(() => {
+					onClose(); // Close the form after a delay
+					setIsSuccess(false); // Optionally reset the success state
+					setSubmitMessage(""); // Clear the success message
+				}, 5000); // Adjust the delay time (e.g., 5000ms = 5 seconds)
+			} else {
+				throw new Error(result.message || "Failed to send application.");
+			}
+		} catch (error: any) {
+			setIsSuccess(false);
+			setSubmitMessage(error.message || "An unexpected error occurred. Please try again.");
+			console.error("Form Submission Error:", error);
+		}
+	};
 
-					{/* --- Contact Info Section --- */}
-					<h4 className="text-lg font-medium mb-3 text-gray-800 dark:text-gray-200">Contact Information</h4>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-					   {/* First Name */}
-						<div>
-							<label htmlFor="first_name" className="block mb-1 text-sm text-gray-600 dark:text-gray-400">First Name *</label>
-							<input type="text" id="first_name" {...register("first_name", { required: "First name is required" })} className={`w-full p-2 border ${errors.first_name ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'} rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-orange-100 dark:focus:ring-orange-900 focus:border-orange-500 dark:focus:border-orange-500`} />
-							{errors.first_name && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.first_name.message}</p>}
+	// --- Base styling classes (adjust theme color, e.g., focus:ring-teal-100) ---
+	const inputBaseClasses = "w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-teal-100 dark:focus:ring-teal-900 focus:border-teal-500 dark:focus:border-teal-500";
+	const inputBorderClasses = (hasError: boolean) => hasError ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600';
+	const errorTextClasses = "text-red-500 dark:text-red-400 text-xs mt-1";
+	const labelBaseClasses = "block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300";
+	const sectionTitleClasses = "text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200 flex items-center";
+	const radioLabelClasses = "ml-2 text-sm text-gray-700 dark:text-gray-300";
+	const radioInputClasses = "form-radio h-4 w-4 text-teal-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600"; // Teal theme
+	const checkboxLabelClasses = "ml-2 text-sm text-gray-700 dark:text-gray-300";
+	const checkboxInputClasses = "form-checkbox h-4 w-4 text-teal-600 border-gray-300 dark:border-gray-600 rounded focus:ring-teal-500 dark:bg-gray-700"; // Teal theme
+	const subSectionTitleClasses = "text-md font-medium mt-4 mb-2 text-gray-700 dark:text-gray-300 flex items-center";
+
+	return (
+		<div className="flex flex-col max-h-[85vh]">
+			{/* Header */}
+			<div className="flex-shrink-0 p-5 bg-teal-600"> {/* Teal theme for Foster */}
+				<h3 className="text-lg text-white text-center font-semibold">
+					Foster Application
+				</h3>
+			</div>
+
+			{/* Form Area - Scrollable */}
+			<div className="flex-grow p-6 bg-gray-50 dark:bg-gray-800 overflow-y-auto">
+				{!isSuccess ? (
+					<form onSubmit={handleSubmit(onSubmit)} noValidate>
+						{/* Honeypot & Hidden Subject */}
+						<input type="checkbox" className="hidden" style={{ display: "none" }} {...register("botcheck")} />
+						<input type="hidden" {...register("subject")} />
+
+						{/* --- Contact Info Section --- */}
+						<h4 className={sectionTitleClasses}>
+							Applicant Information
+							<TooltipButton content="Basic contact details allow us to follow up on your application." label="More info about applicant information" />
+						</h4>
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+							{/* First Name */}
+							<div>
+								<label htmlFor="first_name" className={labelBaseClasses}>First Name *</label>
+								<input type="text" id="first_name" {...register("first_name", { required: "First name is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.first_name)}`} />
+								{errors.first_name && <p className={errorTextClasses}>{errors.first_name.message}</p>}
+							</div>
+							{/* Last Name */}
+							<div>
+								<label htmlFor="last_name" className={labelBaseClasses}>Last Name *</label>
+								<input type="text" id="last_name" {...register("last_name", { required: "Last name is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.last_name)}`} />
+								{errors.last_name && <p className={errorTextClasses}>{errors.last_name.message}</p>}
+							</div>
 						</div>
-						{/* Last Name */}
-						 <div>
-							<label htmlFor="last_name" className="block mb-1 text-sm text-gray-600 dark:text-gray-400">Last Name *</label>
-							<input type="text" id="last_name" {...register("last_name", { required: "Last name is required" })} className={`w-full p-2 border ${errors.last_name ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'} rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-orange-100 dark:focus:ring-orange-900 focus:border-orange-500 dark:focus:border-orange-500`} />
-							{errors.last_name && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.last_name.message}</p>}
+						{/* Spouse/Partner (Optional) */}
+						<div className="mb-4">
+							<label htmlFor="spouse_partner_roommate" className={labelBaseClasses}>Spouse / Partner / Roommate Name(s) (Optional)</label>
+							<input type="text" id="spouse_partner_roommate" {...register("spouse_partner_roommate")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.spouse_partner_roommate)}`} />
 						</div>
-					</div>
-					{/* Spouse/Partner (Optional) */}
-					 <div className="mb-4">
-						<label htmlFor="spouse_partner_roommate" className="block mb-1 text-sm text-gray-600 dark:text-gray-400">Spouse/Partner/Roommate (Optional)</label>
-						<input type="text" id="spouse_partner_roommate" {...register("spouse_partner_roommate")} className={`w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-orange-100 dark:focus:ring-orange-900 focus:border-orange-500 dark:focus:border-orange-500`} />
-					</div>
-					{/* Street Address */}
-					 <div className="mb-4">
-						<label htmlFor="street_address" className="block mb-1 text-sm text-gray-600 dark:text-gray-400">Street Address *</label>
-						<input type="text" id="street_address" {...register("street_address", { required: "Street address is required" })} className={`w-full p-2 border ${errors.street_address ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'} rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-orange-100 dark:focus:ring-orange-900 focus:border-orange-500 dark:focus:border-orange-500`} />
-						 {errors.street_address && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.street_address.message}</p>}
-					</div>
-					 {/* Apt/Unit (Optional) */}
-					 <div className="mb-4">
-						<label htmlFor="apt_unit" className="block mb-1 text-sm text-gray-600 dark:text-gray-400">Apt/Unit # (Optional)</label>
-						<input type="text" id="apt_unit" {...register("apt_unit")} className={`w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-orange-100 dark:focus:ring-orange-900 focus:border-orange-500 dark:focus:border-orange-500`} />
-					</div>
-					 {/* City/State/Zip */}
-					 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-						 <div>
-							<label htmlFor="city" className="block mb-1 text-sm text-gray-600 dark:text-gray-400">City *</label>
-							<input type="text" id="city" {...register("city", { required: "City is required" })} className={`w-full p-2 border ${errors.city ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'} rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-orange-100 dark:focus:ring-orange-900 focus:border-orange-500 dark:focus:border-orange-500`} />
-							{errors.city && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.city.message}</p>}
-						 </div>
-						  <div>
-							<label htmlFor="state_province" className="block mb-1 text-sm text-gray-600 dark:text-gray-400">State/Province *</label>
-							<input type="text" id="state_province" {...register("state_province", { required: "State/Province is required" })} className={`w-full p-2 border ${errors.state_province ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'} rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-orange-100 dark:focus:ring-orange-900 focus:border-orange-500 dark:focus:border-orange-500`} />
-							 {errors.state_province && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.state_province.message}</p>}
-						 </div>
-						  <div>
-							<label htmlFor="zip_postal_code" className="block mb-1 text-sm text-gray-600 dark:text-gray-400">Zip/Postal Code *</label>
-							<input type="text" id="zip_postal_code" {...register("zip_postal_code", { required: "Zip/Postal Code is required" })} className={`w-full p-2 border ${errors.zip_postal_code ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'} rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-orange-100 dark:focus:ring-orange-900 focus:border-orange-500 dark:focus:border-orange-500`} />
-							 {errors.zip_postal_code && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.zip_postal_code.message}</p>}
-						 </div>
-					 </div>
-					{/* Primary Phone */}
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-						<div>
-							<label htmlFor="primary_phone" className="block mb-1 text-sm text-gray-600 dark:text-gray-400">Primary Phone *</label>
-							<input type="tel" id="primary_phone" {...register("primary_phone", { required: "Primary phone is required" })} className={`w-full p-2 border ${errors.primary_phone ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'} rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-orange-100 dark:focus:ring-orange-900 focus:border-orange-500 dark:focus:border-orange-500`} />
-							{errors.primary_phone && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.primary_phone.message}</p>}
+						{/* Primary Email */}
+						<div className="mb-4">
+							<label htmlFor="primary_email" className={labelBaseClasses}>Primary Email *</label>
+							<input type="email" id="primary_email" {...register("primary_email", { required: "Email is required", pattern: { value: /^\S+@\S+$/i, message: "Invalid email format" } })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.primary_email)}`} />
+							{errors.primary_email && <p className={errorTextClasses}>{errors.primary_email.message}</p>}
 						</div>
-						 <div>
-							<label htmlFor="primary_phone_type" className="block mb-1 text-sm text-gray-600 dark:text-gray-400">Primary Phone Type *</label>
-							<select id="primary_phone_type" {...register("primary_phone_type", { required: "Select phone type" })} className={`w-full p-2 border ${errors.primary_phone_type ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'} rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring focus:ring-orange-100 dark:focus:ring-orange-900 focus:border-orange-500 dark:focus:border-orange-500`}>
-								<option value="">Select Type...</option>
-								<option value="Cell">Cell</option>
-								<option value="Home">Home</option>
-								<option value="Work">Work</option>
+						{/* Secondary Email (Optional) */}
+						<div className="mb-4">
+							<label htmlFor="secondary_email" className={labelBaseClasses}>Secondary Email (Optional)</label>
+							<input type="email" id="secondary_email" {...register("secondary_email", { pattern: { value: /^\S+@\S+$/i, message: "Invalid email format" } })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.secondary_email)}`} />
+							{errors.secondary_email && <p className={errorTextClasses}>{errors.secondary_email.message}</p>}
+						</div>
+						{/* Primary Phone */}
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+							<div>
+								<label htmlFor="primary_phone" className={labelBaseClasses}>Primary Phone *</label>
+								<input type="tel" id="primary_phone" {...register("primary_phone", { required: "Primary phone is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.primary_phone)}`} />
+								{errors.primary_phone && <p className={errorTextClasses}>{errors.primary_phone.message}</p>}
+							</div>
+							<div>
+								<label htmlFor="primary_phone_type" className={labelBaseClasses}>Primary Phone Type *</label>
+								<select id="primary_phone_type" {...register("primary_phone_type", { required: "Select phone type" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.primary_phone_type)}`}>
+									<option value="">Select Type...</option>
+									<option value="Cell">Cell</option>
+									<option value="Home">Home</option>
+									<option value="Work">Work</option>
+								</select>
+								{errors.primary_phone_type && <p className={errorTextClasses}>{errors.primary_phone_type.message}</p>}
+							</div>
+						</div>
+						{/* Secondary Phone (Optional) */}
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+							<div>
+								<label htmlFor="secondary_phone" className={labelBaseClasses}>Secondary Phone (Optional)</label>
+								<input type="tel" id="secondary_phone" {...register("secondary_phone")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.secondary_phone)}`} />
+							</div>
+							<div>
+								<label htmlFor="secondary_phone_type" className={labelBaseClasses}>Secondary Phone Type</label>
+								<select id="secondary_phone_type" {...register("secondary_phone_type")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.secondary_phone_type)}`}>
+									<option value="">Select Type...</option>
+									<option value="Cell">Cell</option>
+									<option value="Home">Home</option>
+									<option value="Work">Work</option>
+								</select>
+							</div>
+						</div>
+
+						{/* --- Household & Home Environment Section --- */}
+						<hr className="my-6 border-gray-300 dark:border-gray-600" />
+						<h4 className={sectionTitleClasses}>
+							Home & Household
+							<TooltipButton content="Helps us understand the potential foster environment to ensure it's safe and suitable for temporary care." label="More info about home and household questions" />
+						</h4>
+						{/* Street Address */}
+						<div className="mb-4">
+							<label htmlFor="street_address" className={labelBaseClasses}>Street Address *</label>
+							<input type="text" id="street_address" {...register("street_address", { required: "Street address is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.street_address)}`} />
+							{errors.street_address && <p className={errorTextClasses}>{errors.street_address.message}</p>}
+						</div>
+						{/* Apt/Unit (Optional) */}
+						<div className="mb-4">
+							<label htmlFor="apt_unit" className={labelBaseClasses}>Apt/Unit # (Optional)</label>
+							<input type="text" id="apt_unit" {...register("apt_unit")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.apt_unit)}`} />
+						</div>
+						{/* City/State/Zip */}
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+							<div>
+								<label htmlFor="city" className={labelBaseClasses}>City *</label>
+								<input type="text" id="city" {...register("city", { required: "City is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.city)}`} />
+								{errors.city && <p className={errorTextClasses}>{errors.city.message}</p>}
+							</div>
+							<div>
+								<label htmlFor="state_province" className={labelBaseClasses}>State/Province *</label>
+								{/* Consider a dropdown for state if only serving specific areas */}
+								<input type="text" id="state_province" {...register("state_province", { required: "State/Province is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.state_province)}`} />
+								{errors.state_province && <p className={errorTextClasses}>{errors.state_province.message}</p>}
+							</div>
+							<div>
+								<label htmlFor="zip_postal_code" className={labelBaseClasses}>Zip/Postal Code *</label>
+								<input type="text" id="zip_postal_code" {...register("zip_postal_code", { required: "Zip/Postal Code is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.zip_postal_code)}`} />
+								{errors.zip_postal_code && <p className={errorTextClasses}>{errors.zip_postal_code.message}</p>}
+							</div>
+						</div>
+						{/* Dwelling Type */}
+						<div className="mb-4">
+							<label htmlFor="dwelling_type" className={labelBaseClasses}>Type of Dwelling *</label>
+							<select id="dwelling_type" {...register("dwelling_type", { required: "Please select dwelling type" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.dwelling_type)}`}>
+								<option value="">Select...</option>
+								<option value="House">House</option>
+								<option value="Apartment">Apartment</option>
+								<option value="Condo/Townhouse">Condo/Townhouse</option>
+								<option value="Mobile Home">Mobile Home</option>
+								<option value="Other">Other</option>
 							</select>
-							{errors.primary_phone_type && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.primary_phone_type.message}</p>}
-						 </div>
-					</div>
-					{/* Secondary Phone (Optional) */}
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-						<div>
-							<label htmlFor="secondary_phone" className="block mb-1 text-sm text-gray-600 dark:text-gray-400">Secondary Phone (Optional)</label>
-							<input type="tel" id="secondary_phone" {...register("secondary_phone")} className={`w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-orange-100 dark:focus:ring-orange-900 focus:border-orange-500 dark:focus:border-orange-500`} />
+							{errors.dwelling_type && <p className={errorTextClasses}>{errors.dwelling_type.message}</p>}
 						</div>
-						<div>
-							<label htmlFor="secondary_phone_type" className="block mb-1 text-sm text-gray-600 dark:text-gray-400">Secondary Phone Type</label>
-							 <select id="secondary_phone_type" {...register("secondary_phone_type")} className={`w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring focus:ring-orange-100 dark:focus:ring-orange-900 focus:border-orange-500 dark:focus:border-orange-500`}>
-								<option value="">Select Type...</option>
-								<option value="Cell">Cell</option>
-								<option value="Home">Home</option>
-								<option value="Work">Work</option>
+						{/* Rent or Own */}
+						<div className="mb-4">
+							<label className={labelBaseClasses}>Do you Rent or Own? *</label>
+							<div className="flex flex-wrap gap-x-4 gap-y-2 mt-1">
+								<label className="inline-flex items-center">
+									<input type="radio" value="Rent" {...register("rent_or_own", { required: "Please select Rent or Own" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
+									<span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Rent</span>
+								</label>
+								<label className="inline-flex items-center">
+									<input type="radio" value="Own" {...register("rent_or_own", { required: "Please select Rent or Own" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
+									<span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Own</span>
+								</label>
+							</div>
+							{errors.rent_or_own && <p className={errorTextClasses}>{errors.rent_or_own.message}</p>}
+						</div>
+						{/* Conditional Landlord Permission */}
+						{rentOrOwnValue === 'Rent' && (
+							<div className="mb-4 p-3 bg-blue-50 dark:bg-gray-700 border-l-4 border-blue-500 dark:border-blue-400 rounded-r-md">
+								<label className={`${labelBaseClasses} flex items-center cursor-pointer`}>
+									<input type="checkbox" id="landlord_permission" {...register("landlord_permission", { required: "Landlord permission is required if renting" })} className={`form-checkbox h-5 w-5 text-indigo-600 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded mr-2 ${errors.landlord_permission ? 'border-red-500 dark:border-red-600' : ''}`} />
+									<span className="text-sm text-gray-800 dark:text-gray-200">I confirm I have my landlord's permission for a pet of this type/size.</span>
+								</label>
+								<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">We may need to verify this with your landlord later in the process.</p>
+								{errors.landlord_permission && <p className={errorTextClasses}>{errors.landlord_permission.message}</p>}
+							</div>
+						)}
+						{/* Yard Type */}
+						<div className="mb-4">
+							<label htmlFor="yard_type" className={labelBaseClasses}>Yard Type (If applicable)</label>
+							<select id="yard_type" {...register("yard_type")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.yard_type)}`}>
+								<option value="">Select...</option>
+								<option value="Fenced">Fenced Yard</option>
+								<option value="Unfenced">Unfenced Yard</option>
+								<option value="Patio/Balcony Only">Patio/Balcony Only</option>
+								<option value="None">No Yard/Access</option>
 							</select>
-						 </div>
-					</div>
-					 {/* Primary Email */}
-					 <div className="mb-4">
-						<label htmlFor="primary_email" className="block mb-1 text-sm text-gray-600 dark:text-gray-400">Primary Email *</label>
-						<input type="email" id="primary_email" {...register("primary_email", { required: "Email is required", pattern: { value: /^\S+@\S+$/i, message: "Invalid email format"} })} className={`w-full p-2 border ${errors.primary_email ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'} rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-orange-100 dark:focus:ring-orange-900 focus:border-orange-500 dark:focus:border-orange-500`} />
-						{errors.primary_email && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.primary_email.message}</p>}
-					</div>
-					 {/* Secondary Email (Optional) */}
-					  <div className="mb-4">
-						<label htmlFor="secondary_email" className="block mb-1 text-sm text-gray-600 dark:text-gray-400">Secondary Email (Optional)</label>
-						<input type="email" id="secondary_email" {...register("secondary_email", { pattern: { value: /^\S+@\S+$/i, message: "Invalid email format"} })} className={`w-full p-2 border ${errors.secondary_email ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600'} rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-orange-100 dark:focus:ring-orange-900 focus:border-orange-500 dark:focus:border-orange-500`} />
-						 {errors.secondary_email && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.secondary_email.message}</p>}
-					</div>
+						</div>
+						{/* Adults & Children */}
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+							<div>
+								<label htmlFor="adults_in_home" className={labelBaseClasses}>Number of Adults in Household (18+)? *</label>
+								<input type="number" min="1" step="1" id="adults_in_home" {...register("adults_in_home", { required: "Number of adults is required", min: { value: 1, message: "Must be at least 1 adult" } })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adults_in_home)}`} />
+								{errors.adults_in_home && <p className={errorTextClasses}>{errors.adults_in_home.message}</p>}
+							</div>
+							<div>
+								<label htmlFor="children_in_home" className={labelBaseClasses}>Number & Ages of Children (&lt;18)?</label>
+								<input type="text" id="children_in_home" {...register("children_in_home")} placeholder="e.g., 1 child, age 8" className={`${inputBaseClasses} ${inputBorderClasses(!!errors.children_in_home)}`} />
+								{/* Optional: Add validation if needed */}
+							</div>
+						</div>
+						{/* Allergies */}
+						<div className="mb-4">
+							<label className={labelBaseClasses}>Does anyone in the home have known pet allergies? *</label>
+							<div className="flex flex-wrap gap-x-4 gap-y-2 mt-1">
+								<label className="inline-flex items-center">
+									<input type="radio" value="Yes" {...register("has_allergies", { required: "Please select an option" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
+									<span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Yes</span>
+								</label>
+								<label className="inline-flex items-center">
+									<input type="radio" value="No" {...register("has_allergies", { required: "Please select an option" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
+									<span className="ml-2 text-sm text-gray-700 dark:text-gray-300">No</span>
+								</label>
+								<label className="inline-flex items-center">
+									<input type="radio" value="Unsure" {...register("has_allergies", { required: "Please select an option" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
+									<span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Unsure</span>
+								</label>
+							</div>
+							{errors.has_allergies && <p className={errorTextClasses}>{errors.has_allergies.message}</p>}
+						</div>
+						{/* Household Aware (Foster Specific Wording) */}
+						<div className="mb-4">
+							<label className={labelBaseClasses}>Is everyone in the household aware & supportive of fostering (understanding it's temporary)? *</label>
+							<div className="flex flex-wrap gap-x-4 gap-y-2 mt-1">
+								<label className="inline-flex items-center">
+									<input type="radio" value="Yes" {...register("household_aware_foster", { required: "Please confirm household agreement" })} className={radioInputClasses} />
+									<span className={radioLabelClasses}>Yes</span>
+								</label>
+								<label className="inline-flex items-center">
+									<input type="radio" value="No" {...register("household_aware_foster", { required: "Please confirm household agreement" })} className={radioInputClasses} />
+									<span className={radioLabelClasses}>No</span>
+								</label>
+							</div>
+							{errors.household_aware_foster && <p className={errorTextClasses}>{errors.household_aware_foster.message}</p>}
+						</div>
+						{/* Separation Plan */}
+						<div className="mb-4">
+							<label htmlFor="separation_plan" className={labelBaseClasses}>Where will foster animals be kept separate from resident pets during the initial adjustment period? *
+								<TooltipButton content="A separate room (like a bathroom or spare bedroom) is usually needed initially to allow safe, gradual introductions." label="More info about separation plan" />
+							</label>
+							<textarea id="separation_plan" rows={2} {...register("separation_plan", { required: "Please describe your plan for initial separation" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.separation_plan)} h-auto`} />
+							{errors.separation_plan && <p className={errorTextClasses}>{errors.separation_plan.message}</p>}
+						</div>
 
-                     {/* How Heard About Us */}
-                     <div className="mb-4">
-                        <label htmlFor="how_heard" className="block mb-1 text-sm text-gray-600 dark:text-gray-400">How did you hear about us? (Optional)</label>
-                         <input type="text" id="how_heard" {...register("how_heard")} className={`w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-orange-100 dark:focus:ring-orange-900 focus:border-orange-500 dark:focus:border-orange-500`} />
-                    </div>
 
-					{/* --- Foster Specific Section --- */}
+						{/* --- Current Pet Info Section --- */}
+						<hr className="my-6 border-gray-300 dark:border-gray-600" />
+						<h4 className={sectionTitleClasses}>
+							Current Pet Information
+							<TooltipButton content="Helps us understand compatibility and ensure safety for both your pets and potential foster animals." label="More info about current pet questions" />
+						</h4>
+						{/* Current Pets */}
+						<div className="mb-4">
+							<label className={labelBaseClasses}>Do you currently have other pets? *</label>
+							<div className="flex flex-wrap gap-x-4 gap-y-2 mt-1">
+								<label className="inline-flex items-center">
+									<input type="radio" value="Yes" {...register("has_current_pets", { required: "Please answer about current pets" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
+									<span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Yes</span>
+								</label>
+								<label className="inline-flex items-center">
+									<input type="radio" value="No" {...register("has_current_pets", { required: "Please answer about current pets" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
+									<span className="ml-2 text-sm text-gray-700 dark:text-gray-300">No</span>
+								</label>
+							</div>
+							{errors.has_current_pets && <p className={errorTextClasses}>{errors.has_current_pets.message}</p>}
+						</div>
+						{/* Current Pet Details (Conditional) */}
+						{hasCurrentPetsValue === 'Yes' && (
+							<div className="mb-4 pl-4 border-l-2 border-gray-200 dark:border-gray-600">
+								<label htmlFor="current_pets_details" className={labelBaseClasses}>Please list their species, breed (if known), age and if spayed/neutered. *</label>
+								<textarea id="current_pets_details" rows={3} {...register("current_pets_details", { required: "Details required if you have current pets" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.current_pets_details)} h-auto`} />
+								{errors.current_pets_details && <p className={errorTextClasses}>{errors.current_pets_details.message}</p>}
 
-					{/* Submit/Cancel Buttons */}
-					<div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700 mt-6">
-						<button
-							type="button"
-							onClick={onClose}
-							className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800"
-						>
-							Cancel
-						</button>
-						<button
-							type="submit"
-							disabled={isSubmitting}
-							className="px-4 py-2 text-white bg-orange-500 rounded-md hover:bg-orange-600 focus:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 dark:focus:ring-offset-gray-800 disabled:opacity-50"
-						>
-							{isSubmitting ? "Submitting..." : "Submit Application"}
-						</button>
+								<div className="mt-4">
+									<label className={labelBaseClasses}>Are your current pets UTD on vaccinations? *</label>
+									<div className="flex flex-wrap gap-x-4 gap-y-2 mt-1">
+										<label className="inline-flex items-center">
+											<input type="radio" value="Yes" {...register("current_pets_vaccinations", { required: "Vaccination status required" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
+											<span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Yes</span>
+										</label>
+										<label className="inline-flex items-center">
+											<input type="radio" value="No" {...register("current_pets_vaccinations", { required: "Vaccination status required" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
+											<span className="ml-2 text-sm text-gray-700 dark:text-gray-300">No</span>
+										</label>
+									</div>
+									{errors.current_pets_vaccinations && <p className={errorTextClasses}>{errors.current_pets_vaccinations.message}</p>}
+								</div>
+								<div className="mt-4">
+									<label className={labelBaseClasses}>Are your current pets spayed/neutered? *</label>
+									<div className="flex flex-wrap gap-x-4 gap-y-2 mt-1">
+										<label className="inline-flex items-center">
+											<input type="radio" value="Yes" {...register("current_pets_spayed_neutered", { required: "Spay/neuter status required" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
+											<span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Yes, all</span>
+										</label>
+										<label className="inline-flex items-center">
+											<input type="radio" value="Some" {...register("current_pets_spayed_neutered", { required: "Spay/neuter status required" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
+											<span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Some are</span>
+										</label>
+										<label className="inline-flex items-center">
+											<input type="radio" value="No" {...register("current_pets_spayed_neutered", { required: "Spay/neuter status required" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
+											<span className="ml-2 text-sm text-gray-700 dark:text-gray-300">No</span>
+										</label>
+									</div>
+									{errors.current_pets_spayed_neutered && <p className={errorTextClasses}>{errors.current_pets_spayed_neutered.message}</p>}
+								</div>
+							</div>
+						)}
+						{/* Veterinarian Info (Optional) */}
+						<div className="mb-4">
+							<h5 className={subSectionTitleClasses}>Veterinarian Information (Optional)</h5>
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								<div>
+									<label htmlFor="vet_clinic_name" className={labelBaseClasses}>Clinic Name</label>
+									<input type="text" id="vet_clinic_name" {...register("vet_clinic_name")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.vet_clinic_name)}`} />
+								</div>
+								<div>
+									<label htmlFor="vet_phone" className={labelBaseClasses}>Clinic Phone</label>
+									<input type="tel" id="vet_phone" {...register("vet_phone")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.vet_phone)}`} />
+								</div>
+							</div>
+							<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+								Providing veterinarian information (current or previous) helps us better understand your pet care experience. This step is optional at this stage.
+							</p>
+						</div>
+
+						{/* --- Fostering Preferences & Experience Section --- */}
+						<hr className="my-6 border-gray-300 dark:border-gray-600" />
+						<h4 className={sectionTitleClasses}>
+							Fostering Preferences & Experience
+							<TooltipButton content="Helps us match you with foster animals that fit your abilities, interests, and home environment." label="More info about fostering preferences" />
+						</h4>
+						{/* Foster Experience */}
+						<div className="mb-4">
+							<label className={labelBaseClasses}>Have you fostered for a rescue/shelter before? *</label>
+							<div className="flex flex-wrap gap-x-4 gap-y-2 mt-1">
+								<label className="inline-flex items-center">
+									<input type="radio" value="Yes" {...register("has_fostered_before", { required: "Please answer about prior fostering" })} className={radioInputClasses} />
+									<span className={radioLabelClasses}>Yes</span>
+								</label>
+								<label className="inline-flex items-center">
+									<input type="radio" value="No" {...register("has_fostered_before", { required: "Please answer about prior fostering" })} className={radioInputClasses} />
+									<span className={radioLabelClasses}>No</span>
+								</label>
+							</div>
+							{errors.has_fostered_before && <p className={errorTextClasses}>{errors.has_fostered_before.message}</p>}
+						</div>
+						{/* Previous Foster Details (Conditional) */}
+						{hasFosteredBeforeValue === 'Yes' && (
+							<div className="mb-4 pl-4 border-l-2 border-gray-200 dark:border-gray-600">
+								<label htmlFor="previous_foster_details" className={labelBaseClasses}>If Yes, which organization(s) and what types of animals? *</label>
+								<textarea id="previous_foster_details" rows={3} {...register("previous_foster_details", { required: "Details required if you fostered before" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.previous_foster_details)} h-auto`} />
+								{errors.previous_foster_details && <p className={errorTextClasses}>{errors.previous_foster_details.message}</p>}
+							</div>
+						)}
+						{/* Why Foster */}
+						<div className="mb-4">
+							<label htmlFor="why_foster" className={labelBaseClasses}>Why are you interested in fostering for Second Chance? *</label>
+							<textarea id="why_foster" rows={3} {...register("why_foster", { required: "Please share your reasons for fostering" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.why_foster)} h-auto`} />
+							{errors.why_foster && <p className={errorTextClasses}>{errors.why_foster.message}</p>}
+						</div>
+						{/* Types of Animals */}
+						<div className="mb-4">
+							<label className={labelBaseClasses}>What types of animals are you interested in fostering? * (Check all that apply)</label>
+							<div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 mt-1">
+								{['Adult Dogs (Over 1 yr)', 'Puppies (< 1 yr)', 'Senior Dogs (7+ yrs)', 'Medical Needs Dogs', 'Large Breed Dogs (>50lbs)', 'Small Breed Dogs (<20lbs)', 'Adult Cats (Over 1 yr)', 'Kittens (< 6 mo)', 'Bottle Baby Kittens', 'Senior Cats (10+ yrs)', 'Medical Needs Cats', 'Other Species (Specify Below)'].map((type) => (
+									<div key={type} className="flex items-center">
+										<input
+											type="checkbox"
+											id={`type-${type.replace(/\s+/g, '-')}`}
+											value={type}
+											{...register("foster_animal_types", { required: "Please select at least one type" })}
+											className={checkboxInputClasses}
+										/>
+										<label htmlFor={`type-${type.replace(/\s+/g, '-')}`} className={checkboxLabelClasses}>{type}</label>
+									</div>
+								))}
+							</div>
+							{errors.foster_animal_types && <p className={errorTextClasses}>{errors.foster_animal_types.message}</p>}
+						</div>
+						{/* Willingness Medical/Behavioral */}
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-4">
+							<div>
+								<label className={labelBaseClasses}>Willing to foster animals needing medication / special medical care? *</label>
+								<select {...register("willing_medical", { required: "Please select an option" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.willing_medical)}`}>
+									<option value="">Select...</option>
+									<option value="Yes">Yes</option>
+									<option value="Maybe">Maybe (Depending on need)</option>
+									<option value="No">No</option>
+								</select>
+								{errors.willing_medical && <p className={errorTextClasses}>{errors.willing_medical.message}</p>}
+							</div>
+							<div>
+								<label className={labelBaseClasses}>Willing to foster animals with known behavioral challenges? *</label>
+								<select {...register("willing_behavioral", { required: "Please select an option" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.willing_behavioral)}`}>
+									<option value="">Select...</option>
+									<option value="Yes">Yes</option>
+									<option value="Maybe">Maybe (Depending on need/support)</option>
+									<option value="No">No</option>
+								</select>
+								{errors.willing_behavioral && <p className={errorTextClasses}>{errors.willing_behavioral.message}</p>}
+							</div>
+						</div>
+						{/* Commitment Length */}
+						<div className="mb-4">
+							<label htmlFor="commitment_length" className={labelBaseClasses}>Typical length of foster time commitment? *</label>
+							<select id="commitment_length" {...register("commitment_length", { required: "Please select commitment length" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.commitment_length)}`}>
+								<option value="">Select...</option>
+								<option value="Short-term (<1 month)">Short-term (Less than 1 month)</option>
+								<option value="Medium-term (1-3 months)">Medium-term (1-3 months)</option>
+								<option value="Longer-term (3+ months)">Longer-term (3+ months)</option>
+								<option value="Flexible">Flexible</option>
+							</select>
+							{errors.commitment_length && <p className={errorTextClasses}>{errors.commitment_length.message}</p>}
+						</div>
+						{/* Transportation */}
+						<div className="mb-4">
+							<label className={labelBaseClasses}>Able to transport foster animal to vet appointments/events (primarily West Valley)? *
+								<TooltipButton content="Foster animals require transport to vet appointments (covered by rescue) and potentially adoption events." label="More info about transport needs" />
+							</label>
+							<select {...register("can_transport", { required: "Please select transport ability" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.can_transport)}`}>
+								<option value="">Select...</option>
+								<option value="Yes">Yes</option>
+								<option value="Maybe">Maybe (With limitations - please explain below)</option>
+								<option value="No">No (May limit types of animals we can place)</option>
+							</select>
+							{errors.can_transport && <p className={errorTextClasses}>{errors.can_transport.message}</p>}
+							{/* Textarea for explanation if "Maybe" */}
+							{watch("can_transport") === "Maybe" && (
+								<textarea id="transport_explanation" rows={2} {...register("transport_explanation")} placeholder="Please explain your limitations..." className={`${inputBaseClasses} ${inputBorderClasses(!!errors.transport_explanation)} h-auto mt-2`} />
+							)}
+							{errors.transport_explanation && <p className={errorTextClasses}>{errors.transport_explanation.message}</p>}
+						</div>
+						{/* How Heard About Us (Optional) */}
+						<div className="mb-4">
+							<label htmlFor="how_heard" className={labelBaseClasses}>How did you hear about our foster program? (Optional)</label>
+							<input type="text" id="how_heard" {...register("how_heard")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.how_heard)}`} />
+						</div>
+
+
+						{/* Submit/Cancel Buttons */}
+						<div className="flex justify-end gap-3 pt-6 border-t border-gray-300 dark:border-gray-700 mt-6">
+							<button
+								type="button"
+								onClick={onClose}
+								className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800"
+							>
+								Cancel
+							</button>
+							<button
+								type="submit"
+								disabled={isSubmitting}
+								className="px-4 py-2 text-white bg-teal-500 rounded-md hover:bg-teal-600 focus:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 dark:focus:ring-offset-gray-800 disabled:opacity-50" // Teal theme
+							>
+								{isSubmitting ? "Submitting..." : "Submit Foster Application"}
+							</button>
+						</div>
+					</form>
+				) : (
+					// Success Message Area
+					<div className="flex flex-col items-center justify-center text-center min-h-[200px]">
+							<svg width="60" height="60" className="text-green-500 dark:text-green-400" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M26.6666 50L46.6666 66.6667L73.3333 33.3333M50 96.6667C43.8716 96.6667 37.8033 95.4596 32.1414 93.1144C26.4796 90.7692 21.3351 87.3317 17.0017 82.9983C12.6683 78.6649 9.23082 73.5204 6.8856 67.8586C4.54038 62.1967 3.33331 56.1283 3.33331 50C3.33331 43.8716 4.54038 37.8033 6.8856 32.1414C9.23082 26.4796 12.6683 21.3351 17.0017 17.0017C21.3351 12.6683 26.4796 9.23084 32.1414 6.88562C37.8033 4.5404 43.8716 3.33333 50 3.33333C62.3767 3.33333 74.2466 8.24998 82.9983 17.0017C91.75 25.7534 96.6666 37.6232 96.6666 50C96.6666 62.3768 91.75 74.2466 82.9983 82.9983C74.2466 91.75 62.3767 96.6667 50 96.6667Z" stroke="currentColor" strokeWidth="3" /></svg>
+							<h3 className="py-5 text-xl text-green-600 dark:text-green-400">Application Submitted!</h3>
+							<p className="text-gray-700 dark:text-gray-300 md:px-3">{submitMessage}</p>
+						<button type="button" className="mt-6 text-teal-600 dark:text-teal-400 hover:underline focus:outline-none" onClick={onClose}>Close</button>
 					</div>
-				</form>
-			) : (
-				 // Success Message Area
-				 <div className="flex flex-col items-center justify-center text-center min-h-[200px]">
-					 {/* Success Icon */}
-					 <svg width="60" height="60" className="text-green-500 dark:text-green-400" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M26.6666 50L46.6666 66.6667L73.3333 33.3333M50 96.6667C43.8716 96.6667 37.8033 95.4596 32.1414 93.1144C26.4796 90.7692 21.3351 87.3317 17.0017 82.9983C12.6683 78.6649 9.23082 73.5204 6.8856 67.8586C4.54038 62.1967 3.33331 56.1283 3.33331 50C3.33331 43.8716 4.54038 37.8033 6.8856 32.1414C9.23082 26.4796 12.6683 21.3351 17.0017 17.0017C21.3351 12.6683 26.4796 9.23084 32.1414 6.88562C37.8033 4.5404 43.8716 3.33333 50 3.33333C62.3767 3.33333 74.2466 8.24998 82.9983 17.0017C91.75 25.7534 96.6666 37.6232 96.6666 50C96.6666 62.3768 91.75 74.2466 82.9983 82.9983C74.2466 91.75 62.3767 96.6667 50 96.6667Z" stroke="currentColor" strokeWidth="3" /></svg>
-					 <h3 className="py-5 text-xl text-green-600 dark:text-green-400">Application Submitted!</h3>
-					 <p className="text-gray-700 dark:text-gray-300 md:px-3">{submitMessage}</p>
-					 <button type="button" className="mt-6 text-orange-600 dark:text-orange-400 hover:underline focus:outline-none" onClick={onClose}>Close</button>
-				 </div>
-			)}
-			 {/* Display submission error message if not successful */}
-			{!isSuccess && submitMessage && (
-				 <p className="mt-4 text-center text-red-500 dark:text-red-400">{submitMessage}</p>
-			)}
+				)}
+				{/* Display submission error message if not successful */}
+				{!isSuccess && submitMessage && (
+					<p className="mt-4 text-center text-red-500 dark:text-red-400">{submitMessage}</p>
+				)}
+			</div>
 		</div>
-	</div>
-  );
+	);
 }
