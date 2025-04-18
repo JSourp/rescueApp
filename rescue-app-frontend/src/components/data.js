@@ -55,30 +55,42 @@ export const fetchSpotlights = async () => {
     const data = await response.json();
 
     // Map the API response directly to the required structure
-    return data.map((animal) => ({
-      id: animal.id,
-      name: animal.name,
-      title: `Meet ${animal.name}`, // Title for display
-      desc: animal.story,          // Use story for description
-      image: animal.image_url || '/placeholder-image.png', // provide fallback
-      bullets: [
-        {
-          title: "Breed:",
-          desc: animal.breed,
-          icon: <ArrowRightIcon />,
-        },
-        {
-          title: "Age:",
-          desc: calculateAge(animal.date_of_birth),
-          icon: <ArrowRightIcon />,
-        },
-        {
-          title: "Gender:",
-          desc: animal.gender,
-          icon: <ArrowRightIcon />,
-        },
-      ],
-    }));
+    return data.map((animal) => {
+      // Calculate "Time with us"
+      const daysWithUs = differenceInDays(new Date(), new Date(animal.date_added));
+      const daysLabel = daysWithUs === 1 ? "day" : "days";
+      const timeWithUs = `${daysWithUs} ${daysLabel}`;
+
+      return {
+        id: animal.id,
+        name: animal.name,
+        title: `Meet ${animal.name}`, // Title for display
+        desc: animal.story,          // Use story for description
+        image: animal.image_url || '/placeholder-image.png', // Provide fallback
+        bullets: [
+          {
+            title: "Breed:",
+            desc: animal.breed,
+            icon: <ArrowRightIcon />,
+          },
+          {
+            title: "Age:",
+            desc: calculateAge(animal.date_of_birth),
+            icon: <ArrowRightIcon />,
+          },
+          {
+            title: "Gender:",
+            desc: animal.gender,
+            icon: <ArrowRightIcon />,
+          },
+          {
+            title: "Time with us:",
+            desc: timeWithUs, // Add "Time with us" logic here
+            icon: <ArrowRightIcon />,
+          },
+        ],
+      };
+    });
   } catch (error) {
     console.error("Error fetching spotlight data:", error);
     return []; // Return empty array on error
