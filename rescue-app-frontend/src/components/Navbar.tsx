@@ -35,7 +35,7 @@ export const Navbar = () => {
           <div className="hidden mr-3 lg:flex nav__item">
             <Link
               href="/donate"
-              className="bg-sc-tan-400 hover:bg-sc-tan-600 text-white font-bold rounded-md shadow-md px-6 py-2"
+              className="bg-sc-sandal-400 hover:bg-sc-sandal-600 text-white font-bold rounded-md shadow-md px-6 py-2"
             >
               Donate
             </Link>
@@ -100,7 +100,7 @@ export const Navbar = () => {
               <li className="mr-3 nav__item" key={index}>
                 <Link
                   href={menu.href}
-                  className="inline-block px-4 py-2 text-lg font-bold text-white no-underline rounded-md bg-gradient-to-r from-sc-tan-600 via-sc-tan-400 to-sc-tan-300 hover:from-sc-tan-800 hover:via-sc-tan-600 hover:to-sc-tan-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D2B48C] dark:focus:ring-offset-gray-800 transition duration-300 shadow-md"
+                  className="inline-block px-4 py-2 text-lg font-bold text-white no-underline rounded-md bg-gradient-to-r from-sc-sandal-600 via-sc-sandal-400 to-sc-sandal-300 hover:from-sc-sandal-800 hover:via-sc-sandal-600 hover:to-sc-sandal-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D2B48C] dark:focus:ring-offset-gray-800 transition duration-300 shadow-md"
                 >
                   {menu.label}
                 </Link>

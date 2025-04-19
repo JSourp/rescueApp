@@ -15,14 +15,7 @@ const config: Config = {
     extend: {
       colors: {
         trueGray: colors.neutral,
-
-        // --- Logo-Derived Earth Tones ---
-        sand: {
-          DEFAULT: '#F2EBD5',
-          // Add shades 50-900 later using a generator tool
-          // e.g., lighter: '#FAF8F0', darker: '#DACCB2'
-        },
-        'sc-tan': {
+        'sc-sandal': { // Light Brownish Yellow, pulled from logo
           '50': '#f6f5f0',
           '100': '#e9e3d8',
           '200': '#d5c9b3',
@@ -35,37 +28,97 @@ const config: Config = {
           '900': '#4f3a34',
           '950': '#2d1f1b',
         },
-        'dk-brown': { // Renamed to avoid conflict
-          DEFAULT: '#735840',
-          // Add shades 50-900 later using a generator tool
-          // e.g., lighter: '#A18A77', darker: '#5A4330'
+        'sc-asparagus': { // Light Olive Green
+          '50': '#f2f7ee',
+          '100': '#e3ecdb',
+          '200': '#cadbbb',
+          '300': '#a9c492',
+          '400': '#80a663', // DEFAULT
+          '500': '#6c9151',
+          '600': '#53723e',
+          '700': '#415932',
+          '800': '#37482c',
+          '900': '#303f28',
+          '950': '#172112',
         },
-        'dk-roast': { // Very dark brown
-          DEFAULT: '#260101',
-          // Add shades 50-900 later using a generator tool
-          // e.g., lighter: '#6F3636', darker: '#1A0000'
+        'sc-gothic': { // Dark Grayish Blue
+          '50': '#f2f7f9',
+          '100': '#dfeaee',
+          '200': '#c3d7de',
+          '300': '#99b9c7',
+          '400': '#6390a6', // DEFAULT
+          '500': '#4c778e',
+          '600': '#426378',
+          '700': '#3a5364',
+          '800': '#364754',
+          '900': '#303d49',
+          '950': '#1c2630',
         },
-
-        // --- Accent Colors (Examples - Choose your own hex codes!) ---
-        ocean: { // Blues/Teals
-          light: '#67e8f9', // Example: cyan-300
-          DEFAULT: '#06b6d4', // Example: cyan-500 (Adjust for desired "ocean" feel)
-          dark: '#0e7490',  // Example: cyan-700
-          // Add shades 50-900 later using a generator tool
+        'sc-trendy-pink': { // Purplish Pink
+          '50': '#fbf7fc',
+          '100': '#f6eff8',
+          '200': '#eedef0',
+          '300': '#e1c4e3',
+          '400': '#cea0d2',
+          '500': '#b679bc',
+          '600': '#a263a6', // DEFAULT
+          '700': '#804982',
+          '800': '#6a3d6b',
+          '900': '#593659',
+          '950': '#381a38',
         },
-        forest: { // Greens
-          light: '#86efac', // Example: green-300
-          DEFAULT: '#16a34a', // Example: green-600 (Adjust for desired "forest" feel)
-          dark: '#14532d',  // Example: green-900
-          // Add shades 50-900 later using a generator tool
+        'sc-fuscous-gray': { // Dark Brownish Gray
+          '50': '#f4f4f2',
+          '100': '#e3e3de',
+          '200': '#c9c8bf',
+          '300': '#aaa89a',
+          '400': '#928e7d',
+          '500': '#837e6f',
+          '600': '#706a5e',
+          '700': '#5b554d',
+          '800': '#514c46', // DEFAULT
+          '900': '#46413d',
+          '950': '#272421',
         },
-        sunset: { // Oranges/Terracottas
-          light: '#fdba74', // Example: orange-300
-          DEFAULT: '#f97316', // Example: orange-500 (Adjust for desired "sunset" feel - maybe more muted like amber/terracotta)
-          dark: '#c2410c',  // Example: orange-700
-          // Add shades 50-900 later using a generator tool
+        'sc-pumpkin': { // From sunset, Oranges/Terracottas
+          '50': '#fff4ed',
+          '100': '#ffe6d5',
+          '200': '#feccaa',
+          '300': '#fdac74',
+          '400': '#fb8a3c',
+          '500': '#f97316', // DEFAULT
+          '600': '#ea670c',
+          '700': '#c2570c',
+          '800': '#9a4a12',
+          '900': '#7c3d12',
+          '950': '#432007',
         },
-
+        'sc-chateau-green': { // From forest, Greens
+          '50': '#f0fdf5',
+          '100': '#dcfce8',
+          '200': '#bbf7d1',
+          '300': '#86efad',
+          '400': '#4ade81',
+          '500': '#22c55e',
+          '600': '#16a34a',
+          '700': '#15803c',
+          '800': '#166533',
+          '900': '#14532b',
+          '950': '#052e14',
+        },
+        'sc-scooter': { // From ocean, Blues/Teals
+          '50': '#ecfcff',
+          '100': '#cff7fe',
+          '200': '#a5effc',
+          '300': '#67e4f9',
+          '400': '#22d0ee',
+          '500': '#06b6d4',
+          '600': '#0899b2',
+          '700': '#0e7d90',
+          '800': '#156775',
+          '900': '#165863',
+          '950': '#083b44',
+        },
         // --- Neutrals (Example using Tailwind's 'stone') ---
         neutral: {
           '50': '#fafaf9',
@@ -87,6 +140,21 @@ const config: Config = {
       stock: [defaultTheme.fontFamily.sans],
     },
   },
+  safelist: [
+    {
+      pattern: /bg-sc-(sandal|asparagus|gothic|trendy-pink|fuscous-gray|pumpkin|chateau-green|scooter)-\d{2,3}/,
+      variants: ['hover', 'focus'], // Include hover and focus variants
+    },
+    {
+      pattern: /border-sc-(sandal|asparagus|gothic|trendy-pink|fuscous-gray|pumpkin|chateau-green|scooter)-\d{2,3}/,
+    },
+    {
+      pattern: /text-sc-(sandal|asparagus|gothic|trendy-pink|fuscous-gray|pumpkin|chateau-green|scooter)-\d{2,3}/,
+    },
+    {
+      pattern: /hover:border-sc-(sandal|asparagus|gothic|trendy-pink|fuscous-gray|pumpkin|chateau-green|scooter)-\d{2,3}/,
+    },
+  ],
   variants: {
     extend: {},
   },
