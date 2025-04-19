@@ -29,9 +29,9 @@ async function fetchAvailableAnimals(filters: {
 
   // Define the statuses considered "available" for this public page
   const availableStatuses = [
-      'Available',
-      'Adoption Pending',
-      'Available - In Foster'
+    'Available',
+    'Adoption Pending',
+    'Available - In Foster'
   ];
 
   // Join the raw status strings with a comma
@@ -66,10 +66,10 @@ async function fetchAvailableAnimals(filters: {
     });
 
     if (!response.ok) {
-       // Log the response body for more details on error
-       const errorBody = await response.text();
-       console.error('API Error Response Body:', errorBody);
-       throw new Error(`HTTP error! Status: ${response.status}`);
+      // Log the response body for more details on error
+      const errorBody = await response.text();
+      console.error('API Error Response Body:', errorBody);
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
     const data = await response.json();
@@ -105,7 +105,7 @@ export default function AvailableAnimalsPage() {
       setError(null);
 
       try {
-          // Pass the breedFilter state to the fetch function
+        // Pass the breedFilter state to the fetch function
         const [fetchedAnimals, fetchedAnimalTypes] = await Promise.all([
           fetchAvailableAnimals({ gender: genderFilter, animal_type: animalTypeFilter, breed: breedFilter }, sortBy),
           fetchAnimalTypes(),
@@ -115,9 +115,9 @@ export default function AvailableAnimalsPage() {
         setAnimalTypes(fetchedAnimalTypes);
 
       } catch (err) {
-         // Log the actual error for more details
-         console.error("Error during data loading:", err);
-         setError(err instanceof Error ? err.message : 'Failed to load animals');
+        // Log the actual error for more details
+        console.error("Error during data loading:", err);
+        setError(err instanceof Error ? err.message : 'Failed to load animals');
       } finally {
         setLoading(false);
       }
@@ -202,54 +202,54 @@ export default function AvailableAnimalsPage() {
       </div>
 
       {/* Animal Grid */}
-        <div className="flex justify-center">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {animals.length > 0 ? (
-                     animals.map((animal) => (
-                        <div
-                            key={animal.id}
-                            className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105" // Added hover effect
-                        >
-                            <Link href={`/animal/${animal.id}`} className="block"> {/* Make entire card clickable */}
-                            <div className="text-center">
-                                <h2 className="text-xl font-semibold py-2 text-gray-900 dark:text-gray-100 truncate px-2"> {/* Added truncate */}
-                                {animal.name}
-                                </h2>
-                            </div>
-                            <Image
-                                src={animal.image_url || '/placeholder-image.png'}
-                                alt={animal.name || 'Animal image'}
-                                width={400}
-                                height={300}
-                                className="w-full h-64 object-cover" // Ensure consistent image size
-                                priority={animals.indexOf(animal) < 4} // Prioritize loading images for first few animals
-                            />
-                            </Link>
-                            <div className="p-4 text-center">
-                                <p className="text-sm text-gray-600 dark:text-gray-400">{animal.breed} ({animal.animal_type})</p>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">{animal.gender}</p>
-                                <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mt-1">{animal.adoption_status}</p>
-                            </div>
-                        </div>
-                        ))
-                ) : (
-                  <p className="col-span-full text-center text-gray-500 dark:text-gray-400">
-                    No animals match the current filters.
-                    <button
-                      onClick={() => {
-                        setGenderFilter('');
-                        setAnimalTypeFilter('');
-                        setBreedFilter('');
-                        setSortBy('longest');
-                      }}
-                      className="ml-2 text-indigo-600 hover:underline"
-                    >
-                      Reset Filters
-                    </button>
-                  </p>
-                )}
-            </div>
+      <div className="flex justify-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {animals.length > 0 ? (
+            animals.map((animal) => (
+              <div
+                key={animal.id}
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105" // Added hover effect
+              >
+                <Link href={`/animal/${animal.id}`} className="block"> {/* Make entire card clickable */}
+                  <div className="text-center">
+                    <h2 className="text-xl font-semibold py-2 text-gray-900 dark:text-gray-100 truncate px-2"> {/* Added truncate */}
+                      {animal.name}
+                    </h2>
+                  </div>
+                  <Image
+                    src={animal.image_url || '/placeholder-image.png'}
+                    alt={animal.name || 'Animal image'}
+                    width={400}
+                    height={300}
+                    className="w-full h-64 object-cover" // Ensure consistent image size
+                    priority={animals.indexOf(animal) < 4} // Prioritize loading images for first few animals
+                  />
+                </Link>
+                <div className="p-4 text-center">
+                  <p className="text-sm text-stone-950 dark:text-stone-200">{animal.breed} ({animal.animal_type})</p>
+                  <p className="text-sm text-stone-950 dark:text-stone-200">{animal.gender}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">{animal.adoption_status}</p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="col-span-full text-center text-gray-500 dark:text-gray-400">
+              No animals match the current filters.
+              <button
+                onClick={() => {
+                  setGenderFilter('');
+                  setAnimalTypeFilter('');
+                  setBreedFilter('');
+                  setSortBy('longest');
+                }}
+                className="ml-2 text-indigo-600 hover:underline"
+              >
+                Reset Filters
+              </button>
+            </p>
+          )}
         </div>
+      </div>
     </div>
   );
 }

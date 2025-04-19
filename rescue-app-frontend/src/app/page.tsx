@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Container } from "@/components/Container";
 import { Partners } from "@/components/Partners";
 import { SectionTitle } from "@/components/SectionTitle";
+import { HeroSection } from "@/components/HeroSection";
 import { Spotlights } from "@/components/Spotlights";
 import { fetchSpotlights } from "@/components/data";
 //import { Video } from "@/components/Video";
@@ -61,8 +62,7 @@ export default function Home() {
   return (
     // Use a Fragment <> </> to avoid unnecessary divs if needed
     <>
-      {/* Might want a dedicated Hero section above spotlights */}
-      {/* <HeroSection /> */}
+      <HeroSection />
 
       <Container>
         {/* Conditionally render Spotlights based on loading and data */}

@@ -33,7 +33,10 @@ export const Navbar = () => {
         <div className="gap-3 nav__item mr-2 lg:flex ml-auto lg:ml-0 lg:order-2">
           <ThemeChanger />
           <div className="hidden mr-3 lg:flex nav__item">
-            <Link href="/donate" className="bg-indigo-500 hover:bg-indigo-700 px-6 py-2 text-white rounded-md md:ml-5">
+            <Link
+              href="/donate"
+              className="bg-sc-tan-400 hover:bg-sc-tan-600 text-white font-bold rounded-md shadow-md px-6 py-2"
+            >
               Donate
             </Link>
           </div>
@@ -97,7 +100,7 @@ export const Navbar = () => {
               <li className="mr-3 nav__item" key={index}>
                 <Link
                   href={menu.href}
-                  className="inline-block px-4 py-2 text-lg font-normal text-gray-800 no-underline rounded-md dark:text-gray-200 hover:text-indigo-500 focus:text-indigo-500 focus:bg-indigo-100 focus:outline-none dark:focus:bg-gray-800"
+                  className="inline-block px-4 py-2 text-lg font-bold text-white no-underline rounded-md bg-gradient-to-r from-sc-tan-600 via-sc-tan-400 to-sc-tan-300 hover:from-sc-tan-800 hover:via-sc-tan-600 hover:to-sc-tan-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#D2B48C] dark:focus:ring-offset-gray-800 transition duration-300 shadow-md"
                 >
                   {menu.label}
                 </Link>
