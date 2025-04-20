@@ -311,9 +311,9 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
               </label>
               <select {...register("comfort_level_special_needs", { required: "Please select your comfort level" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.comfort_level_special_needs)}`}>
                 <option value="">Select...</option>
-                <option value="Yes">Yes, I'm comfortable</option>
-                <option value="Maybe">Maybe, I'm willing to learn</option>
-                <option value="No">No, I'd prefer not to initially</option>
+                <option value="Yes">Yes, I&lsquo;m comfortable</option>
+                <option value="Maybe">Maybe, I&lsquo;m willing to learn</option>
+                <option value="No">No, I&lsquo;d prefer not to initially</option>
               </select>
               {errors.comfort_level_special_needs && <p className={errorTextClasses}>{errors.comfort_level_special_needs.message}</p>}
             </div>

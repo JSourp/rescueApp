@@ -239,7 +239,7 @@ export default function AvailableAnimalsPage() {
                   <InformationCircleIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
                   <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No Animals Match Your Search</h3>
                   <p className="text-gray-500 dark:text-gray-400">
-                    We don't have any animals matching your current filters right now, but new friends arrive often! Please check back soon or adjust your filters.
+                    We don&lsquo;t have any animals matching your current filters right now, but new friends arrive often! Please check back soon or adjust your filters.
                   </p>
                   <button
                     onClick={() => {
