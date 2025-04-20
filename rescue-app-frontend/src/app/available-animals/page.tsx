@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { Container } from '@/components/Container';
 import { Animal } from '@/types/animal'; // Assuming you have this type definition
 import Image from 'next/image';
 import Link from 'next/link';
+import { InformationCircleIcon } from "@/components/Icons";
 
 async function fetchAnimalTypes(): Promise<string[]> {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -176,11 +178,11 @@ export default function AvailableAnimalsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-6">Available Animals</h1>
+    <Container className="py-8 px-4">
+      <h1 className="text-3xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">Available Animals</h1>
 
       {/* Filtering Options */}
-      <div className="flex flex-wrap items-center mb-4 gap-4"> {/* Added gap for spacing */}
+      <div className="flex flex-wrap items-center justify-center mb-6 gap-4">
         <select value={animalTypeFilter} onChange={handleAnimalTypeFilterChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600" aria-label="Filter by Animal Type">
           <option value="">All Species</option>
           {animalTypes.map(type => (
@@ -198,58 +200,63 @@ export default function AvailableAnimalsPage() {
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
-
       </div>
 
       {/* Animal Grid */}
-      <div className="flex justify-center">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {animals.length > 0 ? (
-            animals.map((animal) => (
-              <div
-                key={animal.id}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105" // Added hover effect
-              >
-                <Link href={`/animal/${animal.id}`} className="block"> {/* Make entire card clickable */}
-                  <div className="text-center">
-                    <h2 className="text-xl font-semibold py-2 text-gray-900 dark:text-gray-100 truncate px-2"> {/* Added truncate */}
-                      {animal.name}
-                    </h2>
+      {!loading && !error && ( // Only render grid section when not loading and no error
+        <div className="flex justify-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {animals.length > 0 ? (
+              animals.map((animal) => (
+                <div
+                  key={animal.id}
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105" // Added hover effect
+                >
+                  <Link href={`/animal/${animal.id}`} className="block"> {/* Make entire card clickable */}
+                    <div className="text-center">
+                      <h2 className="text-xl font-semibold py-2 text-gray-900 dark:text-gray-100 truncate px-2"> {/* Added truncate */}
+                        {animal.name}
+                      </h2>
+                    </div>
+                    <Image
+                      src={animal.image_url || '/placeholder-image.png'}
+                      alt={animal.name || 'Animal image'}
+                      width={400}
+                      height={300}
+                      className="w-full h-64 object-cover" // Ensure consistent image size
+                      priority={animals.indexOf(animal) < 4} // Prioritize loading images for first few animals
+                    />
+                  </Link>
+                  <div className="p-4 text-center">
+                    <p className="text-sm text-stone-950 dark:text-stone-200">{animal.breed} ({animal.animal_type})</p>
+                    <p className="text-sm text-stone-950 dark:text-stone-200">{animal.gender}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">{animal.adoption_status}</p>
                   </div>
-                  <Image
-                    src={animal.image_url || '/placeholder-image.png'}
-                    alt={animal.name || 'Animal image'}
-                    width={400}
-                    height={300}
-                    className="w-full h-64 object-cover" // Ensure consistent image size
-                    priority={animals.indexOf(animal) < 4} // Prioritize loading images for first few animals
-                  />
-                </Link>
-                <div className="p-4 text-center">
-                  <p className="text-sm text-stone-950 dark:text-stone-200">{animal.breed} ({animal.animal_type})</p>
-                  <p className="text-sm text-stone-950 dark:text-stone-200">{animal.gender}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">{animal.adoption_status}</p>
                 </div>
+              ))
+            ) : (
+                <div className="col-span-full text-center py-10 px-4">
+                  <InformationCircleIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No Animals Match Your Search</h3>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    We don't have any animals matching your current filters right now, but new friends arrive often! Please check back soon or adjust your filters.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setGenderFilter('');
+                      setAnimalTypeFilter('');
+                      setBreedFilter('');
+                      setSortBy('longest'); // Reset to default sort
+                    }}
+                    className="mt-4 px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline focus:outline-none"
+                  >
+                    Reset Filters
+                  </button>
               </div>
-            ))
-          ) : (
-            <p className="col-span-full text-center text-gray-500 dark:text-gray-400">
-              No animals match the current filters.
-              <button
-                onClick={() => {
-                  setGenderFilter('');
-                  setAnimalTypeFilter('');
-                  setBreedFilter('');
-                  setSortBy('longest');
-                }}
-                className="ml-2 text-indigo-600 hover:underline"
-              >
-                Reset Filters
-              </button>
-            </p>
-          )}
+            )}
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </Container>
   );
 }

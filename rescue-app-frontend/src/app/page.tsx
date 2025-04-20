@@ -76,22 +76,17 @@ export default function Home() {
                 Error: {errorSpotlights}
             </div>
         )}
-        {!loadingSpotlights && !errorSpotlights && (
+
+        {/* Render spotlights only if data is available and no loading/error */}
+        {!loadingSpotlights && !errorSpotlights && spotlightOne && (
             <>
-              {/* Render first spotlight only if data exists */}
-              {spotlightOne && (
-                <Spotlights data={spotlightOne} imgPos="left" />
-              )}
-              {/* Render second spotlight only if data exists */}
+            {/* Render first spotlight (already checked it exists) */}
+            <Spotlights data={spotlightOne} imgPos="left" />
+
+            {/* Render second spotlight only if it also exists */}
               {spotlightTwo && (
                 <Spotlights data={spotlightTwo} imgPos="right" />
-              )}
-              {/* Optional: Message if no spotlights were found */}
-              {!spotlightOne && !spotlightTwo && (
-                 <div className="text-center py-10 text-gray-500 dark:text-gray-400">
-                    Check back soon for spotlight animals!
-                 </div>
-              )}
+            )}
             </>
         )}
 
