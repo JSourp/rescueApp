@@ -90,12 +90,12 @@ export function Footer() {
             <div>Follow us</div>
             <div className="flex mt-5 space-x-5 text-gray-400 dark:text-gray-500">
               <a
-                href="https://x.com/"
+                href="https://instagram.com/"
                 target="_blank"
                 rel="noopener"
               >
-                <span className="sr-only">X</span>
-                <Twitter />
+                <span className="sr-only">Instagram</span>
+                <Instagram />
               </a>
               <a
                 href="https://facebook.com/"
@@ -106,12 +106,12 @@ export function Footer() {
                 <Facebook />
               </a>
               <a
-                href="https://instagram.com/"
+                href="https://x.com/"
                 target="_blank"
                 rel="noopener"
               >
-                <span className="sr-only">Instagram</span>
-                <Instagram />
+                <span className="sr-only">X</span>
+                <Twitter />
               </a>
             </div>
           </div>
