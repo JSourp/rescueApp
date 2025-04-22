@@ -127,7 +127,7 @@ export function Navbar() {
                     href="/profile"
                     className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-md"
                   >
-                    User Details
+                    Profile
                   </Link>
                   <Link
                     href="/api/auth/logout"
@@ -220,13 +220,13 @@ export function Navbar() {
                 {/* User Actions */}
                 {!isLoading && !error && user && (
                   <>
-                    {/* User Details */}
+                    {/* User Profile */}
                     <DisclosureButton
                       as={Link}
                       href="/profile"
                       className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-500 dark:hover:text-indigo-400"
                     >
-                      User Details
+                      Profile
                     </DisclosureButton>
                     {/* Logout */}
                     <DisclosureButton
