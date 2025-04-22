@@ -1,4 +1,4 @@
-namespace rescue_app_backend.Models
+namespace rescueApp.Models
 {
     public class CreateAdoptionRequest
     {

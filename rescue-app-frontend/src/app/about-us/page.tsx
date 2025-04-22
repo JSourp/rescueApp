@@ -5,12 +5,12 @@ import Link from "next/link";
 
 export default function AboutUsPage() {
   const boardMembers = [
-    "Alex Carter", //"Jordan Brunelle",
-    "Jamie Davis", //"Kelsey Brunelle",
-    "Taylor Johnson", //"Chris Robinson",
-    "Morgan Lee", //"Emily Robinson",
-    "Jordan Smith", //"Chanell Sourp",
-    "Naomi Williams", //"Jon Sourp",
+    "Jordan Brunelle",
+    "Kelsey Johnson",
+    "Chris Robinson",
+    "Emilie Robinson",
+    "Chanell Sourp",
+    "Jonathan Sourp",
   ];
 
   const ein = "123-456789"; // Replace with your actual EIN

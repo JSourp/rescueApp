@@ -2,7 +2,7 @@
 // Temporary page for visualizing the custom Tailwind color palette
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container } from '@/components/Container';
 // Re-import Headless UI components
 import { Disclosure, DisclosureButton, DisclosurePanel, Transition } from '@headlessui/react';

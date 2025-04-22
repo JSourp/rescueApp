@@ -1,6 +1,6 @@
 // src/components/FosterForm.tsx
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import { useForm } from "react-hook-form";
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';

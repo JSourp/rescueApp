@@ -31,7 +31,8 @@ async function fetchAnimal(id: string): Promise<Animal | null> {
 }
 
 export default function AnimalDetailsPage() {
-  const { id } = useParams(); // Access the 'id' from the URL
+  const params = useParams(); // Access the params from the URL
+  const id = params?.id; // Safely extract 'id' if params is not null
   const animalId = Array.isArray(id) ? id[0] : id; // Ensure id is a string
   const [animal, setAnimal] = useState<Animal | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,8 +45,12 @@ export default function AnimalDetailsPage() {
       setError(null);
 
       try {
-        const fetchedAnimal = await fetchAnimal(animalId);
-        setAnimal(fetchedAnimal);
+        if (animalId) {
+          const fetchedAnimal = await fetchAnimal(animalId);
+          setAnimal(fetchedAnimal);
+        } else {
+          setError('Animal ID is missing.');
+        }
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);

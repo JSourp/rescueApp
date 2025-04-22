@@ -1,27 +1,30 @@
-using System; // Ensure System is included for DateTime
+// Recommended Adjustments:
+using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace rescue_app_backend.Models
+namespace rescueApp.Models
 {
     public class AdoptionHistory
     {
         public int id { get; set; }
-        public int animalid { get; set; }
-        public DateTime adoptiondate { get; set; }
-        public DateTime? returndate { get; set; }
 
-        public string adopter_first_name { get; set; } = string.Empty;
-        public string adopter_last_name { get; set; } = string.Empty;
-        public string adopter_email { get; set; } = string.Empty;
-        public string adopter_phone { get; set; } = string.Empty;
-        public string adopter_street_address { get; set; } = string.Empty;
-        public string? adopter_apt_unit { get; set; }
-        public string adopter_city { get; set; } = string.Empty;
-        public string adopter_state_province { get; set; } = string.Empty;
-        public string adopter_zip_postal_code { get; set; } = string.Empty;
+        // [ForeignKey("Animal")] // Optional attribute for clarity
+        public int animal_id { get; set; }
+
+        // [ForeignKey("Adopter")] // Optional attribute for clarity
+        public int adopter_id { get; set; }
+
+        public DateTime adoption_date { get; set; }
+        public DateTime? return_date { get; set; }
 
         public string? notes { get; set; }
 
-        // Add Navigation Property back to Animal
+        public Guid? created_by_user_id { get; set; }
+
+        public DateTime date_created { get; set; }
+
         public virtual Animal? Animal { get; set; }
+        public virtual Adopter? Adopter { get; set; }
+        public virtual User? CreatedByUser { get; set; }
     }
 }

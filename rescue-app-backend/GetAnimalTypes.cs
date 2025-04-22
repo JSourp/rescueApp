@@ -4,12 +4,12 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using rescue_app_backend.Data;
+using rescueApp.Data;
 using System.Linq;
 using Microsoft.AspNetCore.Http; // Add this using directive
 using System.Text.Json;
 
-namespace rescue_app_backend;
+namespace rescueApp;
 
 public class GetAnimalTypes
 {
@@ -52,7 +52,7 @@ public class GetAnimalTypes
         catch (Exception ex)
         {
             logger.LogError($"Error getting animal types: {ex.Message}");
-            
+
             // Return a 500 Internal Server Error response
             var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
             await errorResponse.WriteStringAsync("An error occurred while fetching animal types.");

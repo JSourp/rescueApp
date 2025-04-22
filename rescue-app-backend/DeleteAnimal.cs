@@ -6,9 +6,9 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using rescue_app_backend.Data;
+using rescueApp.Data;
 
-namespace rescue_app_backend;
+namespace rescueApp;
 
 public class DeleteAnimal
 {

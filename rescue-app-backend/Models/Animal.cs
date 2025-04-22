@@ -1,4 +1,4 @@
-namespace rescue_app_backend.Models;
+namespace rescueApp.Models;
 
 public class Animal
 {
@@ -14,4 +14,5 @@ public class Animal
     public string? image_url { get; set; }
     public DateTime date_added { get; set; }
     public DateTime date_updated { get; set; }
+    public virtual ICollection<AdoptionHistory>? AdoptionHistories { get; set; }
 }

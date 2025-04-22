@@ -9,10 +9,10 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using rescue_app_backend.Data;
-using rescue_app_backend.Models;
+using rescueApp.Data;
+using rescueApp.Models;
 
-namespace rescue_app_backend;
+namespace rescueApp;
 
 public class CreateAnimal
 {

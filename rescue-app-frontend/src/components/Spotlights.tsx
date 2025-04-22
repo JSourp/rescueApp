@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { useState } from "react"; // Import useState
+import React, { useState, useEffect } from 'react';
 import { Container } from "@/components/Container";
 import Modal from '@/components/Modal'; // Import Modal
 import AdoptionForm from '@/components/AdoptionForm'; // Import AdoptionForm

@@ -7,10 +7,10 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore; // Required for transactions & FindAsync
 using Microsoft.Extensions.Logging;
-using rescue_app_backend.Data;
-using rescue_app_backend.Models;
+using rescueApp.Data;
+using rescueApp.Models;
 
-namespace rescue_app_backend // Adjust namespace
+namespace rescueApp // Adjust namespace
 {
     public class CreateAdoption
     {
@@ -102,20 +102,10 @@ namespace rescue_app_backend // Adjust namespace
                 // 6. Create AdoptionHistory Record
                 var newAdoptionRecord = new AdoptionHistory
                 {
-                    animalid = animalToAdopt.id,
-                    adoptiondate = DateTime.UtcNow,
-                    returndate = null,
-                    // Adopter Info
-                    adopter_first_name = adoptionRequest.adopter_first_name,
-                    adopter_last_name = adoptionRequest.adopter_last_name,
-                    adopter_email = adoptionRequest.adopter_email,
-                    adopter_phone = adoptionRequest.adopter_phone,
-                    adopter_street_address = adoptionRequest.adopter_street_address,
-                    adopter_apt_unit = adoptionRequest.adopter_apt_unit,
-                    adopter_city = adoptionRequest.adopter_city,
-                    adopter_state_province = adoptionRequest.adopter_state_province,
-                    adopter_zip_postal_code = adoptionRequest.adopter_zip_postal_code,
-                    // Add other fields mapped from request as needed
+                    animal_id = animalToAdopt.id,
+                    adopter_id = animalToAdopt.id,
+                    adoption_date = DateTime.UtcNow,
+                    return_date = null,
                     notes = adoptionRequest.adoption_notes // Example note field
                 };
                 _dbContext.AdoptionHistories.Add(newAdoptionRecord);

@@ -1,5 +1,4 @@
-// src/components/Modal.tsx
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useState, useEffect } from 'react';
 
 interface ModalProps {
   children: ReactNode;

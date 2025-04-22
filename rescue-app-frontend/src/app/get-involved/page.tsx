@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from '@/components/Modal';
 import AdoptionForm from '@/components/AdoptionForm';
 import FosterForm from '@/components/FosterForm';

@@ -1,5 +1,5 @@
 // src/components/HeroSection.tsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container } from '@/components/Container';
 import Link from 'next/link';
 
