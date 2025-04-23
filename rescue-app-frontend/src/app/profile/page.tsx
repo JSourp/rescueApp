@@ -68,7 +68,7 @@ export default async function ProfilePage() {
 			<Container className="text-center py-10">
 				<h1 className="text-3xl font-bold mb-4">My Profile</h1>
 				<p className="text-red-500">Could not load profile data from the database.</p>
-				<p className="text-sm text-gray-500 mt-2">Your login succeeded, but we couldn't find your associated application profile. Please contact support.</p>
+				<p className="text-sm text-gray-500 mt-2">Your login succeeded, but we couldn&apos;t find your associated application profile. Please contact support.</p>
 				<p className="text-xs mt-4">Auth ID: {auth0User.sub}</p> {/* Display ID for support */}
 				<a href="/api/auth/logout" className="mt-4 inline-block text-indigo-600 hover:underline">Logout</a>
 			</Container>
