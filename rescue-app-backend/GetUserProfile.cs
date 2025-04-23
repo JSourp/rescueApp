@@ -37,29 +37,49 @@ namespace rescueApp
 			_logger = logger;
 		}
 
-		// TODO: Secure this endpoint properly (e.g., require authentication)
+		// Secure endpoint to get the authenticated user's profile
+		// This function is called by the Next.js app to fetch user profile data
 		[Function("GetUserProfile")]
 		public async Task<HttpResponseData> Run(
 			[HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "users/me")] HttpRequestData req)
 		{
 			_logger.LogInformation("C# HTTP trigger function processed GetUserProfile request.");
 
-			// --- Placeholder for getting authenticated user ID ---
-			// Replace this with actual logic to extract Auth0 'sub' from validated token
-			string? auth0UserId = GetUserIdFromToken(req); // Replace with actual logic
+			// --- Access Authenticated User Principal ---
+			ClaimsPrincipal? principal = null;
+			string? auth0UserId = null;
+
+			// The principal might be directly available or within Identities
+			if (req.Identities.Any() && req.Identities.First().IsAuthenticated)
+			{
+				principal = new ClaimsPrincipal(req.Identities.First());
+				// The 'sub' claim from Auth0 maps to NameIdentifier
+				auth0UserId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			}
+
+			// Fallback: Check headers sometimes populated by Easy Auth (less common in Isolated)
+			if (string.IsNullOrEmpty(auth0UserId) && req.Headers.TryGetValues("X-MS-CLIENT-PRINCIPAL-ID", out var headerValues))
+			{
+				auth0UserId = headerValues.FirstOrDefault();
+			}
+
 
 			if (string.IsNullOrEmpty(auth0UserId))
 			{
-				_logger.LogWarning("GetUserProfile: Unable to identify authenticated user.");
+				_logger.LogWarning("GetUserProfile: Could not find authenticated user principal or 'sub' claim after Azure built-in auth check.");
+				// Return Unauthorized because authentication failed or claims are missing
 				return req.CreateResponse(HttpStatusCode.Unauthorized);
 			}
-			// --- End Placeholder ---
+			// --- User Identified ---
+
+			_logger.LogInformation("GetUserProfile: Authenticated user ID (sub): {Auth0UserId}", auth0UserId);
+
 
 			try
 			{
 				// Find user in your DB linked to the Auth0 ID
 				var user = await _dbContext.Users
-									 .FirstOrDefaultAsync(u => u.external_provider_id == auth0UserId);
+									.FirstOrDefaultAsync(u => u.external_provider_id == auth0UserId);
 
 				if (user == null)
 				{
@@ -79,7 +99,6 @@ namespace rescueApp
 					IsActive = user.is_active,
 					DateCreated = user.date_created,
 					LastLoginDate = user.last_login_date
-					// Address/Phone fields removed
 				};
 				// --- End Mapping ---
 
@@ -98,14 +117,5 @@ namespace rescueApp
 				return errorResponse;
 			}
 		}
-
-		// --- Placeholder Token Extraction - Needs Real Implementation ---
-		private string? GetUserIdFromToken(HttpRequestData req)
-		{
-			_logger.LogWarning("GetUserIdFromToken: Using placeholder - NO REAL AUTHENTICATION!");
-			// Replace with logic to validate Authorization header and extract 'sub' claim
-			return null; // Return null until real auth is implemented
-		}
-		// --- End Placeholder ---
 	}
 }

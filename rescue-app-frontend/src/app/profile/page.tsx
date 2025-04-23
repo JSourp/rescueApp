@@ -9,40 +9,49 @@ import { UserProfile } from '@/types/userProfile';
 // Import the display component (which will be Client Component)
 import ProfileDisplay from '@/components/ProfileDisplay';
 
-// This function needs to run server-side, potentially accepting the access token
-// For simplicity, let's assume it's called from within the page for now
-async function fetchProfileData(auth0UserId: string): Promise<UserProfile | null> {
-	const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-	const url = `${apiBaseUrl}/users/me`; // Assuming /users/me identifies user via token implicitly
+// --- Fetch function to ACCEPT and USE the accessToken ---
+async function fetchProfileData(accessToken: string | undefined | null): Promise<UserProfile | null> {
+	// 1. Check if we even received a token to send
+	if (!accessToken) {
+		console.error("fetchProfileData: Attempted to fetch profile without an access token.");
+		// Returning null will trigger the "Could not load profile data" message on the page
+		return null;
+	}
 
-	console.log("Fetching server-side profile for user:", auth0UserId); // Server-side log
+	// Use the public API base URL defined in environment variables
+	const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+	if (!apiBaseUrl) {
+		console.error("fetchProfileData: NEXT_PUBLIC_API_BASE_URL environment variable is not set.");
+		return null;
+	}
+	const url = `${apiBaseUrl}/users/me`;
+
+	console.log("Fetching server-side profile from:", url);
 
 	try {
-		// --- Server-Side Fetch ---
-		// IMPORTANT: When calling backend API *from Next.js server*,
-		// you don't typically pass the user's access token directly.
-		// Your backend API (/api/users/me) needs a way to securely identify the user
-		// based on the incoming request (e.g., validating a session cookie set by Auth0 SDK,
-		// or you might need a different backend approach if calling directly from server component)
-		// OR, alternatively, pass the auth0UserId securely if the API accepts it for lookup.
-		// For now, let's assume the API magically knows the user or doesn't need auth for this specific fetch (less secure).
-		// TODO: Implement proper server-to-server auth or session handling for this fetch.
-
 		const response = await fetch(url, {
 			method: 'GET',
-			// headers: { 'Authorization': `Bearer ${accessToken}` }, // If passing token
-			cache: 'no-store' // Don't cache sensitive user data
+			headers: {
+				// --- 2. Add the Authorization header ---
+				'Authorization': `Bearer ${accessToken}`
+			},
+			cache: 'no-store' // Don't cache user profile data on the server component fetch
 		});
 
 		if (!response.ok) {
-			if (response.status === 404) return null; // User might exist in Auth0 but not synced yet
-			throw new Error(`API Error: ${response.status}`);
+			// Log specific errors for debugging backend issues
+			console.error(`API Error fetching profile (${url}): ${response.status} ${response.statusText}`);
+			if (response.status === 401 || response.status === 403) {
+				console.error("API returned Unauthorized/Forbidden. Check token validation on backend or token audience/scope.");
+			}
+			// Return null to indicate failure to load profile data
+			return null;
 		}
 		const data = await response.json();
-		return data as UserProfile; // Assume API returns camelCase still
+
+		return data as UserProfile;
 	} catch (error) {
 		console.error("Server-side profile fetch error:", error);
-		// Depending on error, maybe redirect to error page or return null
 		return null;
 	}
 }
@@ -51,6 +60,7 @@ export default async function ProfilePage() {
 	// 1. Get session server-side
 	const session = await getSession();
 	const auth0User = session?.user;
+	const accessToken = session?.accessToken;
 
 	// 2. Redirect if no user session found.
 	if (!auth0User?.sub) {
@@ -58,28 +68,42 @@ export default async function ProfilePage() {
 		redirect('/'); // Use Next.js redirect
 	}
 
-	// 3. Fetch profile data from backend API (server-side)
-	// Pass the auth0 user ID (sub) securely if API requires it
-	const profileData = await fetchProfileData(auth0User.sub);
-
-	// 4. Handle case where profile data couldn't be fetched
-	if (!profileData) {
+	// 3. Check if Access Token exists ---
+	// It might be missing if Auth0 isn't configured to issue one for your API audience
+	if (!accessToken) {
+		console.error("Access Token missing from session!");
 		return (
 			<Container className="text-center py-10">
-				<h1 className="text-3xl font-bold mb-4">My Profile</h1>
-				<p className="text-red-500">Could not load profile data from the database.</p>
-				<p className="text-sm text-gray-500 mt-2">Your login succeeded, but we couldn&apos;t find your associated application profile. Please contact support.</p>
-				<p className="text-xs mt-4">Auth ID: {auth0User.sub}</p> {/* Display ID for support */}
+				<h1 className="text-3xl font-bold mb-4">Profile Access Error</h1>
+				<p className="text-red-500">Could not retrieve necessary credentials (Access Token) to load your profile.</p>
+				<p className="text-sm text-gray-500 mt-2">This might be due to application configuration issues. Please contact support.</p>
 				<a href="/api/auth/logout" className="mt-4 inline-block text-indigo-600 hover:underline">Logout</a>
 			</Container>
 		);
 	}
 
-	// 5. Render the page, passing data to a Client Component for potential interactivity
+	// 4. Fetch profile data FROM YOUR BACKEND using the access token ---
+	const profileData = await fetchProfileData(accessToken);
+
+	// 5. Handle case where profile data couldn't be fetched from your API
+	if (!profileData) {
+		return (
+			<Container className="text-center py-10">
+				<h1 className="text-3xl font-bold mb-4">My Profile</h1>
+				{/* Updated message: Distinguish between API error and missing profile */}
+				<p className="text-red-500">Could not load your profile data from our system.</p>
+				<p className="text-sm text-gray-500 mt-2">Your login succeeded, but we encountered an issue retrieving your details. Please try again later or contact support.</p>
+				<p className="text-xs mt-4">Auth ID: {auth0User.sub}</p>
+				<a href="/api/auth/logout" className="mt-4 inline-block text-indigo-600 hover:underline">Logout</a>
+			</Container>
+		);
+	}
+
+	// 6. Render the page with the fetched data
 	return (
 		<Container className="py-10">
 			<h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">Your Profile</h1>
-			{/* Pass fetched data to a Client Component that handles display/editing */}
+			{/* Pass fetched data to the Client Component */}
 			<ProfileDisplay initialProfileData={profileData} />
 		</Container>
 	);
