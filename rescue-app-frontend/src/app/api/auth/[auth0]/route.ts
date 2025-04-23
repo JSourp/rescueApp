@@ -39,8 +39,8 @@ const afterCallback: AfterCallback = async (req: NextRequest, session: Session, 
 		try {
 			// --- Call your backend API to sync the user ---
 			// Use an environment variable for your backend API base URL
-			const backendApiUrl = process.env.INTERNAL_API_BASE_URL || 'http://localhost:7071/api'; // Default for local dev
-			const syncUrl = `${backendApiUrl}/users/sync`;
+			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+			const syncUrl = `${apiBaseUrl}/users/sync`;
 
 			console.log(`Calling backend sync endpoint: ${syncUrl} for user sub: ${payload.externalProviderId}`);
 
