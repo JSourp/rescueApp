@@ -59,6 +59,8 @@ async function fetchProfileData(accessToken: string | undefined | null): Promise
 export default async function ProfilePage() {
 	// 1. Get session server-side
 	const session = await getSession();
+	//console.log('Profile Page Session:', session);
+	//console.log('Access Token value:', session?.accessToken);
 	const auth0User = session?.user;
 	const accessToken = session?.accessToken;
 

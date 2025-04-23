@@ -71,7 +71,6 @@ namespace rescueApp
 				return req.CreateResponse(HttpStatusCode.Unauthorized);
 			}
 			// --- User Identified ---
-
 			_logger.LogInformation("GetUserProfile: Authenticated user ID (sub): {Auth0UserId}", auth0UserId);
 
 
