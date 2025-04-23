@@ -12,7 +12,7 @@ import ProfileDisplay from '@/components/ProfileDisplay';
 // This function needs to run server-side, potentially accepting the access token
 // For simplicity, let's assume it's called from within the page for now
 async function fetchProfileData(auth0UserId: string): Promise<UserProfile | null> {
-	const apiBaseUrl = process.env.INTERNAL_API_BASE_URL || 'http://localhost:7071/api';
+	const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 	const url = `${apiBaseUrl}/users/me`; // Assuming /users/me identifies user via token implicitly
 
 	console.log("Fetching server-side profile for user:", auth0UserId); // Server-side log
