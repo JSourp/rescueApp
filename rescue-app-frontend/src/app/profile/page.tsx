@@ -52,7 +52,7 @@ export default async function ProfilePage() {
 	const session = await getSession();
 	const auth0User = session?.user;
 
-	// 2. Redirect if no user session found
+	// 2. Redirect if no user session found.
 	if (!auth0User?.sub) {
 		console.log("No Auth0 session found, redirecting Home.");
 		redirect('/'); // Use Next.js redirect
