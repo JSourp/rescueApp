@@ -16,7 +16,7 @@ export function Navbar() {
   const navigation = [
     { name: "Available Animals", href: "/available-animals" },
     { name: "Get Involved", href: "/get-involved" },
-    { name: "About Us", href: "/about" },
+    { name: "About Us", href: "/about-us" },
   ];
 
   return (
@@ -51,7 +51,7 @@ export function Navbar() {
           </ul>
         </div>
 
-        {/* Right Side Buttons: Donate and Login/Logout */}
+        {/* Right Side Buttons: Donate and Login */}
         <div className="flex flex-col lg:flex-row items-center lg:space-x-4 ml-4">
           {/* Donate Button */}
           <Link
@@ -128,12 +128,6 @@ export function Navbar() {
                     className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-md"
                   >
                     Profile
-                  </Link>
-                  <Link
-                    href="/api/auth/logout"
-                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-md"
-                  >
-                    Logout
                   </Link>
                 </div>
               </div>
@@ -227,14 +221,6 @@ export function Navbar() {
                       className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-500 dark:hover:text-indigo-400"
                     >
                       Profile
-                    </DisclosureButton>
-                    {/* Logout */}
-                    <DisclosureButton
-                      as="a"
-                      href="/api/auth/logout"
-                      className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-red-500 dark:hover:text-red-400"
-                    >
-                      Logout
                     </DisclosureButton>
                   </>
                 )}
