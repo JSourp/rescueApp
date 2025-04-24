@@ -5,9 +5,27 @@ import { format } from 'date-fns';
 import { UserProfile } from '@/types/userProfile';
 
 // Helper component
-const ProfileDetail = ({ label, value }: { label: string; value: string | undefined | null | boolean }) => {
-    const displayValue = typeof value === 'boolean' ? (value ? 'Active' : 'Inactive') : value;
-    if (displayValue === undefined || displayValue === null || displayValue === '') return null;
+const ProfileDetail = ({ label, value, isDate }: { label: string; value: string | undefined | null | boolean; isDate?: boolean }) => {
+	let displayValue: string | null = null;
+
+	if (typeof value === 'boolean') {
+		displayValue = value ? 'Active' : 'Inactive';
+	} else if (isDate && value) {
+		// Format the date with date-fns and include the timezone
+		const date = new Date(value);
+		const formattedDate = format(date, 'MMMM do, yyyy');
+		const formattedTime = new Intl.DateTimeFormat('en-US', {
+			hour: 'numeric',
+			minute: 'numeric',
+			timeZoneName: 'short',
+		}).format(date); // e.g., 5:49 PM PDT
+		displayValue = `${formattedDate} at ${formattedTime}`;
+	} else {
+		displayValue = value as string;
+	}
+
+	if (!displayValue) return null;
+
     return (
         <div className="py-2 sm:grid sm:grid-cols-3 sm:gap-4">
             <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">{label}</dt>
@@ -36,9 +54,9 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
           <ProfileDetail label="Email" value={profileData.email} />
           <ProfileDetail label="Role" value={profileData.role} />
           <ProfileDetail label="Account Status" value={profileData.isActive} />
-          <ProfileDetail label="Member Since" value={format(new Date(profileData.dateCreated), 'PPP')} />
+				  <ProfileDetail label="Member Since" value={format(new Date(profileData.dateCreated), 'MMMM do, yyyy')} />
           {profileData.lastLoginDate && (
-              <ProfileDetail label="Last Login" value={format(new Date(profileData.lastLoginDate), 'Pp')} />
+					  <ProfileDetail label="Last Login" value={profileData.lastLoginDate} isDate />
           )}
           {/* Add other details from profileData */}
 

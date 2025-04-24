@@ -59,8 +59,8 @@ async function fetchProfileData(accessToken: string | undefined | null): Promise
 export default async function ProfilePage() {
 	// 1. Get session server-side
 	const session = await getSession();
-	//console.log('Profile Page Session:', session);
-	//console.log('Access Token value:', session?.accessToken);
+	console.log('Profile Page Session:', session);
+	console.log('Access Token value:', session?.accessToken);
 	const auth0User = session?.user;
 	const accessToken = session?.accessToken;
 
@@ -104,7 +104,7 @@ export default async function ProfilePage() {
 	// 6. Render the page with the fetched data
 	return (
 		<Container className="py-10">
-			<h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">Your Profile</h1>
+			<h1 className="text-center text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">Your Profile</h1>
 			{/* Pass fetched data to the Client Component */}
 			<ProfileDisplay initialProfileData={profileData} />
 		</Container>
