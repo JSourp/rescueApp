@@ -155,6 +155,7 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
           <ProfileDetail label="Member Since" value={format(new Date(profileData.dateCreated), 'MMMM do, yyyy')} />
           {/* Add other details from profileData */}
 
+          {/* This works but is commented out for now, because any name change is reset if logged in using a different provider, like Google.
           <div className="pt-6 text-right">
             <button
               onClick={() => { setApiError(null); setIsEditing(true); }}
@@ -163,6 +164,7 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
               Edit Profile
             </button>
           </div>
+          */}
         </dl>
       ) : (
           // --- Edit Mode ---
