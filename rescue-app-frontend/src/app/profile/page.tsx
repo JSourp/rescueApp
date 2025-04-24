@@ -1,6 +1,7 @@
 import React from 'react';
 import { getSession } from '@auth0/nextjs-auth0';
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import { Container } from '@/components/Container';
 import { LoadingSpinner } from "@/components/Icons";
 import { format } from 'date-fns';
@@ -57,6 +58,17 @@ async function fetchProfileData(accessToken: string | undefined | null): Promise
 }
 
 export default async function ProfilePage() {
+	// 0. Logging Session data for debugging
+	try {
+		const headerList = headers();
+		const cookieHeader = headerList.get('cookie');
+		console.log('--- VERCEL /profile Request Cookie Header ---');
+		console.log(cookieHeader || 'Cookie header not found');
+		console.log('--- appSession present in header?:', cookieHeader?.includes('appSession=') ?? false, '---');
+	} catch (e) {
+		console.error("Error reading headers:", e);
+	}
+
 	// 1. Get session server-side
 	const session = await getSession();
 	console.log('Profile Page Session:', session);
