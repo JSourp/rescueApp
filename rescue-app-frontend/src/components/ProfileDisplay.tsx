@@ -1,8 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { UserProfile } from '@/types/userProfile';
+import { UserProfile } from '@/types/userProfile'; // Adjust path
+import { useForm, SubmitHandler } from 'react-hook-form'; // Import RHF
+
+// Define the shape of the form data (only editable fields)
+interface ProfileFormData {
+  firstName: string;
+  lastName: string;
+  // Add corresponding fields here if you make more fields editable
+}
 
 // Helper component
 const ProfileDetail = ({ label, value, isDate }: { label: string; value: string | undefined | null | boolean; isDate?: boolean }) => {
@@ -41,10 +49,90 @@ interface ProfileDisplayProps {
 export default function ProfileDisplay({ initialProfileData }: ProfileDisplayProps) {
   const [profileData, setProfileData] = useState<UserProfile>(initialProfileData);
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  // Add state for form handling (e.g., using react-hook-form) when implementing edit
+  const [apiError, setApiError] = useState<string | null>(null); // For save errors
 
-  // TODO: Implement handleSave function using react-hook-form and PUT /api/users/me
+  // --- React Hook Form Setup ---
+  const {
+    register,
+    handleSubmit,
+    reset, // To reset form state
+    formState: { errors, isSubmitting, isDirty } // Get form state (isDirty tells if form values changed)
+  } = useForm<ProfileFormData>({
+    // Default values are set using useEffect below to ensure they use fetched data
+  });
 
+  // Set form defaults when editing starts or initial data changes
+  useEffect(() => {
+    if (profileData) {
+      reset({ // reset updates the form's default values AND current values
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+      });
+    }
+  }, [profileData, reset, isEditing]); // Rerun if isEditing changes
+
+
+  // --- Handle Save/Submit ---
+  const handleSave: SubmitHandler<ProfileFormData> = async (formData) => {
+    setApiError(null);
+    console.log("Submitting profile update:", formData);
+
+    // --- Fetch Access Token ---
+    // Replace with actual token retrieval logic
+    const getAuth0AccessToken = async (): Promise<string | null> => {
+      console.warn("TODO: Implement actual getAuth0AccessToken!");
+      // Fetch from '/api/auth/token' or use Auth0 client-side SDK methods if available
+      try {
+        const tokenRes = await fetch('/api/auth/token'); // Example API route
+        if (!tokenRes.ok) throw new Error('Failed to get token');
+        const { accessToken } = await tokenRes.json();
+        return accessToken;
+      } catch (error) {
+        console.error("Failed to get access token:", error);
+        return null;
+      }
+    };
+    const accessToken = await getAuth0AccessToken();
+    if (!accessToken) {
+      setApiError("Could not get authentication token. Please log out and back in.");
+      return;
+    }
+    // --- End Token Fetch ---
+
+    try {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+      const response = await fetch(`${apiBaseUrl}/users/me`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(formData) // Send edited fields
+      });
+
+      if (!response.ok) {
+        let errorMsg = `Error ${response.status}: Failed to update profile.`;
+        try { const errorBody = await response.json(); errorMsg = errorBody.message || errorMsg; }
+        catch (_) { /* Ignore if body isn't JSON */ }
+        throw new Error(errorMsg);
+      }
+
+      // Update local state with the successfully saved data
+      setProfileData(prev => ({ ...prev, ...formData }));
+      setIsEditing(false); // Exit edit mode on success
+  // Optionally show a success toast/message
+
+    } catch (error) {
+      console.error("Profile update error:", error);
+      setApiError(error instanceof Error ? error.message : "An unknown error occurred while saving.");
+    }
+  };
+
+  // Input/Select/Textarea base classes (use your theme colors)
+  const inputBaseClasses = "w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-indigo-100 dark:focus:ring-indigo-900 focus:border-indigo-500 dark:focus:border-indigo-500";
+  const inputBorderClasses = (hasError: boolean) => hasError ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600';
+  const errorTextClasses = "text-red-500 dark:text-red-400 text-xs mt-1";
+  const labelBaseClasses = "block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300";
 
   return (
     <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 md:p-8 max-w-2xl mx-auto">
@@ -60,7 +148,7 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
 
           <div className="pt-6 text-right">
             <button
-              onClick={() => setIsEditing(true)}
+              onClick={() => { setApiError(null); setIsEditing(true); }}
               className="bg-sc-asparagus-500 hover:bg-sc-asparagus-600 text-white font-medium py-2 px-5 rounded-md transition duration-300"
             >
               Edit Profile
@@ -68,34 +156,62 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
           </div>
         </dl>
       ) : (
-        <div> {/* Edit Form Section */}
+          // --- Edit Mode ---
+          <form onSubmit={handleSubmit(handleSave)}>
             <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Edit Profile</h2>
-            <p className="mb-4 text-gray-600 dark:text-gray-400">
-              Update your contact information below. (Email and Role cannot be changed here).
-            </p>
-            {/* --- TODO: Implement React Hook Form here --- */}
-            {/* Example: Input for First Name */}
-            {/* <label htmlFor="firstName">First Name</label> */}
-            {/* <input id="firstName" defaultValue={profileData.firstName} {...register("firstName")} /> */}
-            {/* --- End Form Placeholder --- */}
+            {apiError && <p className="mb-4 text-sm text-red-600 dark:text-red-400">Save Error: {apiError}</p>}
+            <div className="space-y-4">
+              {/* First Name Input */}
+              <div>
+                <label htmlFor="firstName" className={labelBaseClasses}>First Name *</label>
+                <input
+                  type="text"
+                  id="firstName"
+                  className={`${inputBaseClasses} ${inputBorderClasses(!!errors.firstName)}`}
+                  {...register("firstName", { required: "First name is required" })}
+                />
+                {errors.firstName && <p className={errorTextClasses}>{errors.firstName.message}</p>}
+              </div>
 
+              {/* Last Name Input */}
+              <div>
+                <label htmlFor="lastName" className={labelBaseClasses}>Last Name *</label>
+                <input
+                  type="text"
+                  id="lastName"
+                  className={`${inputBaseClasses} ${inputBorderClasses(!!errors.lastName)}`}
+                  {...register("lastName", { required: "Last name is required" })}
+                />
+                {errors.lastName && <p className={errorTextClasses}>{errors.lastName.message}</p>}
+              </div>
+
+              {/* Add inputs for other editable fields here (e.g., phone) */}
+
+              {/* Non-Editable fields can be displayed as text */}
+              <ProfileDetail label="Email" value={profileData.email} />
+              <ProfileDetail label="Role" value={profileData.role} />
+
+            </div>
+
+            {/* Form Actions */}
             <div className="flex justify-end gap-3 mt-6 border-t pt-4 dark:border-gray-700">
               <button
                 type="button"
-                onClick={() => setIsEditing(false)} // Cancel edits
+                onClick={() => { setIsEditing(false); reset(); setApiError(null); }} // Cancel edits & reset form
                 className="bg-neutral-200 hover:bg-neutral-300 text-neutral-800 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500 font-medium py-2 px-5 rounded-md transition duration-300"
               >
                 Cancel
               </button>
               <button
-                type="submit" // This would be the submit button for the form
-                disabled // Disable until form is implemented
-                className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50"
+                type="submit"
+                // Disable if submitting OR if form hasn't changed from original values
+                disabled={isSubmitting || !isDirty}
+                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50"
               >
-                Save Changes
+                {isSubmitting ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
-        </div>
+          </form>
       )}
     </div>
   );
