@@ -82,35 +82,47 @@ namespace rescueApp
 				{
 					_logger.LogInformation("User found in local DB. ExternalProviderId: {ExternalId}, UserId: {UserId}", syncRequest.ExternalProviderId, existingUser.id);
 					userToReturn = existingUser;
-					bool updated = false;
+					bool profileDataUpdated = false;
 
 					// Update profile info if changed
 					if (existingUser.first_name != syncRequest.FirstName && !string.IsNullOrWhiteSpace(syncRequest.FirstName))
 					{
-						existingUser.first_name = syncRequest.FirstName;
-						updated = true;
+						existingUser.first_name = syncRequest.FirstName; profileDataUpdated = true;
 					}
 					if (existingUser.last_name != syncRequest.LastName && !string.IsNullOrWhiteSpace(syncRequest.LastName))
 					{
-						existingUser.last_name = syncRequest.LastName;
-						updated = true;
+						existingUser.last_name = syncRequest.LastName; profileDataUpdated = true;
 					}
-					if (existingUser.email != syncRequest.Email)
-					{
-						existingUser.email = syncRequest.Email;
-						updated = true;
+					if (existingUser.email != syncRequest.Email && !string.IsNullOrWhiteSpace(syncRequest.Email))
+					{ // Ensure email isn't empty/whitespace if updating
+						existingUser.email = syncRequest.Email; profileDataUpdated = true;
 					}
 
 					// Always update last_login_date
 					existingUser.last_login_date = utcNow;
 
-					// Save changes if any field was updated
-					if (updated)
+					// --- Conditionally set date_updated ONLY if profile data changed ---
+					if (profileDataUpdated)
 					{
 						existingUser.date_updated = utcNow;
-						_dbContext.Users.Update(existingUser);
-						await _dbContext.SaveChangesAsync();
-						_logger.LogInformation("Updated user details for UserId: {UserId}. ProfileUpdated: {ProfileUpdated}", existingUser.id, updated);
+						_logger.LogInformation("Profile data fields require update for UserId: {UserId}", existingUser.id);
+					}
+
+					// --- Always Save Changes if the entity is tracked and potentially modified ---
+					// EF Core Change Tracker will detect if last_login_date or any profile field changed.
+					// The database trigger (if exists) will handle date_updated on UPDATE regardless of profileDataUpdated flag.
+					// If relying purely on C# for date_updated, the profileDataUpdated flag ensures it's only set then.
+					try
+					{
+						await _dbContext.SaveChangesAsync(); // Save any tracked changes (login date, profile fields, updated date)
+						_logger.LogInformation("SaveChangesAsync completed for UserId: {UserId}. ProfileDataUpdatedFlag: {ProfileUpdated}", existingUser.id, profileDataUpdated);
+					}
+					catch (DbUpdateConcurrencyException ex)
+					{
+						// Handle potential concurrency issues if needed
+						_logger.LogError(ex, "Concurrency error saving user update for UserId: {UserId}", existingUser.id);
+						// Decide how to handle - potentially reload and retry or return error
+						throw; // Re-throw for outer catch block or handle specifically
 					}
 				}
 				else
