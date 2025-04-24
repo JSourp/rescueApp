@@ -78,23 +78,32 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
     console.log("Submitting profile update:", formData);
 
     // --- Fetch Access Token ---
-    // Replace with actual token retrieval logic
-    const getAuth0AccessToken = async (): Promise<string | null> => {
-      console.warn("TODO: Implement actual getAuth0AccessToken!");
-      // Fetch from '/api/auth/token' or use Auth0 client-side SDK methods if available
+    async function getAuth0AccessToken(): Promise<string | null> {
       try {
-        const tokenRes = await fetch('/api/auth/token'); // Example API route
-        if (!tokenRes.ok) throw new Error('Failed to get token');
-        const { accessToken } = await tokenRes.json();
-        return accessToken;
+        // Fetch from the internal Next.js API route
+        const response = await fetch('/api/auth/token'); // Relative URL to our new endpoint
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `Failed to get access token: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        if (!data.accessToken) {
+          throw new Error("Access token not found in response from /api/auth/token");
+        }
+        return data.accessToken;
+
       } catch (error) {
-        console.error("Failed to get access token:", error);
+        console.error("Error fetching access token:", error);
+        // Return null or re-throw, depending on how you want handleSave to react
         return null;
       }
-    };
+    }
+
     const accessToken = await getAuth0AccessToken();
     if (!accessToken) {
-      setApiError("Could not get authentication token. Please log out and back in.");
+      setApiError("Could not get authentication token. Please try logging in again.");
       return;
     }
     // --- End Token Fetch ---
@@ -120,7 +129,7 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
       // Update local state with the successfully saved data
       setProfileData(prev => ({ ...prev, ...formData }));
       setIsEditing(false); // Exit edit mode on success
-  // Optionally show a success toast/message
+      // Optionally show a success toast/message
 
     } catch (error) {
       console.error("Profile update error:", error);
