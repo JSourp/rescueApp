@@ -50,7 +50,7 @@ export function Navbar() {
         </div>
 
         {/* Right Side Buttons: Donate and Login/Logout */}
-        <div className="hidden flex flex-col lg:flex-row items-center lg:space-x-4 ml-4">
+        <div className="hidden lg:flex flex-col lg:flex-row items-center lg:space-x-4 ml-4">
           {/* Donate Button */}
           <Link
             href="/donate"
