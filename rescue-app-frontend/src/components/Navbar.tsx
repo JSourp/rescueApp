@@ -55,7 +55,7 @@ export function Navbar() {
         <div className="flex flex-col lg:flex-row items-center lg:space-x-4 ml-4">
           {/* Donate Button */}
           <Link
-            href="/donating"
+            href="/donate"
             className="px-5 py-2 text-white bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 rounded-md shadow hover:scale-105 transition-transform duration-300 mb-2 lg:mb-0"
           >
             <span className="flex items-center space-x-2">
@@ -211,7 +211,7 @@ export function Navbar() {
                 {/* Donate Button */}
                 <DisclosureButton
                   as={Link}
-                  href="/donating"
+                  href="/donate"
                   className="block w-full text-center px-5 py-2 text-white bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 rounded-md shadow hover:scale-105 transition-transform duration-300 text-base font-medium"
                 >
                   Donate
