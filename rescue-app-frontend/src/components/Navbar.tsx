@@ -146,112 +146,67 @@ export function Navbar() {
 
         {/* Mobile Menu Toggle (You'll need state and logic for this) */}
         <div className="lg:hidden">
-          {/* ... Your mobile menu button (e.g., Hamburger Icon) ... */}
-        </div>
-      </nav>
-
-      {/* Mobile Menu Toggle and Panel */}
-      <Disclosure>
-        {({ open }) => (
-          <>
-            {/* Mobile Menu Toggle Button */}
-            <DisclosureButton className="lg:hidden flex items-center justify-center p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
-              <span className="sr-only">Open main menu</span>
-              {open ? (
-                <svg
-                  className="block h-6 w-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  className="block h-6 w-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16m-7 6h7"
-                    />
-                </svg>
-              )}
-            </DisclosureButton>
-
-            {/* Mobile Menu Panel */}
-            <DisclosurePanel className="lg:hidden border-t border-gray-200 dark:border-gray-700">
-              <div className="space-y-1 px-2 pt-2 pb-3">
-                {navigation.map((item) => (
-                  <DisclosureButton
-                    key={item.name}
-                    as={Link}
-                    href={item.href}
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-500 dark:hover:text-indigo-400"
-                  >
-                    {item.name}
-                  </DisclosureButton>
-                ))}
-              </div>
-              {/* Actions in Mobile Menu */}
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-4 pb-3 px-4 space-y-3">
-                {/* Donate Button */}
-                <DisclosureButton
-                  as={Link}
-                  href="/donate"
-                  className="block w-full text-center px-5 py-2 text-white bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 rounded-md shadow hover:scale-105 transition-transform duration-300 text-base font-medium"
-                >
-                  Donate
+          <Disclosure>
+            {({ open }) => (
+              <>
+                {/* Mobile Menu Toggle Button */}
+                <DisclosureButton className="lg:hidden flex items-center justify-center p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+                  <span className="sr-only">Open main menu</span>
+                  {open ? (
+                    <svg
+                      className="block h-6 w-6"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="block h-6 w-6"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 6h16M4 12h16m-7 6h7"
+                      />
+                    </svg>
+                  )}
                 </DisclosureButton>
 
-                {/* User Actions */}
-                {!isLoading && !error && user && (
-                  <>
-                    {/* User Profile */}
-                    <Link
-                      href="/profile"
-                      className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-500 dark:hover:text-indigo-400"
-                    >
-                      Profile
-                    </Link>
-                    {/* Logout */}
-                    <Link
-                      href="/api/auth/logout"
-                      className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-red-500 dark:hover:text-red-400"
-                    >
-                      Logout
-                    </Link>
-                  </>
-                )}
-
-                {/* Login Button (if not logged in) */}
-                {!isLoading && !error && !user && (
-                  <DisclosureButton
-                    as={Link}
-                    href="/api/auth/login"
-                    className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-500 dark:hover:text-indigo-400"
-                  >
-                    Login
-                  </DisclosureButton>
-                )}
-              </div>
-            </DisclosurePanel>
-          </>
-        )}
-      </Disclosure>
+                {/* Mobile Menu Panel */}
+                <DisclosurePanel className="lg:hidden border-t border-gray-200 dark:border-gray-700">
+                  <div className="space-y-1 px-2 pt-2 pb-3">
+                    {navigation.map((item) => (
+                      <DisclosureButton
+                        key={item.name}
+                        as={Link}
+                        href={item.href}
+                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-500 dark:hover:text-indigo-400"
+                      >
+                        {item.name}
+                      </DisclosureButton>
+                    ))}
+                  </div>
+                </DisclosurePanel>
+              </>
+            )}
+          </Disclosure>
+        </div>
+      </nav>
     </div>
   );
 }

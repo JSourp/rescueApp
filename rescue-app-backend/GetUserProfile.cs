@@ -32,7 +32,6 @@ namespace rescueApp
 		public string Role { get; set; } = string.Empty; // User's role in the app
 		public bool IsActive { get; set; }
 		public DateTime DateCreated { get; set; }
-		public DateTime? LastLoginDate { get; set; }
 	}
 
 	public class GetUserProfile
@@ -212,8 +211,7 @@ namespace rescueApp
 					Email = user.email,
 					Role = user.role,
 					IsActive = user.is_active,
-					DateCreated = user.date_created,
-					LastLoginDate = user.last_login_date
+					DateCreated = user.date_created
 				};
 
 				var response = req.CreateResponse(HttpStatusCode.OK);
