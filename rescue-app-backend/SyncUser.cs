@@ -87,33 +87,31 @@ namespace rescueApp
 					// Update profile info if changed
 					if (existingUser.first_name != syncRequest.FirstName && !string.IsNullOrWhiteSpace(syncRequest.FirstName))
 					{
-						existingUser.first_name = syncRequest.FirstName; updated = true;
+						existingUser.first_name = syncRequest.FirstName;
+						updated = true;
 					}
 					if (existingUser.last_name != syncRequest.LastName && !string.IsNullOrWhiteSpace(syncRequest.LastName))
 					{
-						existingUser.last_name = syncRequest.LastName; updated = true;
+						existingUser.last_name = syncRequest.LastName;
+						updated = true;
 					}
 					if (existingUser.email != syncRequest.Email)
 					{
-						existingUser.email = syncRequest.Email; updated = true;
+						existingUser.email = syncRequest.Email;
+						updated = true;
 					}
 
-					// ALWAYS UPDATE Last Login and Date Updated on successful sync
+					// Always update last_login_date
 					existingUser.last_login_date = utcNow;
-					existingUser.date_updated = utcNow; // Explicitly set update time
-					updated = true; // Mark as updated
 
+					// Save changes if any field was updated
 					if (updated)
 					{
+						existingUser.date_updated = utcNow;
 						_dbContext.Users.Update(existingUser);
-						// No need to call SaveChangesAsync here if ONLY updating timestamps and profile
-						// Let the final SaveChangesAsync handle it if user was also new.
-						// If ONLY updating existing, save here: await _dbContext.SaveChangesAsync();
+						await _dbContext.SaveChangesAsync();
+						_logger.LogInformation("Updated user details for UserId: {UserId}. ProfileUpdated: {ProfileUpdated}", existingUser.id, updated);
 					}
-					// Save changes if any field including timestamp was updated
-					await _dbContext.SaveChangesAsync();
-					_logger.LogInformation("Updated existing user details/timestamps for UserId: {UserId}", existingUser.id);
-
 				}
 				else
 				{
