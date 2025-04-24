@@ -1,13 +1,10 @@
-// src/components/Navbar.tsx (or wherever your Navbar component lives)
+'use client';
 
-'use client'; // IMPORTANT: Add this directive because we use hooks (useUser)
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import ThemeChanger from "./DarkSwitch";
 import { useUser } from '@auth0/nextjs-auth0/client';
-import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
 
 export function Navbar() {
   // Get user authentication state from Auth0 hook
@@ -129,12 +126,7 @@ export function Navbar() {
                   >
                     Profile
                   </Link>
-                  <Link
-                    href="/api/auth/logout"
-                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-md"
-                  >
-                    Logout
-                  </Link>
+
                 </div>
               </div>
             )}
