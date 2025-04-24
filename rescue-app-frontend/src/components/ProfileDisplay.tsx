@@ -45,6 +45,7 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
 
   // TODO: Implement handleSave function using react-hook-form and PUT /api/users/me
 
+
   return (
     <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 md:p-8 max-w-2xl mx-auto">
       {!isEditing ? (
