@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import ThemeChanger from "./DarkSwitch";
 import { useUser } from '@auth0/nextjs-auth0/client';
+import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
 
 export function Navbar() {
   // Get user authentication state from Auth0 hook
@@ -136,8 +137,68 @@ export function Navbar() {
         </div>
 
 
-        {/* Mobile Menu Toggle (coming soon) */}
+        {/* Mobile Menu Toggle */}
+        <div className="lg:hidden">
+          <Disclosure>
+            {({ open }) => (
+              <>
+                {/* Mobile Menu Toggle Button */}
+                <DisclosureButton className="lg:hidden flex items-center justify-center p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+                  <span className="sr-only">Open main menu</span>
+                  {open ? (
+                    <svg
+                      className="block h-6 w-6"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="block h-6 w-6"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 6h16M4 12h16m-7 6h7"
+                      />
+                    </svg>
+                  )}
+                </DisclosureButton>
 
+                {/* Mobile Menu Panel */}
+                <DisclosurePanel className="lg:hidden border-t border-gray-200 dark:border-gray-700">
+                  <div className="space-y-1 px-2 pt-2 pb-3">
+                    {navigation.map((item) => (
+                      <DisclosureButton
+                        key={item.name}
+                        as={Link}
+                        href={item.href}
+                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-500 dark:hover:text-indigo-400"
+                      >
+                        {item.name}
+                      </DisclosureButton>
+                    ))}
+                  </div>
+                </DisclosurePanel>
+              </>
+            )}
+          </Disclosure>
+        </div>
       </nav>
     </div>
   );
