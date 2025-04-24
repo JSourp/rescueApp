@@ -1,5 +1,3 @@
-// rescueApp/UpdateUserProfile.cs
-
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt; // Ensure this is included
@@ -56,8 +54,9 @@ namespace rescueApp
 
 		[Function("UpdateUserProfile")]
 		public async Task<AzureFuncHttp.HttpResponseData> Run(
-			[HttpTrigger(AuthorizationLevel.Anonymous, "PUT", Route = "users/me")] // Changed to PUT
-            AzureFuncHttp.HttpRequestData req)
+			// TODO: Change AuthorizationLevel from Anonymous after testing/implementing real auth
+			[HttpTrigger(AuthorizationLevel.Anonymous, "PUT", Route = "users/me")]
+			AzureFuncHttp.HttpRequestData req)
 		{
 			_logger.LogInformation("C# HTTP trigger function processed UpdateUserProfile request.");
 
