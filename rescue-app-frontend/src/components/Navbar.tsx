@@ -50,7 +50,7 @@ export function Navbar() {
         </div>
 
         {/* Right Side Buttons: Donate and Login/Logout */}
-        <div className="flex flex-col lg:flex-row items-center lg:space-x-4 ml-4">
+        <div className="hidden flex flex-col lg:flex-row items-center lg:space-x-4 ml-4">
           {/* Donate Button */}
           <Link
             href="/donate"
@@ -195,6 +195,44 @@ export function Navbar() {
                         {item.name}
                       </DisclosureButton>
                     ))}
+                  </div>{/* Actions in Mobile Menu */}
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4 pb-3 px-4 space-y-3">
+                    {/* Donate Button */}
+                    <DisclosureButton
+                      as={Link}
+                      href="/donate"
+                      className="block w-full text-center px-5 py-2 text-white bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 rounded-md shadow hover:scale-105 transition-transform duration-300 text-base font-medium"
+                    >
+                      Donate
+                    </DisclosureButton>
+
+                    {/* User Actions */}
+                    {!isLoading && !error && user && (
+                      <>
+                        {/* User Profile */}
+                        <Link
+                          href="/profile"
+                          className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-500 dark:hover:text-indigo-400">
+                          Profile
+                        </Link>
+                        {/* Logout */}
+                        <a href="/api/auth/logout"
+                          className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-red-500 dark:hover:text-red-400">
+                          Logout
+                        </a>
+                      </>
+                    )}
+
+                    {/* Login Button (if not logged in) */}
+                    {!isLoading && !error && !user && (
+                      <DisclosureButton
+                        as={Link}
+                        href="/api/auth/login"
+                        className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-500 dark:hover:text-indigo-400"
+                      >
+                        Login
+                      </DisclosureButton>
+                    )}
                   </div>
                 </DisclosurePanel>
               </>
