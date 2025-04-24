@@ -51,7 +51,7 @@ export function Navbar() {
           </ul>
         </div>
 
-        {/* Right Side Buttons: Donate and Login */}
+        {/* Right Side Buttons: Donate and Login/Logout */}
         <div className="flex flex-col lg:flex-row items-center lg:space-x-4 ml-4">
           {/* Donate Button */}
           <Link
@@ -128,6 +128,12 @@ export function Navbar() {
                     className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-md"
                   >
                     Profile
+                  </Link>
+                  <Link
+                    href="/api/auth/logout"
+                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-md"
+                  >
+                    Logout
                   </Link>
                 </div>
               </div>
@@ -215,13 +221,19 @@ export function Navbar() {
                 {!isLoading && !error && user && (
                   <>
                     {/* User Profile */}
-                    <DisclosureButton
-                      as={Link}
+                    <Link
                       href="/profile"
                       className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-500 dark:hover:text-indigo-400"
                     >
                       Profile
-                    </DisclosureButton>
+                    </Link>
+                    {/* Logout */}
+                    <Link
+                      href="/api/auth/logout"
+                      className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-red-500 dark:hover:text-red-400"
+                    >
+                      Logout
+                    </Link>
                   </>
                 )}
 
