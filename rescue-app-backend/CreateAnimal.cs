@@ -159,28 +159,35 @@ namespace rescueApp
             // --- 3. Create and Save Animal ---
             try
             {
-                var utcNow = DateTime.UtcNow;
+                var utcNow = DateTime.UtcNow; // Kind is Utc
+
+                // Ensure date_of_birth has Utc Kind if provided
+                DateTime? dateOfBirthUtc = null;
+                if (createData.date_of_birth.HasValue)
+                {
+                    dateOfBirthUtc = DateTime.SpecifyKind(createData.date_of_birth.Value, DateTimeKind.Utc);
+                }
+
                 var newAnimal = new Animal
                 {
-                    // Map from DTO (using snake_case for C# model properties as per user's standard)
                     animal_type = createData.animal_type!,
                     name = createData.Name!,
                     breed = createData.Breed!,
-                    date_of_birth = createData.date_of_birth,
+                    date_of_birth = dateOfBirthUtc,
                     gender = createData.Gender!,
-                    weight = createData.Weight,
-                    story = createData.Story,
-                    adoption_status = createData.adoption_status!,
+                    weight = createData.Weight, // Nullable decimal?
+                    story = createData.Story, // Nullable string
+                    adoption_status = createData.adoption_status!, // Use status from request
                     image_url = null, // Image handling comes later
-                    date_added = utcNow, // Set on creation
-                    date_updated = utcNow // Set on creation
-                    // created_by_user_id = currentUser.id // Optional: Link animal directly to creator user ID? Requires adding column to Animal model/table.
+                    date_added = utcNow, // Already Utc
+                    date_updated = utcNow // Already Utc
+                    // created_by_user_id = currentUser.id // Optional link
                 };
 
                 _dbContext.Animals.Add(newAnimal);
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(); // Should now save DOB correctly
 
-                _logger.LogInformation("Successfully created new Animal with ID: {AnimalId} by User ID: {UserId}", newAnimal.id, currentUser.id);
+                _logger.LogInformation("Successfully created new Animal with ID: {AnimalId} by User ID: {UserId}", newAnimal.id, currentUser!.id); // Use currentUser safely
 
                 // --- 4. Return Response ---
                 var response = req.CreateResponse(HttpStatusCode.Created); // 201 Created status code
