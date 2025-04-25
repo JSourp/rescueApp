@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { UserProfile } from '@/types/userProfile'; // Adjust path
 import { useForm, SubmitHandler } from 'react-hook-form'; // Import RHF
+import { getAuth0AccessToken } from '@/utils/auth';
 
 // Define the shape of the form data (only editable fields)
 interface ProfileFormData {
@@ -77,36 +78,13 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
     setApiError(null);
     console.log("Submitting profile update:", formData);
 
-    // --- Fetch Access Token ---
-    async function getAuth0AccessToken(): Promise<string | null> {
-      try {
-        // Fetch from the internal Next.js API route
-        const response = await fetch('/api/auth/token'); // Relative URL to our new endpoint
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `Failed to get access token: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        if (!data.accessToken) {
-          throw new Error("Access token not found in response from /api/auth/token");
-        }
-        return data.accessToken;
-
-      } catch (error) {
-        console.error("Error fetching access token:", error);
-        // Return null or re-throw, depending on how you want handleSave to react
-        return null;
-      }
-    }
-
-    const accessToken = await getAuth0AccessToken();
+    // --- Get Access Token INSIDE the handler ---
+    const accessToken = await getAuth0AccessToken(); // Use imported helper
     if (!accessToken) {
-      setApiError("Could not get authentication token. Please try logging in again.");
-      return;
+      setApiError("Authentication error. Could not get token.");
+      return; // Stop submission if token fails
     }
-    // --- End Token Fetch ---
+    // --- Got Token ---
 
     try {
       const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
