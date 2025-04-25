@@ -12,10 +12,19 @@ import { UserProfile } from '@/types/userProfile';
 import { useUser } from '@auth0/nextjs-auth0/client'; // To check login state & potentially role later
 import { getAuth0AccessToken } from '@/utils/auth'; // Import token helper
 import { format } from 'date-fns'; // For formatting dates
+import { adoptionStatuses } from '@/constants/adoptionStatuses'; // Import list of statuses
+
+// Define the type for the filters object passed to the fetch function
+interface AdminAnimalFilters {
+	gender: string;
+	animal_type: string;
+	breed: string;
+	adoption_status: string[];
+}
 
 // --- Fetch function for ALL animals (or filtered/sorted) ---
 async function fetchAdminAnimals(
-	filters: { gender: string; animal_type: string; breed: string; adoption_status: string; }, // Allow filtering by status here too
+	filters: AdminAnimalFilters, // Allow filtering by status here too
 	sortBy: string,
 	accessToken: string | null
 ): Promise<Animal[]> {
@@ -25,13 +34,20 @@ async function fetchAdminAnimals(
 	}
 	const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 	const endpoint = `${apiBaseUrl}/animals`;
-
 	const queryParams = new URLSearchParams();
+
 	// Append filters IF they have a value
 	if (filters.gender) queryParams.append('gender', filters.gender);
 	if (filters.animal_type) queryParams.append('animal_type', filters.animal_type);
 	if (filters.breed) queryParams.append('breed', filters.breed);
-	queryParams.append('sortBy', sortBy); // e.g., 'most_recent_update'
+	if (sortBy) queryParams.append('sortBy', sortBy); // Pass sortBy
+
+	// Handle array of statuses
+	if (filters.adoption_status && filters.adoption_status.length > 0) {
+		// Join the array into a comma-separated string.
+		// Backend expects comma-separated and handles decoding of individual statuses.
+		queryParams.append('adoption_status', filters.adoption_status.join(','));
+	}
 
 	const url = `${endpoint}?${queryParams.toString()}`;
 	console.log("Fetching animals from URL:", url);
@@ -111,7 +127,7 @@ export default function AdminAnimalsPage() {
 	const [animalTypeFilter, setAnimalTypeFilter] = useState<string>('');
 	const [breedFilter, setBreedFilter] = useState<string>('');
 	const [animalTypes, setAnimalTypes] = useState<string[]>([]);
-	const [statusFilter, setStatusFilter] = useState<string>(''); // Add status filter state
+	const [statusFilters, setStatusFilters] = useState<string[]>([]);
 	const [sortBy, setSortBy] = useState('date_added_desc');
 	const sortingOptions = [
 		{ value: 'date_added_desc', label: 'Date Added' }, // Default sort
@@ -152,7 +168,14 @@ export default function AdminAnimalsPage() {
 	const handleAnimalTypeFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => setAnimalTypeFilter(e.target.value);
 	const handleGenderFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => setGenderFilter(e.target.value);
 	const handleBreedFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => setBreedFilter(e.target.value);
-	const handleStatusFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => setStatusFilter(e.target.value);
+	const handleStatusFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const { value, checked } = event.target;
+		setStatusFilters(prev =>
+			checked
+				? [...prev, value] // Add status if checked
+				: prev.filter(status => status !== value) // Remove status if unchecked
+		);
+	};
 	const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => setSortBy(e.target.value);
 
 	// --- Fetch Data Logic ---
@@ -176,7 +199,7 @@ export default function AdminAnimalsPage() {
 				gender: genderFilter,
 				animal_type: animalTypeFilter,
 				breed: breedFilter,
-				adoption_status: statusFilter
+				adoption_status: statusFilters
 			};
 			const fetchedAnimals = await fetchAdminAnimals(filters, sortBy, token);
 			setAnimals(fetchedAnimals);
@@ -185,7 +208,7 @@ export default function AdminAnimalsPage() {
 		} finally {
 			setIsLoading(false);
 		}
-	}, [genderFilter, animalTypeFilter, breedFilter, statusFilter, sortBy, isAuthLoading, authError]); // Include all filter/sort states
+	}, [genderFilter, animalTypeFilter, breedFilter, statusFilters, sortBy, isAuthLoading, authError]); // Include all filter/sort states
 
 	// Initial data load and reload on filter/sort changes
 	useEffect(() => {
@@ -273,57 +296,80 @@ export default function AdminAnimalsPage() {
 	return (
 		<> {/* Fragment to allow multiple top-level elements (Container + Modal) */}
 			<Container className="py-10">
-				<Container className="py-10 flex items-center justify-center min-h-screen">
-					<div className="text-center">
-						<h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Manage Animals</h1>
-						{/* Show Add button based on role */}
-						{['Admin', 'Staff', 'Volunteer'].includes(currentUserRole ?? '') && (
-							<button onClick={handleAddAnimalClick} className="...">
-								<PlusIcon /> Add New Animal
-							</button>
-						)}
-					</div>
-				</Container>
+				{/* Main Title and Add Animal Button */}
+				<div className="text-center mb-6">
+					<h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Manage Animals</h1>
+					{/* Show Add button based on role */}
+					{['Admin', 'Staff', 'Volunteer'].includes(currentUserRole ?? '') && (
+						<button onClick={handleAddAnimalClick} className="...">
+							<PlusIcon /> Add New Animal
+						</button>
+					)}
+				</div>
 
-				{/* Filtering Options UI */}
-				<div className="flex flex-wrap items-center justify-center mb-6 gap-4">
-					<select
-						value={animalTypeFilter}
-						onChange={handleAnimalTypeFilterChange}
-						className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm"
-					>
-						<option value="">All Species</option>
-						{animalTypes.map((type) => (
-							<option key={type} value={type}>
-								{type}
-							</option>
-						))}
-					</select>
-					<select
-						value={genderFilter}
-						onChange={handleGenderFilterChange}
-						className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm"
-					>
-						<option value="">All Genders</option>
-						<option value="Male">Male</option>
-						<option value="Female">Female</option>
-					</select>
-					<select
-						value={sortBy}
-						onChange={handleSortChange}
-						className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm"
-					>
-						{sortingOptions.map((option) => (
-							<option key={option.value} value={option.value}>
-								{option.label}
-							</option>
-						))}
-					</select>
+				{/* Filtering/Sorting Controls */}
+				<div className="mb-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow">
+					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
+						{/* Animal Type */}
+						<div>
+							<label htmlFor="typeFilter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Species</label>
+							<select id="typeFilter" value={animalTypeFilter} onChange={handleAnimalTypeFilterChange} className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm">
+								<option value="">All Species</option>
+								{animalTypes.map(type => (<option key={type} value={type}>{type}</option>))}
+							</select>
+						</div>
+						{/* Gender */}
+						<div>
+							<label htmlFor="genderFilter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Gender</label>
+							<select id="genderFilter" value={genderFilter} onChange={handleGenderFilterChange} className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm">
+								<option value="">All Genders</option>
+								<option value="Male">Male</option>
+								<option value="Female">Female</option>
+								<option value="Unknown">Unknown</option>
+							</select>
+						</div>
+						{/* Sort By */}
+						<div>
+							<label htmlFor="sortBy" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sort By</label>
+							<select id="sortBy" value={sortBy} onChange={handleSortChange} className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm">
+								{sortingOptions.map(option => (<option key={option.value} value={option.value}>{option.label}</option>))}
+							</select>
+						</div>
+						{/* Status Filter (Checkboxes) */}
+						<div className="sm:col-span-2 md:col-span-1"> {/* Adjust span as needed */}
+							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+							<div className="max-h-40 overflow-y-auto p-2 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 space-y-1">
+								{adoptionStatuses.map((status) => (
+									<div key={status} className="flex items-center">
+										<input
+											type="checkbox"
+											id={`status-${status.replace(/\s+/g, '-')}`}
+											value={status}
+											checked={statusFilters.includes(status)} // Check if status is in the array
+											onChange={handleStatusFilterChange} // Use the new handler
+											className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-500 rounded focus:ring-indigo-500 dark:bg-gray-600"
+										/>
+										<label htmlFor={`status-${status.replace(/\s+/g, '-')}`} className="ml-2 text-sm text-gray-700 dark:text-gray-300">{status}</label>
+									</div>
+								))}
+							</div>
+						</div>
+					</div>
 				</div>
 
 				{/* Data Loading/Error Display */}
 				{isLoadingData && <div className="text-center py-10"><LoadingSpinner /> Loading animals...</div>}
 				{errorData && <div className="text-center py-10 text-red-500">Error loading animals: {errorData}</div>}
+
+				{/* --- Row Count Display --- */}
+				{!isLoadingData && !errorData && (
+					<div className="mb-2 text-sm text-right text-gray-600 dark:text-gray-400">
+						Displaying {animals.length} animal(s)
+						{/* TODO: Add logic here later if API provides total count */}
+						{/* e.g., {totalCount ? ` of ${totalCount}` : ''} */}
+					</div>
+				)}
+				{/* --- End Row Count --- */}
 
 				{/* Animals Table */}
 				{!isLoadingData && !errorData && (
