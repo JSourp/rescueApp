@@ -39,16 +39,16 @@ namespace rescueApp
                 string? gender = queryParams["gender"];
                 string? animal_type = queryParams["animal_type"];
                 string? breed = queryParams["breed"];
-                string? adoptionStatusParam = queryParams["adoption_status"];
+                string? adoption_statusParam = queryParams["adoption_status"];
                 string? sortBy = queryParams["sortBy"];
                 string? limitParam = queryParams["limit"];
 
                 IQueryable<Animal> query = _dbContext.Animals.AsQueryable();
 
                 // --- Apply Filtering ---
-                if (!string.IsNullOrEmpty(adoptionStatusParam))
+                if (!string.IsNullOrEmpty(adoption_statusParam))
                 {
-                    List<string> desiredStatuses = adoptionStatusParam.Split(',')
+                    List<string> desiredStatuses = adoption_statusParam.Split(',')
                                                         .Select(s => s.Trim().ToLowerInvariant())
                                                         .Where(s => !string.IsNullOrEmpty(s))
                                                         .ToList();

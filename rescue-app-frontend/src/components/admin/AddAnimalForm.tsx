@@ -8,14 +8,14 @@ import { adoptionStatuses } from '@/constants/adoptionStatuses'; // Import list 
 
 // Define the shape of the form data
 interface AddAnimalFormData {
-	animalType: string;
+	animal_type: string;
 	name: string;
 	breed: string;
-	dateOfBirth?: string; // Use string for input type="date"
+	date_of_birth?: string; // Use string for input type="date"
 	gender: string;
 	weight?: number | string; // Allow string for input flexibility, parse later if needed
 	story?: string;
-	adoptionStatus: string; // Default to a non-adopted status of "Not Yet Available"
+	adoption_status: string; // Default to a non-adopted status of "Not Yet Available"
 }
 
 interface AddAnimalFormProps {
@@ -42,14 +42,14 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 		mode: 'onTouched',
 		defaultValues: {
 			// Set sensible defaults
-			animalType: '',
+			animal_type: '',
 			name: '',
 			breed: '',
-			dateOfBirth: '',
+			date_of_birth: '',
 			gender: '',
 			weight: '',
 			story: '',
-			adoptionStatus: 'Not Yet Available', // Default to this status
+			adoption_status: 'Not Yet Available', // Default to this status
 		},
 	});
 
@@ -81,8 +81,8 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 			submissionData.weight = null; // Treat empty string as null
 		}
 		// Clear date if empty string was somehow submitted
-		if (submissionData.dateOfBirth === '') {
-			submissionData.dateOfBirth = null;
+		if (submissionData.date_of_birth === '') {
+			submissionData.date_of_birth = null;
 		}
 
 		console.log('Submitting new animal data:', submissionData);
@@ -161,9 +161,9 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 						<div className="space-y-4">
 							{/* Animal Type */}
 							<div>
-								<label htmlFor="animalType" className={labelBaseClasses}>Species *</label>
-								<input type="text" id="animalType" {...register("animalType", { required: "Species is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.animalType)}`} />
-								{errors.animalType && <p className={errorTextClasses}>{errors.animalType.message}</p>}
+								<label htmlFor="animal_type" className={labelBaseClasses}>Species *</label>
+								<input type="text" id="animal_type" {...register("animal_type", { required: "Species is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.animal_type)}`} />
+								{errors.animal_type && <p className={errorTextClasses}>{errors.animal_type.message}</p>}
 							</div>
 
 							{/* Name */}
@@ -182,8 +182,8 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 
 							{/* DOB (Optional) */}
 							<div>
-								<label htmlFor="dateOfBirth" className={labelBaseClasses}>Date of Birth (Approx.)</label>
-								<input type="date" id="dateOfBirth" {...register("dateOfBirth")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.dateOfBirth)}`} />
+								<label htmlFor="date_of_birth" className={labelBaseClasses}>Date of Birth (Approx.)</label>
+								<input type="date" id="date_of_birth" {...register("date_of_birth")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.date_of_birth)}`} />
 								{/* Add max date validation? pattern? */}
 							</div>
 
@@ -214,11 +214,11 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 
 							{/* Initial Adoption Status */}
 							<div>
-								<label htmlFor="adoptionStatus" className={labelBaseClasses}>Initial Status *</label>
+								<label htmlFor="adoption_status" className={labelBaseClasses}>Initial Status *</label>
 								<select
-									id="adoptionStatus"
-									{...register("adoptionStatus", { required: "Initial status is required" })}
-									className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adoptionStatus)}`}
+									id="adoption_status"
+									{...register("adoption_status", { required: "Initial status is required" })}
+									className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adoption_status)}`}
 								>
 									{/* Common statuses at the top */}
 									{commonStatuses.map((status) => (
@@ -237,7 +237,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 										</option>
 									))}
 								</select>
-								{errors.adoptionStatus && <p className={errorTextClasses}>{errors.adoptionStatus.message}</p>}
+								{errors.adoption_status && <p className={errorTextClasses}>{errors.adoption_status.message}</p>}
 							</div>
 
 						</div>

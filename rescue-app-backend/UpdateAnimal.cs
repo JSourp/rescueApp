@@ -25,7 +25,7 @@ namespace rescueApp
     public class UpdateAnimalRequest
     {
         [MaxLength(100)]
-        public string? AnimalType { get; set; }
+        public string? animal_type { get; set; }
 
         [MaxLength(100)]
         public string? Name { get; set; }
@@ -33,7 +33,7 @@ namespace rescueApp
         [MaxLength(100)]
         public string? Breed { get; set; }
 
-        public DateTime? DateOfBirth { get; set; }
+        public DateTime? date_of_birth { get; set; }
 
         [MaxLength(10)]
         public string? Gender { get; set; }
@@ -44,7 +44,7 @@ namespace rescueApp
         public string? Story { get; set; }
 
         [MaxLength(50)]
-        public string? AdoptionStatus { get; set; }
+        public string? adoption_status { get; set; }
 
         public string? ImageUrl { get; set; } // Allow updating image URL
     }
@@ -166,14 +166,28 @@ namespace rescueApp
                 bool changed = false;
 
                 // Update properties only if a value was provided in the request DTO
-                if (updateData.AnimalType != null && existingAnimal.animal_type != updateData.AnimalType) { existingAnimal.animal_type = updateData.AnimalType; changed = true; }
+                if (updateData.animal_type != null && existingAnimal.animal_type != updateData.animal_type) { existingAnimal.animal_type = updateData.animal_type; changed = true; }
                 if (updateData.Name != null && existingAnimal.name != updateData.Name) { existingAnimal.name = updateData.Name; changed = true; }
                 if (updateData.Breed != null && existingAnimal.breed != updateData.Breed) { existingAnimal.breed = updateData.Breed; changed = true; }
-                if (updateData.DateOfBirth != null && existingAnimal.date_of_birth != updateData.DateOfBirth) { existingAnimal.date_of_birth = updateData.DateOfBirth; changed = true; }
+                if (updateData.date_of_birth.HasValue) // Check if a value was provided
+                {
+                    // Create a UTC DateTime from the potentially Unspecified input
+                    DateTime dobUtc = DateTime.SpecifyKind(updateData.date_of_birth.Value, DateTimeKind.Utc);
+                    if (existingAnimal.date_of_birth != dobUtc) // Compare with UTC value
+                    {
+                        existingAnimal.date_of_birth = dobUtc; // Assign the UTC DateTime
+                        changed = true;
+                    }
+                } // Optional: Handle case where user explicitly clears the date
+                else if (updateData.date_of_birth == null && existingAnimal.date_of_birth != null)
+                {
+                    existingAnimal.date_of_birth = null;
+                    changed = true;
+                }
                 if (updateData.Gender != null && existingAnimal.gender != updateData.Gender) { existingAnimal.gender = updateData.Gender; changed = true; }
                 if (updateData.Weight != null && existingAnimal.weight != updateData.Weight) { existingAnimal.weight = updateData.Weight; changed = true; }
                 if (updateData.Story != null && existingAnimal.story != updateData.Story) { existingAnimal.story = updateData.Story; changed = true; }
-                if (updateData.AdoptionStatus != null && existingAnimal.adoption_status != updateData.AdoptionStatus) { existingAnimal.adoption_status = updateData.AdoptionStatus; changed = true; }
+                if (updateData.adoption_status != null && existingAnimal.adoption_status != updateData.adoption_status) { existingAnimal.adoption_status = updateData.adoption_status; changed = true; }
                 if (updateData.ImageUrl != null && existingAnimal.image_url != updateData.ImageUrl) { existingAnimal.image_url = updateData.ImageUrl; changed = true; }
                 // Add other updatable fields...
 

@@ -27,7 +27,7 @@ namespace rescueApp
     {
         [Required(AllowEmptyStrings = false)]
         [MaxLength(100)]
-        public string? AnimalType { get; set; } // e.g., "Dog", "Cat"
+        public string? animal_type { get; set; } // e.g., "Dog", "Cat"
 
         [Required(AllowEmptyStrings = false)]
         [MaxLength(100)]
@@ -37,7 +37,7 @@ namespace rescueApp
         [MaxLength(100)]
         public string? Breed { get; set; }
 
-        public DateTime? DateOfBirth { get; set; } // Nullable DateTime
+        public DateTime? date_of_birth { get; set; } // Nullable DateTime
 
         [Required(AllowEmptyStrings = false)]
         [MaxLength(10)] // e.g., "Male", "Female", "Unknown"
@@ -50,7 +50,7 @@ namespace rescueApp
 
         [Required(AllowEmptyStrings = false)]
         [MaxLength(50)] // Match DB size if needed
-        public string? AdoptionStatus { get; set; } // e.g., "Available", "Not Yet Available"
+        public string? adoption_status { get; set; } // e.g., "Available", "Not Yet Available"
     }
 
     public class CreateAnimal
@@ -163,14 +163,14 @@ namespace rescueApp
                 var newAnimal = new Animal
                 {
                     // Map from DTO (using snake_case for C# model properties as per user's standard)
-                    animal_type = createData.AnimalType!,
+                    animal_type = createData.animal_type!,
                     name = createData.Name!,
                     breed = createData.Breed!,
-                    date_of_birth = createData.DateOfBirth,
+                    date_of_birth = createData.date_of_birth,
                     gender = createData.Gender!,
                     weight = createData.Weight,
                     story = createData.Story,
-                    adoption_status = createData.AdoptionStatus!,
+                    adoption_status = createData.adoption_status!,
                     image_url = null, // Image handling comes later
                     date_added = utcNow, // Set on creation
                     date_updated = utcNow // Set on creation

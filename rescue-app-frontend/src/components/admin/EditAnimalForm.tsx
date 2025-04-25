@@ -11,14 +11,14 @@ import { adoptionStatuses } from '@/constants/adoptionStatuses'; // Import list 
 
 // Use same FormData shape as AddAnimalForm for editable fields
 interface EditAnimalFormData {
-	animalType: string;
+	animal_type: string;
 	name: string;
 	breed: string;
-	dateOfBirth?: string;
+	date_of_birth?: string;
 	gender: string;
 	weight?: number | string;
 	story?: string;
-	adoptionStatus: string;
+	adoption_status: string;
 	imageUrl?: string | null; // Allow updating image URL later
 }
 
@@ -38,15 +38,15 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 	} = useForm<EditAnimalFormData>({
 		mode: 'onTouched',
 		defaultValues: { // Pre-fill form with existing animal data
-			animalType: animal.animal_type || '',
+			animal_type: animal.animal_type || '',
 			name: animal.name || '',
 			breed: animal.breed || '',
 			// Format date for input type="date" (YYYY-MM-DD)
-			dateOfBirth: animal.date_of_birth ? format(new Date(animal.date_of_birth), 'yyyy-MM-dd') : '',
+			date_of_birth: animal.date_of_birth ? format(new Date(animal.date_of_birth), 'yyyy-MM-dd') : '',
 			gender: animal.gender || '',
 			weight: animal.weight ?? '', // Handle null weight
 			story: animal.story || '',
-			adoptionStatus: animal.adoption_status || '',
+			adoption_status: animal.adoption_status || '',
 			// imageUrl: animal.imageUrl || '', // Handle image separately
 		}
 	});
@@ -55,14 +55,14 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 	useEffect(() => {
 		if (animal) {
 			reset({
-				animalType: animal.animal_type || '',
+				animal_type: animal.animal_type || '',
 				name: animal.name || '',
 				breed: animal.breed || '',
-				dateOfBirth: animal.date_of_birth ? format(new Date(animal.date_of_birth), 'yyyy-MM-dd') : '',
+				date_of_birth: animal.date_of_birth ? format(new Date(animal.date_of_birth), 'yyyy-MM-dd') : '',
 				gender: animal.gender || '',
 				weight: animal.weight ?? '',
 				story: animal.story || '',
-				adoptionStatus: animal.adoption_status || '',
+				adoption_status: animal.adoption_status || '',
 			});
 		}
 	}, [animal, reset]);
@@ -90,8 +90,8 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 			submissionData.weight = null; // Treat empty string as null
 		}
 		// Clear date if empty string was somehow submitted
-		if (submissionData.dateOfBirth === '') {
-			submissionData.dateOfBirth = null;
+		if (submissionData.date_of_birth === '') {
+			submissionData.date_of_birth = null;
 		}
 
 		console.log(`Submitting update for animal ID ${animal.id}:`, submissionData);
@@ -144,9 +144,9 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 					<div className="space-y-4">
 						{/* Animal Type */}
 						<div>
-							<label htmlFor="animalType" className={labelBaseClasses}>Species *</label>
-							<input type="text" id="animalType" {...register("animalType", { required: "Species is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.animalType)}`} />
-							{errors.animalType && <p className={errorTextClasses}>{errors.animalType.message}</p>}
+							<label htmlFor="animal_type" className={labelBaseClasses}>Species *</label>
+							<input type="text" id="animal_type" {...register("animal_type", { required: "Species is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.animal_type)}`} />
+							{errors.animal_type && <p className={errorTextClasses}>{errors.animal_type.message}</p>}
 						</div>
 
 						{/* Name */}
@@ -165,8 +165,8 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 
 						{/* DOB (Optional) */}
 						<div>
-							<label htmlFor="dateOfBirth" className={labelBaseClasses}>Date of Birth (Approx.)</label>
-							<input type="date" id="dateOfBirth" {...register("dateOfBirth")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.dateOfBirth)}`} />
+							<label htmlFor="date_of_birth" className={labelBaseClasses}>Date of Birth (Approx.)</label>
+							<input type="date" id="date_of_birth" {...register("date_of_birth")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.date_of_birth)}`} />
 							{/* Add max date validation? pattern? */}
 						</div>
 
@@ -197,15 +197,15 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 
 						{/* Adoption Status */}
 						<div>
-							<label htmlFor="adoptionStatus" className={labelBaseClasses}>Adoption Status *</label>
-							<select id="adoptionStatus" {...register("adoptionStatus", { required: "Status is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adoptionStatus)}`}>
+							<label htmlFor="adoption_status" className={labelBaseClasses}>Adoption Status *</label>
+							<select id="adoption_status" {...register("adoption_status", { required: "Status is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adoption_status)}`}>
 								{adoptionStatuses.map((status) => (
 									<option key={status} value={status}>
 										{status}
 									</option>
 								))}
 							</select>
-							{errors.adoptionStatus && <p className={errorTextClasses}>{errors.adoptionStatus.message}</p>}
+							{errors.adoption_status && <p className={errorTextClasses}>{errors.adoption_status.message}</p>}
 						</div>
 					</div>
 
