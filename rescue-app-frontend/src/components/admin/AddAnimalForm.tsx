@@ -156,8 +156,6 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 			<div className="flex-grow p-6 bg-gray-50 dark:bg-gray-800 overflow-y-auto">
 				{!isSuccess ? (
 					<form onSubmit={handleSubmit(handleCreateAnimal)} noValidate>
-						{apiError && <p className="mb-4 text-sm text-center text-red-600 dark:text-red-400">Error: {apiError}</p>}
-
 						<div className="space-y-4">
 							{/* Animal Type */}
 							<div>
