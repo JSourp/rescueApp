@@ -362,7 +362,11 @@ export default function AdminAnimalsPage() {
 											<td className={tdClasses}>{animal.gender ? `${animal.gender}` : 'N/A'}</td>
 											<td className={tdClasses}>{animal.date_of_birth ? format(new Date(animal.date_of_birth), 'P') : 'N/A'}</td>
 											<td className={tdClasses}>{animal.weight ? `${animal.weight} lbs` : 'N/A'}</td>
-											<td className={tdClasses}>{animal.story ? `${animal.story}` : 'N/A'}</td>
+											<td className={`${tdClasses} max-w-xs`}>
+												<div className="overflow-hidden overflow-ellipsis whitespace-nowrap" title={animal.story}>
+													{animal.story ? animal.story : 'N/A'}
+												</div>
+											</td>
 											<td className={tdClasses}>{format(new Date(animal.date_added), 'P')}</td>
 											<td className={tdClasses}>{format(new Date(animal.date_updated), 'P')}</td>
 											<td className={`${tdClasses} text-right space-x-2`}>
