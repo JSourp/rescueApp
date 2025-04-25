@@ -274,7 +274,7 @@ export default function AdminAnimalsPage() {
 		<> {/* Fragment to allow multiple top-level elements (Container + Modal) */}
 			<Container className="py-10">
 				<div className="flex justify-between items-center mb-6">
-					<h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Manage Animals</h1>
+					<h1 className="text-3xl font-bold text-center text-gray-900 dark:text-gray-100">Manage Animals</h1>
 					{/* Show Add button based on role */}
 					{['Admin', 'Staff', 'Volunteer'].includes(currentUserRole ?? '') && (
 						<button onClick={handleAddAnimalClick} className="..."> <PlusIcon /> Add New Animal </button>
@@ -325,13 +325,46 @@ export default function AdminAnimalsPage() {
 				{!isLoadingData && !errorData && (
 					<div className="shadow border-b border-gray-200 dark:border-gray-700 sm:rounded-lg overflow-x-auto">
 						<table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-							{/* ... thead ... */}
+							<thead>
+								<tr>
+									<th className={thClasses}>Image</th>
+									<th className={thClasses}>Name</th>
+									<th className={thClasses}>Type</th>
+									<th className={thClasses}>Breed</th>
+									<th className={thClasses}>Adoption Status</th>
+									<th className={thClasses}>Gender</th>
+									<th className={thClasses}>Date of Birth</th>
+									<th className={thClasses}>Weight</th>
+									<th className={thClasses}>Story</th>
+									<th className={thClasses}>Date Added</th>
+									<th className={thClasses}>Last Updated</th>
+									<th className={`${thClasses} text-right`}>Actions</th>
+								</tr>
+							</thead>
 							<tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
 								{animals.length > 0 ? (
 									animals.map((animal, index) => (
 										<tr key={animal.id} className={index % 2 === 0 ? trEvenClasses : trOddClasses}>
-											{/* ... td elements for animal data ... */}
+											<td className={tdClasses}>
+												{animal.image_url ? (
+													<img
+														src={animal.image_url}
+														className="w-10 h-10 object-cover rounded"
+													/>
+												) : (
+													<span className="text-gray-500 italic">No Image</span>
+												)}
+											</td>
+											<td className={tdClasses}>{animal.name ? `${animal.name}` : 'N/A'}</td>
+											<td className={tdClasses}>{animal.animal_type ? `${animal.animal_type}` : 'N/A'}</td>
+											<td className={tdClasses}>{animal.breed ? `${animal.breed}` : 'N/A'}</td>
+											<td className={tdClasses}>{animal.adoption_status ? `${animal.adoption_status}` : 'N/A'}</td>
+											<td className={tdClasses}>{animal.gender ? `${animal.gender}` : 'N/A'}</td>
+											<td className={tdClasses}>{animal.date_of_birth ? format(new Date(animal.date_of_birth), 'P') : 'N/A'}</td>
+											<td className={tdClasses}>{animal.weight ? `${animal.weight} lbs` : 'N/A'}</td>
+											<td className={tdClasses}>{animal.story ? `${animal.story}` : 'N/A'}</td>
 											<td className={tdClasses}>{format(new Date(animal.date_added), 'P')}</td>
+											<td className={tdClasses}>{format(new Date(animal.date_updated), 'P')}</td>
 											<td className={`${tdClasses} text-right space-x-2`}>
 												{/* Edit Button - Conditional */}
 												{['Admin', 'Staff', 'Volunteer'].includes(currentUserRole ?? '') && (
