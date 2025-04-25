@@ -296,16 +296,27 @@ export default function AdminAnimalsPage() {
 	return (
 		<> {/* Fragment to allow multiple top-level elements (Container + Modal) */}
 			<Container className="py-10">
-				{/* Main Title and Add Animal Button */}
-				<div className="text-center mb-6">
-					<h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Manage Animals</h1>
-					{/* Show Add button based on role */}
-					{['Admin', 'Staff', 'Volunteer'].includes(currentUserRole ?? '') && (
-						<button onClick={handleAddAnimalClick} className="...">
-							<PlusIcon /> Add New Animal
-						</button>
-					)}
+				{/* Main Title - Centered */}
+				<div className="text-center mb-4"> {/* Center only the title, adjust margin if needed */}
+					<h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+						Manage Animals
+					</h1>
 				</div>
+
+				{/* Add Animal Button - Right Aligned */}
+				{/* Conditionally render this div only if the user has the correct role */}
+				{['Admin', 'Staff', 'Volunteer'].includes(currentUserRole ?? '') && (
+					<div className="flex justify-end mb-6"> {/* Use flexbox to push content to the end (right), add margin below */}
+						<button
+							onClick={handleAddAnimalClick}
+							// Re-apply button styling (using Asparagus theme from AddAnimalForm)
+							className="inline-flex items-center gap-2 px-4 py-2 bg-sc-asparagus-500 hover:bg-sc-asparagus-600 text-white font-medium rounded-md shadow transition duration-300"
+						>
+							<PlusIcon className="w-5 h-5" />
+							<span>Add New Animal</span> {/* Explicit span for text */}
+						</button>
+					</div>
+				)}
 
 				{/* Filtering/Sorting Controls */}
 				<div className="mb-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow">
