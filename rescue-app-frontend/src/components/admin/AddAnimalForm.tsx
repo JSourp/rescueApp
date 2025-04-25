@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { LoadingSpinner, SuccessCheckmarkIcon } from '@/components/Icons';
 import { getAuth0AccessToken } from '@/utils/auth';
+import { adoptionStatuses } from '@/constants/adoptionStatuses'; // Import list of statuses
 
 // Define the shape of the form data
 interface AddAnimalFormData {
@@ -21,6 +22,14 @@ interface AddAnimalFormProps {
 	onClose: () => void; // Function to close the modal
 	onAnimalAdded: () => void; // Function to trigger data refresh on parent page
 }
+
+// Define the common options
+const commonStatuses = ["Not Yet Available", "Available", "Available - In Foster"];
+
+// Filter out the common statuses from the full list and sort the remaining options alphabetically
+const otherStatuses = adoptionStatuses
+	.filter((status) => !commonStatuses.includes(status))
+	.sort();
 
 export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormProps) {
 	const [apiError, setApiError] = useState<string | null>(null);
@@ -50,7 +59,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 	const handleCreateAnimal: SubmitHandler<AddAnimalFormData> = async (formData) => {
 		setApiError(null);
 		setIsSuccess(false);
-        setSubmitMessage("");
+		setSubmitMessage("");
 
 		// --- Get Access Token INSIDE the handler ---
 		const accessToken = await getAuth0AccessToken(); // Use imported helper
@@ -96,7 +105,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 					const errorBody = await response.json();
 					errorMsg = errorBody.message || errorMsg;
 				} catch (_) {
-					 errorMsg = `${response.status}: ${response.statusText}`; // Fallback
+					errorMsg = `${response.status}: ${response.statusText}`; // Fallback
 				}
 				throw new Error(errorMsg);
 			}
@@ -117,14 +126,14 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 				onClose(); // Close the form after a delay
 				setIsSuccess(false); // Optionally reset the success state
 				setSubmitMessage(""); // Clear the success message
-			  }, 5000); // Adjust the delay time (e.g., 5000ms = 5 seconds)
+			}, 5000); // Adjust the delay time (e.g., 5000ms = 5 seconds)
 
 		} catch (error: any) {
-            setIsSuccess(false); // Ensure success is false on error
-            setSubmitMessage(error.message || "An unexpected error occurred."); // Use error state instead
-            setApiError(error.message || "An unexpected error occurred."); // Set API error state too
-            console.error("Add animal error:", error);
-        }
+			setIsSuccess(false); // Ensure success is false on error
+			setSubmitMessage(error.message || "An unexpected error occurred."); // Use error state instead
+			setApiError(error.message || "An unexpected error occurred."); // Set API error state too
+			console.error("Add animal error:", error);
+		}
 	};
 
 
@@ -206,12 +215,27 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 							{/* Initial Adoption Status */}
 							<div>
 								<label htmlFor="adoptionStatus" className={labelBaseClasses}>Initial Status *</label>
-								<select id="adoptionStatus" {...register("adoptionStatus", { required: "Initial status is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adoptionStatus)}`}>
-									{/* Include statuses appropriate for NEW animals */}
-									<option value="Not Yet Available">Not Yet Available</option>
-									<option value="Available">Available</option>
-									<option value="Available - In Foster">Available - In Foster</option>
-									{/* Add others like Medical Hold if applicable on intake */}
+								<select
+									id="adoptionStatus"
+									{...register("adoptionStatus", { required: "Initial status is required" })}
+									className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adoptionStatus)}`}
+								>
+									{/* Common statuses at the top */}
+									{commonStatuses.map((status) => (
+										<option key={status} value={status}>
+											{status}
+										</option>
+									))}
+
+									{/* Divider */}
+									<option disabled>──────────</option>
+
+									{/* Other statuses */}
+									{otherStatuses.map((status) => (
+										<option key={status} value={status}>
+											{status}
+										</option>
+									))}
 								</select>
 								{errors.adoptionStatus && <p className={errorTextClasses}>{errors.adoptionStatus.message}</p>}
 							</div>
@@ -243,16 +267,16 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 				) : (
 					// Success Message Area
 					<div className="flex flex-col items-center justify-center text-center min-h-[200px]">
-					<SuccessCheckmarkIcon />
-					<h3 className="py-5 text-xl text-green-600 dark:text-green-400">Animal Added Successfully!</h3>
-					<p className="text-gray-700 dark:text-gray-300 md:px-3">{submitMessage}</p>
-					<button type="button" className="mt-6 text-sc-asparagus-600 dark:text-sc-asparagus-400 hover:underline focus:outline-none" onClick={() => {
-						reset(); // Reset form state
-						setIsSuccess(false); // Go back to form view
-						setSubmitMessage("");
-						onClose(); // Also close the modal
-					}}>Add Another Animal or Close</button>
-				</div>
+							<SuccessCheckmarkIcon />
+							<h3 className="py-5 text-xl text-green-600 dark:text-green-400">Animal Added Successfully!</h3>
+							<p className="text-gray-700 dark:text-gray-300 md:px-3">{submitMessage}</p>
+							<button type="button" className="mt-6 text-sc-asparagus-600 dark:text-sc-asparagus-400 hover:underline focus:outline-none" onClick={() => {
+								reset(); // Reset form state
+								setIsSuccess(false); // Go back to form view
+								setSubmitMessage("");
+								onClose(); // Also close the modal
+							}}>Add Another Animal or Close</button>
+						</div>
 				)}
 				{/* Display submission error message if not successful */}
 				{!isSuccess && submitMessage && (
