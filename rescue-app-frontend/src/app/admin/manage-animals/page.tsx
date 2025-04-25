@@ -273,13 +273,17 @@ export default function AdminAnimalsPage() {
 	return (
 		<> {/* Fragment to allow multiple top-level elements (Container + Modal) */}
 			<Container className="py-10">
-				<div className="flex justify-between items-center mb-6">
-					<h1 className="text-3xl font-bold text-center text-gray-900 dark:text-gray-100">Manage Animals</h1>
-					{/* Show Add button based on role */}
-					{['Admin', 'Staff', 'Volunteer'].includes(currentUserRole ?? '') && (
-						<button onClick={handleAddAnimalClick} className="..."> <PlusIcon /> Add New Animal </button>
-					)}
-				</div>
+				<Container className="py-10 flex items-center justify-center min-h-screen">
+					<div className="text-center">
+						<h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Manage Animals</h1>
+						{/* Show Add button based on role */}
+						{['Admin', 'Staff', 'Volunteer'].includes(currentUserRole ?? '') && (
+							<button onClick={handleAddAnimalClick} className="...">
+								<PlusIcon /> Add New Animal
+							</button>
+						)}
+					</div>
+				</Container>
 
 				{/* Filtering Options UI */}
 				<div className="flex flex-wrap items-center justify-center mb-6 gap-4">
