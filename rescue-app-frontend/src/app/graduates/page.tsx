@@ -79,7 +79,7 @@ export default function GraduatesPage() {
 	const [breedFilter, setBreedFilter] = useState<string>('');
 	const [animalTypes, setAnimalTypes] = useState<string[]>([]);
 
-	// --- UPDATED Sorting state and options (matching backend) ---
+	// --- Sorting state and options (matching backend) ---
 	const [sortBy, setSortBy] = useState('most_recent_update'); // Default sort
 	const sortingOptions = [
 		{ value: 'most_recent_update', label: 'Most Recent Update' }, // Matched backend key
@@ -87,7 +87,6 @@ export default function GraduatesPage() {
 		{ value: 'name_asc', label: 'Name (A-Z)' }, // Matched backend key
 		{ value: 'name_desc', label: 'Name (Z-A)' }, // Matched backend key
 	];
-	// --- ---
 
 	// Fetch animal types
 	useEffect(() => {
@@ -124,7 +123,6 @@ export default function GraduatesPage() {
 	const handleAnimalTypeFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => setAnimalTypeFilter(e.target.value);
 	const handleGenderFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => setGenderFilter(e.target.value);
 	const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => setSortBy(e.target.value);
-	// --- ---
 
 	// --- JSX Rendering ---
 	return (

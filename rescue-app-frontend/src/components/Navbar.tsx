@@ -121,10 +121,13 @@ export function Navbar() {
 
                 {/* Dropdown Menu */}
                 <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <Link
-                    href="/profile"
+                  <Link href="/profile"
                     className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-md">
                     Profile
+                  </Link>
+                  <Link href="/admin/manage-animals"
+                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-md">
+                    Manage Animals
                   </Link>
                   <a href="/api/auth/logout"
                     className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-md">
@@ -210,10 +213,14 @@ export function Navbar() {
                     {!isLoading && !error && user && (
                       <>
                         {/* User Profile */}
-                        <Link
-                          href="/profile"
+                        <Link href="/profile"
                           className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-500 dark:hover:text-indigo-400">
                           Profile
+                        </Link>
+                        {/* Manage Animals */}
+                        <Link href="/admin/manage-animals"
+                          className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-500 dark:hover:text-indigo-400">
+                          Manage Animals
                         </Link>
                         {/* Logout */}
                         <a href="/api/auth/logout"
