@@ -197,13 +197,13 @@ namespace rescueApp
             }
             catch (DbUpdateException dbEx) // Catch specific DB errors
             {
-                _logger.LogError(dbEx, "Database error creating animal. InnerEx: {InnerMessage}", dbEx.InnerException?.Message);
-                return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "A database error occurred while creating the animal.");
+                _logger.LogError(dbEx, "Database error updating animal. InnerEx: {InnerMessage}", dbEx.InnerException?.Message);
+                return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "A database error occurred while updating the animal.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating animal.");
-                return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An internal error occurred while creating the animal.");
+                _logger.LogError(ex, "Error updating animal.");
+                return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An internal error occurred while updating the animal.");
             }
         }
 
