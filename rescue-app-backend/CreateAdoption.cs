@@ -140,10 +140,10 @@ namespace rescueApp
             try
             {
                 // 4. Find Animal & Check Status
-                var animalToAdopt = await _dbContext.Animals.FindAsync(adoptionRequest.animalId);
+                var animalToAdopt = await _dbContext.Animals.FindAsync(adoptionRequest.animal_id);
                 if (animalToAdopt == null)
                 {
-                    _logger.LogWarning("Animal not found for adoption. Animal ID: {animalId}", adoptionRequest.animalId);
+                    _logger.LogWarning("Animal not found for adoption. Animal ID: {animal_id}", adoptionRequest.animal_id);
                     return req.CreateResponse(HttpStatusCode.NotFound);
                 }
 
@@ -151,7 +151,7 @@ namespace rescueApp
                 var adoptableStatuses = new List<string> { "Available", "Available - In Foster", "Adoption Pending", "Adopted" };
                 if (animalToAdopt!.adoption_status == null || !adoptableStatuses.Contains(animalToAdopt.adoption_status))
                 {
-                    _logger.LogWarning("Animal not found for adoption. Animal ID: {animalId}", adoptionRequest.animalId);
+                    _logger.LogWarning("Animal not found for adoption. Animal ID: {animal_id}", adoptionRequest.animal_id);
                     return req.CreateResponse(HttpStatusCode.NotFound);
                 }
 
@@ -176,11 +176,11 @@ namespace rescueApp
 
                 // 6. Check Active Adoption History
                 bool alreadyActivelyAdopted = await _dbContext.AdoptionHistories
-                    .AnyAsync(ah => ah.animalId == adoptionRequest.animalId && ah.return_date == null);
+                    .AnyAsync(ah => ah.animal_id == adoptionRequest.animal_id && ah.return_date == null);
                 if (alreadyActivelyAdopted)
                 {
                     /* Log, Rollback, return 409 Conflict */
-                    _logger.LogWarning("Animal ID {animalId} already has an active adoption record.", adoptionRequest.animalId);
+                    _logger.LogWarning("Animal ID {animal_id} already has an active adoption record.", adoptionRequest.animal_id);
                     await transaction.RollbackAsync();
                     return await CreateErrorResponse(req, HttpStatusCode.Conflict, "Animal already has an active adoption record.");
                 }
@@ -190,7 +190,7 @@ namespace rescueApp
                 var utcNow = DateTime.UtcNow;
                 var newAdoptionRecord = new AdoptionHistory
                 {
-                    animalId = animalToAdopt.id,
+                    animal_id = animalToAdopt.id,
                     adopter_id = adopter.Id, // Use ID from found/created adopter
                     // Use provided date (ensure UTC) or default to now
                     adoption_date = adoptionRequest.adoption_date.HasValue
@@ -215,7 +215,7 @@ namespace rescueApp
                 // 10. Commit Transaction
                 await transaction.CommitAsync();
 
-                _logger.LogInformation("Successfully recorded adoption for Animal ID: {animalId}. Adopter ID: {AdopterId}, History ID: {HistoryId}", animalToAdopt.id, adopter.Id, newAdoptionRecord.id);
+                _logger.LogInformation("Successfully recorded adoption for Animal ID: {animal_id}. Adopter ID: {adopter_id}, History ID: {HistoryId}", animalToAdopt.id, adopter.Id, newAdoptionRecord.id);
 
                 // 11. Return Success Response
                 var response = req.CreateResponse(HttpStatusCode.Created);
@@ -229,7 +229,7 @@ namespace rescueApp
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                _logger.LogError(ex, "Error processing adoption transaction for Animal ID: {animalId}. Request Body Preview: {BodyPreview}", adoptionRequest?.animalId, requestBody.Substring(0, Math.Min(requestBody.Length, 500)));
+                _logger.LogError(ex, "Error processing adoption transaction for Animal ID: {animal_id}. Request Body Preview: {BodyPreview}", adoptionRequest?.animal_id, requestBody.Substring(0, Math.Min(requestBody.Length, 500)));
                 return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An internal error occurred while finalizing the adoption.");
             }
         }
@@ -242,10 +242,11 @@ namespace rescueApp
             var adopterEmailLower = reqData.adopter_email!.ToLower();
             var existingAdopter = await _dbContext.Adopters
                                       .FirstOrDefaultAsync(a => a.adopter_email.ToLower() == adopterEmailLower);
+            var utcNow = DateTime.UtcNow;
 
             if (existingAdopter != null)
             {
-                _logger.LogInformation("Found existing adopter by email. AdopterId: {AdopterId}", existingAdopter.Id);
+                _logger.LogInformation("Found existing adopter by email. Adopter Id: {adopter_id}", existingAdopter.Id);
                 // Optional: Update existing adopter's info if provided data differs
                 bool changed = false;
                 if (existingAdopter.adopter_first_name != reqData.adopter_first_name) { existingAdopter.adopter_first_name = reqData.adopter_first_name!; changed = true; }
@@ -253,8 +254,8 @@ namespace rescueApp
                 // ... check/update other fields ...
                 if (changed)
                 {
-                    _logger.LogInformation("Updating existing adopter info for AdopterId: {AdopterId}", existingAdopter.Id);
-                    // date_updated handled by EF config/trigger
+                    _logger.LogInformation("Updating existing adopter info for Adopter Id: {adopter_id}", existingAdopter.Id);
+                    existingAdopter.date_updated = utcNow;
                     _dbContext.Adopters.Update(existingAdopter);
                     // SaveChanges will happen in the main transaction
                 }

@@ -4,9 +4,9 @@ namespace rescueApp.Models
 {
     public class CreateAdoptionRequest
     {
-        [Required(ErrorMessage = "animalId is required.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Valid animalId is required.")]
-        public int animalId { get; set; }
+        [Required(ErrorMessage = "animal Id is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Valid animal Id is required.")]
+        public int animal_id { get; set; }
 
         [Required(AllowEmptyStrings = false, ErrorMessage = "Adopter first name is required.")]
         [MaxLength(100)]

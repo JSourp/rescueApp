@@ -37,8 +37,6 @@ namespace rescueApp.Models
         public DateTime date_created { get; set; }
         public DateTime date_updated { get; set; }
         public DateTime? last_login_date { get; set; }
-
-        // Navigation Property: A user might create many adoption records
-        public virtual ICollection<AdoptionHistory>? CreatedAdoptionHistories { get; set; }
+        public virtual ICollection<AdoptionHistory>? CreatedAdoptionHistories { get; set; } // User creates many histories
     }
 }

@@ -14,5 +14,6 @@ public class Animal
     public string? image_url { get; set; }
     public DateTime date_added { get; set; }
     public DateTime date_updated { get; set; }
-    public virtual ICollection<AdoptionHistory>? AdoptionHistories { get; set; }
+    public virtual ICollection<AdoptionHistory>? AdoptionHistories { get; set; } // Animal has many histories
+
 }

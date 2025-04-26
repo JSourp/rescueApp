@@ -76,9 +76,9 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 		// --- Got Token ---
 
 		// Construct payload matching backend CreateAdoptionRequest DTO
-		// And include animalId
+		// And include animal_id
 		const payload = {
-			animalId: animal.id,
+			animal_id: animal.id,
 			adopter_first_name: formData.adopter_first_name,
 			adopter_last_name: formData.adopter_last_name,
 			adopter_email: formData.adopter_email,

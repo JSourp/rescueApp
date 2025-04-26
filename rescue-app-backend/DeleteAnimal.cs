@@ -42,7 +42,7 @@ namespace rescueApp
             AzureFuncHttp.HttpRequestData req,
             int id) // Animal ID from route
         {
-            _logger.LogInformation("C# HTTP trigger function processed DeleteAnimal request for ID: {AnimalId}", id);
+            _logger.LogInformation("C# HTTP trigger function processed DeleteAnimal request for ID: {animal_id}", id);
 
             User? currentUser;
             ClaimsPrincipal? principal;
@@ -101,14 +101,14 @@ namespace rescueApp
 
                 if (animalToDelete == null)
                 {
-                    _logger.LogWarning("Animal not found for deletion. Animal ID: {AnimalId}", id);
+                    _logger.LogWarning("Animal not found for deletion. Animal ID: {animal_id}", id);
                     return req.CreateResponse(HttpStatusCode.NotFound);
                 }
 
                 _dbContext.Animals.Remove(animalToDelete);
                 await _dbContext.SaveChangesAsync();
 
-                _logger.LogInformation("Successfully deleted Animal ID: {AnimalId} by User ID: {UserId}", id, currentUser.id);
+                _logger.LogInformation("Successfully deleted Animal ID: {animal_id} by User ID: {UserId}", id, currentUser.id);
 
                 // --- 3. Return Success Response ---
                 // 204 No Content is standard for successful DELETE
@@ -117,13 +117,13 @@ namespace rescueApp
             }
             catch (DbUpdateException dbEx) // Handle potential FK constraint issues if related data exists
             {
-                _logger.LogError(dbEx, "Database error deleting animal ID: {AnimalId}. InnerEx: {InnerMessage}", id, dbEx.InnerException?.Message);
+                _logger.LogError(dbEx, "Database error deleting animal ID: {animal_id}. InnerEx: {InnerMessage}", id, dbEx.InnerException?.Message);
                 // Return Conflict or Internal Server Error depending on constraint type
                 return await CreateErrorResponse(req, HttpStatusCode.Conflict, "Could not delete animal due to related data. Please check adoption history or other dependencies.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting animal ID: {AnimalId}", id);
+                _logger.LogError(ex, "Error deleting animal ID: {animal_id}", id);
                 return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An internal error occurred while deleting the animal.");
             }
         }

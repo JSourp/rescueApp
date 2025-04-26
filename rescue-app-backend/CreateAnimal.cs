@@ -187,7 +187,7 @@ namespace rescueApp
                 _dbContext.Animals.Add(newAnimal);
                 await _dbContext.SaveChangesAsync(); // Should now save DOB correctly
 
-                _logger.LogInformation("Successfully created new Animal with ID: {AnimalId} by User ID: {UserId}", newAnimal.id, currentUser!.id); // Use currentUser safely
+                _logger.LogInformation("Successfully created new Animal with ID: {animal_id} by User ID: {UserId}", newAnimal.id, currentUser!.id); // Use currentUser safely
 
                 // --- 4. Return Response ---
                 var response = req.CreateResponse(HttpStatusCode.Created); // 201 Created status code

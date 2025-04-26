@@ -70,12 +70,6 @@ namespace rescueApp.Models
 
         public string? notes { get; set; }
 
-        // --- CORRECTED Navigation Properties ---
-        // An Adopter can have MULTIPLE adoption history records (one for each adoption event)
-        public virtual ICollection<AdoptionHistory>? AdoptionHistories { get; set; }
-
-        // Remove these - an Adopter doesn't directly link to ONE Animal or ONE History
-        // public virtual Animal? Animal { get; set; } // Incorrect relationship
-        // public virtual AdoptionHistory? AdoptionHistory { get; set; } // Incorrect relationship
+        public virtual ICollection<AdoptionHistory>? AdoptionHistories { get; set; } // Adopter has many histories
     }
 }

@@ -12,8 +12,8 @@ using rescueApp.Data;
 namespace rescueApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250426031303_InitialSchemaWithIdentity")]
-    partial class InitialSchemaWithIdentity
+    [Migration("20250426221608_InitialSchema")]
+    partial class InitialSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -108,6 +108,9 @@ namespace rescueApp.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("adopter_email")
+                        .IsUnique();
+
                     b.ToTable("adopters", "public");
                 });
 
@@ -119,19 +122,13 @@ namespace rescueApp.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("id"));
 
-                    b.Property<int?>("AdopterId")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid?>("CreatedByUserid")
-                        .HasColumnType("uuid");
-
                     b.Property<int>("adopter_id")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("adoption_date")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("animalId")
+                    b.Property<int>("animal_id")
                         .HasColumnType("integer");
 
                     b.Property<Guid?>("created_by_user_id")
@@ -150,11 +147,11 @@ namespace rescueApp.Migrations
 
                     b.HasKey("id");
 
-                    b.HasIndex("AdopterId");
+                    b.HasIndex("adopter_id");
 
-                    b.HasIndex("Animalid");
+                    b.HasIndex("animal_id");
 
-                    b.HasIndex("CreatedByUserid");
+                    b.HasIndex("created_by_user_id");
 
                     b.ToTable("adoptionhistory", "public");
                 });
@@ -212,9 +209,12 @@ namespace rescueApp.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("date_created")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<DateTime>("date_updated")
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("email")
@@ -259,15 +259,20 @@ namespace rescueApp.Migrations
                 {
                     b.HasOne("rescueApp.Models.Adopter", "Adopter")
                         .WithMany("AdoptionHistories")
-                        .HasForeignKey("AdopterId");
+                        .HasForeignKey("adopter_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("rescueApp.Models.Animal", "Animal")
                         .WithMany("AdoptionHistories")
-                        .HasForeignKey("Animalid");
+                        .HasForeignKey("animal_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("rescueApp.Models.User", "CreatedByUser")
                         .WithMany("CreatedAdoptionHistories")
-                        .HasForeignKey("CreatedByUserid");
+                        .HasForeignKey("created_by_user_id")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Adopter");
 

@@ -72,7 +72,7 @@ namespace rescueApp
             AzureFuncHttp.HttpRequestData req,
             int id) // Animal ID from route
         {
-            _logger.LogInformation("C# HTTP trigger function processed UpdateAnimal request for ID: {AnimalId}", id);
+            _logger.LogInformation("C# HTTP trigger function processed UpdateAnimal request for ID: {animal_id}", id);
 
             User? currentUser;
             ClaimsPrincipal? principal;
@@ -159,7 +159,7 @@ namespace rescueApp
 
                 if (existingAnimal == null)
                 {
-                    _logger.LogWarning("Animal not found for update. Animal ID: {AnimalId}", id);
+                    _logger.LogWarning("Animal not found for update. Animal ID: {animal_id}", id);
                     return req.CreateResponse(HttpStatusCode.NotFound);
                 }
 
@@ -194,12 +194,12 @@ namespace rescueApp
                 if (changed)
                 {
                     existingAnimal.date_updated = DateTime.UtcNow; // Rely on DB trigger OR set explicitly
-                    _logger.LogInformation("Updating Animal ID: {AnimalId} by User ID: {UserId}", existingAnimal.id, currentUser.id);
+                    _logger.LogInformation("Updating Animal ID: {animal_id} by User ID: {UserId}", existingAnimal.id, currentUser.id);
                     await _dbContext.SaveChangesAsync();
                 }
                 else
                 {
-                    _logger.LogInformation("No changes detected for Animal ID: {AnimalId}", existingAnimal.id);
+                    _logger.LogInformation("No changes detected for Animal ID: {animal_id}", existingAnimal.id);
                 }
 
                 // --- 4. Return Response ---

@@ -259,8 +259,8 @@ export default function AdminAnimalsPage() {
 		setSelectedAnimal(null);
 	};
 
-	const handleConfirmDelete = async (animalId: number) => {
-		if (!selectedAnimal || animalId !== selectedAnimal.id) return;
+	const handleConfirmDelete = async (animal_id: number) => {
+		if (!selectedAnimal || animal_id !== selectedAnimal.id) return;
 		setIsDeleting(true);
 		const token = await getAuth0AccessToken();
 		if (!token) {
@@ -270,7 +270,7 @@ export default function AdminAnimalsPage() {
 		}
 		try {
 			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-			const response = await fetch(`${apiBaseUrl}/animals/${animalId}`, {
+			const response = await fetch(`${apiBaseUrl}/animals/${animal_id}`, {
 				method: 'DELETE',
 				headers: { 'Authorization': `Bearer ${token}` },
 			});

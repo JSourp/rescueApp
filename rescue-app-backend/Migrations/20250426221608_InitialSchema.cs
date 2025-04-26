@@ -80,7 +80,7 @@ namespace rescueApp.Migrations
                     email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     role = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     is_active = table.Column<bool>(type: "boolean", nullable: false),
-                    date_created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    date_created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     date_updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     last_login_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
@@ -96,56 +96,64 @@ namespace rescueApp.Migrations
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    animalId = table.Column<int>(type: "integer", nullable: false),
+                    animal_id = table.Column<int>(type: "integer", nullable: false),
                     adopter_id = table.Column<int>(type: "integer", nullable: false),
                     adoption_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     return_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     notes = table.Column<string>(type: "text", nullable: true),
                     created_by_user_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    date_created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    AdopterId = table.Column<int>(type: "integer", nullable: true),
-                    CreatedByUserid = table.Column<Guid>(type: "uuid", nullable: true)
+                    date_created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_adoptionhistory", x => x.id);
                     table.ForeignKey(
-                        name: "FK_adoptionhistory_adopters_AdopterId",
-                        column: x => x.AdopterId,
+                        name: "FK_adoptionhistory_adopters_adopter_id",
+                        column: x => x.adopter_id,
                         principalSchema: "public",
                         principalTable: "adopters",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_adoptionhistory_animals_animalId",
-                        column: x => x.animalId,
+                        name: "FK_adoptionhistory_animals_animal_id",
+                        column: x => x.animal_id,
                         principalSchema: "public",
                         principalTable: "animals",
-                        principalColumn: "id");
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_adoptionhistory_users_CreatedByUserid",
-                        column: x => x.CreatedByUserid,
+                        name: "FK_adoptionhistory_users_created_by_user_id",
+                        column: x => x.created_by_user_id,
                         principalSchema: "public",
                         principalTable: "users",
-                        principalColumn: "id");
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_adoptionhistory_AdopterId",
+                name: "IX_adopters_adopter_email",
                 schema: "public",
-                table: "adoptionhistory",
-                column: "AdopterId");
+                table: "adopters",
+                column: "adopter_email",
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_adoptionhistory_animalId",
+                name: "IX_adoptionhistory_adopter_id",
                 schema: "public",
                 table: "adoptionhistory",
-                column: "animalId");
+                column: "adopter_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_adoptionhistory_CreatedByUserid",
+                name: "IX_adoptionhistory_animal_id",
                 schema: "public",
                 table: "adoptionhistory",
-                column: "CreatedByUserid");
+                column: "animal_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_adoptionhistory_created_by_user_id",
+                schema: "public",
+                table: "adoptionhistory",
+                column: "created_by_user_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_users_email",

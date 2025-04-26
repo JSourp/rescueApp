@@ -75,14 +75,14 @@ const TooltipButton = ({ content, label }: { content: string, label: string }) =
 
 interface AdoptionFormProps {
   animalName?: string;
-  animalId?: number | string;
+  animal_id?: number | string;
   onClose: () => void;
 }
 
-export default function AdoptionForm({ animalName, animalId, onClose }: AdoptionFormProps) {
+export default function AdoptionForm({ animalName, animal_id, onClose }: AdoptionFormProps) {
 
   const defaultSubject = animalName
-    ? `Adoption Application for ${animalName} (ID: ${animalId})`
+    ? `Adoption Application for ${animalName} (ID: ${animal_id})`
     : `General Adoption Application`;
 
   const defaultWhichAnimal = animalName ? `${animalName}` : "";
@@ -146,7 +146,7 @@ export default function AdoptionForm({ animalName, animalId, onClose }: Adoption
         access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
         from_name: "Rescue App Adoption Application",
         ...(animalName && { inquiry_for_animal_name: animalName }),
-        ...(animalId && { inquiry_for_animal_id: animalId }),
+        ...(animal_id && { inquiry_for_animal_id: animal_id }),
         botcheck: undefined,
       }
 

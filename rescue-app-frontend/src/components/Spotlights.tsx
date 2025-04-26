@@ -106,7 +106,7 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
          <Modal onClose={() => setShowAdoptForm(false)}>
            <AdoptionForm
              animalName={data.name} // Pass name from data prop
-             animalId={data.id}   // Pass id from data prop
+            animal_id={data.id}   // Pass id from data prop
              onClose={() => setShowAdoptForm(false)}
            />
          </Modal>

@@ -33,7 +33,7 @@ async function fetchAnimal(id: string): Promise<Animal | null> {
 export default function AnimalDetailsPage() {
   const params = useParams(); // Access the params from the URL
   const id = params?.id; // Safely extract 'id' if params is not null
-  const animalId = Array.isArray(id) ? id[0] : id; // Ensure id is a string
+  const animal_id = Array.isArray(id) ? id[0] : id; // Ensure id is a string
   const [animal, setAnimal] = useState<Animal | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,8 +45,8 @@ export default function AnimalDetailsPage() {
       setError(null);
 
       try {
-        if (animalId) {
-          const fetchedAnimal = await fetchAnimal(animalId);
+        if (animal_id) {
+          const fetchedAnimal = await fetchAnimal(animal_id);
           setAnimal(fetchedAnimal);
         } else {
           setError('Animal ID is missing.');
@@ -63,7 +63,7 @@ export default function AnimalDetailsPage() {
     }
 
     loadAnimal();
-  }, [animalId]); // Re-fetch data if the animalId changes
+  }, [animal_id]); // Re-fetch data if the animal_id changes
 
   if (loading) {
     return (
@@ -128,7 +128,7 @@ export default function AnimalDetailsPage() {
           <Modal onClose={() => setshowAdoptionForm(false)}>
             <AdoptionForm
               animalName={animal.name ?? undefined} // Pass optional props
-              animalId={animal.id}                  // Pass optional props
+            animal_id={animal.id}                  // Pass optional props
               onClose={() => setshowAdoptionForm(false)}
             />
           </Modal>
