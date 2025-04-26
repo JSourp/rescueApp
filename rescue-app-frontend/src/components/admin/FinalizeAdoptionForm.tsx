@@ -153,7 +153,7 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 			{/* Header */}
 			<div className="flex-shrink-0 p-5 bg-indigo-600">
 				<h3 className="text-lg text-white text-center font-semibold">
-					Finalize Adoption for {animal.name} (ID: {animal.id})
+					Finalize Adoption for {animal.name}
 				</h3>
 			</div>
 
@@ -279,9 +279,17 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 
 						{/* Form Actions */}
 						<div className="flex justify-end gap-3 pt-6 border-t border-gray-300 dark:border-gray-700 mt-6">
-							<button type="button" onClick={onClose} className="bg-neutral-200 ...">Cancel</button>
-							<button type="submit" disabled={isSubmitting} className="bg-indigo-500 ...">
-								{isSubmitting ? <LoadingSpinner className="w-5 h-5 mx-auto" /> : 'Confirm Adoption'}
+							<button type="button" onClick={onClose}
+								className="bg-neutral-200 hover:bg-neutral-300 text-neutral-800 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500 font-medium py-2 px-5 rounded-md transition duration-300">
+								Cancel
+							</button>
+							<button type="submit" disabled={isSubmitting}
+								className="bg-sc-asparagus-500 hover:bg-sc-asparagus-600 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50">
+								{isSubmitting ? (
+									<LoadingSpinner className="w-5 h-5 mx-auto" />
+								) : (
+									'Confirm Adoption'
+								)}
 							</button>
 						</div>
 					</form>
