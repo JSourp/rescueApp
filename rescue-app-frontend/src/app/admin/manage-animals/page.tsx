@@ -448,6 +448,8 @@ export default function AdminAnimalsPage() {
 												{['Admin', 'Staff', 'Volunteer'].includes(currentUserRole ?? '') && (
 													<button onClick={() => handleEditClick(animal)} className="..." title="Edit"> <PencilSquareIcon className="w-5 h-5 inline" /> <span className="sr-only">Edit</span> </button>
 												)}
+												{/* Finalize Adoption Button - Conditional */}
+												{/* TODO: remove 'Adopted' from being able to see this, once all current test 'Adopted' animals have an adoption record */}
 												{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Available', 'Available - In Foster', 'Adoption Pending', 'Adopted'].includes(animal.adoption_status ?? '') && (
 													<button onClick={() => handleFinalizeClick(animal)} className="text-green-600 hover:text-green-900 ..." title="Finalize Adoption">
 														<SuccessCheckmarkIcon className="w-5 h-5 inline" />
