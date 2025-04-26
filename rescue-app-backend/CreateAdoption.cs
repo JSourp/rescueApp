@@ -79,15 +79,15 @@ namespace rescueApp
                     return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User not authorized or inactive.");
                 }
 
-                // Check Role - Admins, Staff, or Volunteers can create
-                var allowedRoles = new[] { "Admin", "Staff", "Volunteer" }; // Case-sensitive match with DB role
+                // Check Role - Admins or Staff can finalize an adoption
+                var allowedRoles = new[] { "Admin", "Staff" }; // Case-sensitive match with DB role
                 if (!allowedRoles.Contains(currentUser.role))
                 {
-                    _logger.LogWarning("User Role '{UserRole}' not authorized to create animal. UserID: {UserId}", currentUser.role, currentUser.id);
-                    return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "Permission denied to create animal.");
+                    _logger.LogWarning("User Role '{UserRole}' not authorized to finalize an adoption. UserID: {UserId}", currentUser.role, currentUser.id);
+                    return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "Permission denied to finalize an adoption.");
                 }
 
-                _logger.LogInformation("User {UserId} with role {UserRole} authorized to create animal.", currentUser.id, currentUser.role);
+                _logger.LogInformation("User {UserId} with role {UserRole} authorized to finalize an adoption.", currentUser.id, currentUser.role);
 
             }
             catch (Exception ex) // Catch potential exceptions during auth/authz
@@ -239,9 +239,9 @@ namespace rescueApp
         private async Task<Adopter?> FindOrCreateAdopterAsync(CreateAdoptionRequest reqData)
         {
             // Use email as the unique identifier (ensure it's not null/whitespace due to prior validation)
-            var adopterEmailLower = reqData.adopter_email!.ToLowerInvariant();
+            var adopterEmailLower = reqData.adopter_email!.ToLower();
             var existingAdopter = await _dbContext.Adopters
-                                      .FirstOrDefaultAsync(a => a.adopter_email.ToLowerInvariant() == adopterEmailLower);
+                                      .FirstOrDefaultAsync(a => a.adopter_email.ToLower() == adopterEmailLower);
 
             if (existingAdopter != null)
             {
