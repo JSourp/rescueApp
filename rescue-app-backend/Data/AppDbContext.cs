@@ -21,6 +21,10 @@ public class AppDbContext : DbContext
         // --- Configuration for Adopter Entity ---
         modelBuilder.Entity<Adopter>(entity =>
         {
+            // Tell EF Core Configure the 'id' property to use the database's default identity generation
+            entity.Property(e => e.Id)
+              .UseIdentityByDefaultColumn(); // Tells EF Core this is SERIAL/IDENTITY
+
             // Tell EF Core DB generates 'date_created' on ADD using DEFAULT
             entity.Property(e => e.date_created)
                   .ValueGeneratedOnAdd() // Generated when entity is added

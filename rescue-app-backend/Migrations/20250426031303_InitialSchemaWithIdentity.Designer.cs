@@ -12,8 +12,8 @@ using rescueApp.Data;
 namespace rescueApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250423004729_CheckForPendingModelChanges")]
-    partial class CheckForPendingModelChanges
+    [Migration("20250426031303_InitialSchemaWithIdentity")]
+    partial class InitialSchemaWithIdentity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

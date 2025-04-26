@@ -5,7 +5,7 @@
 namespace rescueApp.Migrations
 {
     /// <inheritdoc />
-    public partial class CheckForPendingModelChanges : Migration
+    public partial class InitialSchemaWithIdentity : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
