@@ -178,7 +178,7 @@ namespace rescueApp
                     weight = createData.Weight, // Nullable decimal?
                     story = createData.Story, // Nullable string
                     adoption_status = createData.adoption_status!, // Use status from request
-                    image_url = null, // Image handling comes later
+                    image_url = "/placeholder-image.png", // Image handling comes later
                     date_added = utcNow, // Already Utc
                     date_updated = utcNow // Already Utc
                     // created_by_user_id = currentUser.id // Optional link

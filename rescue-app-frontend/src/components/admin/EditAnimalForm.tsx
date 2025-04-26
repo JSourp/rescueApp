@@ -19,7 +19,7 @@ interface EditAnimalFormData {
 	weight?: number | string;
 	story?: string;
 	adoption_status: string;
-	imageUrl?: string | null; // Allow updating image URL later
+	image_url?: string | null; // Allow updating image URL later
 }
 
 interface EditAnimalFormProps {
@@ -47,7 +47,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 			weight: animal.weight ?? '', // Handle null weight
 			story: animal.story || '',
 			adoption_status: animal.adoption_status || '',
-			// imageUrl: animal.imageUrl || '', // Handle image separately
+			// image_url: animal.image_url || '', // Handle image separately
 		}
 	});
 

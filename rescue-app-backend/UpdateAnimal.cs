@@ -46,7 +46,7 @@ namespace rescueApp
         [MaxLength(50)]
         public string? adoption_status { get; set; }
 
-        public string? ImageUrl { get; set; } // Allow updating image URL
+        public string? image_url { get; set; } // Allow updating image URL
     }
 
 
@@ -188,7 +188,7 @@ namespace rescueApp
                 if (updateData.Weight != null && existingAnimal.weight != updateData.Weight) { existingAnimal.weight = updateData.Weight; changed = true; }
                 if (updateData.Story != null && existingAnimal.story != updateData.Story) { existingAnimal.story = updateData.Story; changed = true; }
                 if (updateData.adoption_status != null && existingAnimal.adoption_status != updateData.adoption_status) { existingAnimal.adoption_status = updateData.adoption_status; changed = true; }
-                if (updateData.ImageUrl != null && existingAnimal.image_url != updateData.ImageUrl) { existingAnimal.image_url = updateData.ImageUrl; changed = true; }
+                if (updateData.image_url != null && existingAnimal.image_url != updateData.image_url) { existingAnimal.image_url = updateData.image_url; changed = true; }
                 // Add other updatable fields...
 
                 if (changed)
