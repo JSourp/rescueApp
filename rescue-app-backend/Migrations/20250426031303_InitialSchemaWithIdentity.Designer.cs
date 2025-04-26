@@ -122,9 +122,6 @@ namespace rescueApp.Migrations
                     b.Property<int?>("AdopterId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("Animalid")
-                        .HasColumnType("integer");
-
                     b.Property<Guid?>("CreatedByUserid")
                         .HasColumnType("uuid");
 
@@ -134,7 +131,7 @@ namespace rescueApp.Migrations
                     b.Property<DateTime>("adoption_date")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("animal_id")
+                    b.Property<int>("animalId")
                         .HasColumnType("integer");
 
                     b.Property<Guid?>("created_by_user_id")

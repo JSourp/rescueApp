@@ -96,14 +96,13 @@ namespace rescueApp.Migrations
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    animal_id = table.Column<int>(type: "integer", nullable: false),
+                    animalId = table.Column<int>(type: "integer", nullable: false),
                     adopter_id = table.Column<int>(type: "integer", nullable: false),
                     adoption_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     return_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     notes = table.Column<string>(type: "text", nullable: true),
                     created_by_user_id = table.Column<Guid>(type: "uuid", nullable: true),
                     date_created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    Animalid = table.Column<int>(type: "integer", nullable: true),
                     AdopterId = table.Column<int>(type: "integer", nullable: true),
                     CreatedByUserid = table.Column<Guid>(type: "uuid", nullable: true)
                 },

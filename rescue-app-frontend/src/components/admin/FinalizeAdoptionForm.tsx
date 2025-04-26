@@ -161,8 +161,6 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 			<div className="flex-grow p-6 bg-gray-50 dark:bg-gray-800 overflow-y-auto">
 				{!isSuccess ? (
 					<form onSubmit={handleSubmit(handleFinalize)} noValidate>
-						{apiError && <p className="mb-4 text-sm text-center text-red-600 dark:text-red-400">Error: {apiError}</p>}
-
 						{/* --- Adopter Information Section --- */}
 						<h4 className={sectionTitleClasses}>Adopter Information</h4>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

@@ -4,9 +4,9 @@ namespace rescueApp.Models
 {
     public class CreateAdoptionRequest
     {
-        [Required(ErrorMessage = "AnimalId is required.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Valid AnimalId is required.")]
-        public int AnimalId { get; set; }
+        [Required(ErrorMessage = "animalId is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Valid animalId is required.")]
+        public int animalId { get; set; }
 
         [Required(AllowEmptyStrings = false, ErrorMessage = "Adopter first name is required.")]
         [MaxLength(100)]
@@ -63,7 +63,7 @@ namespace rescueApp.Models
 
         // Optional fields below
         public DateTime? adoption_date { get; set; } // Optional? Default to now if missing
-        public string? adoption_notes { get; set; }
+        public string? notes { get; set; }
         public string? how_heard { get; set; }
         public string? botcheck { get; set; } // Honeypot field for spam prevention
     }

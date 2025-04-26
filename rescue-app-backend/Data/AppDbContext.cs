@@ -52,7 +52,7 @@ public class AppDbContext : DbContext
             // Add configuration for FKs if needed, though conventions might handle it
             // entity.HasOne(d => d.Animal)
             //    .WithMany(p => p.AdoptionHistories) // Assumes ICollection in Animal model
-            //    .HasForeignKey(d => d.animal_id)
+            //    .HasForeignKey(d => d.animalId)
             //    .OnDelete(DeleteBehavior.ClientSetNull) // Example delete behavior
             //    .HasConstraintName("fk_adoptionhistory_animal");
 

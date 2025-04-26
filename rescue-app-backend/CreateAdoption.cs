@@ -23,73 +23,6 @@ using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
-    public class CreateAdoptionRequest
-    {
-        [Required(ErrorMessage = "animal_id is required.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Valid animal_id is required.")]
-        public int animal_id { get; set; }
-
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Adopter first name is required.")]
-        [MaxLength(100)]
-        public string? adopter_first_name { get; set; } // Nullable string, Required handles validation
-
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Adopter last name is required.")]
-        [MaxLength(100)]
-        public string? adopter_last_name { get; set; }
-
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Adopter email is required.")]
-        [EmailAddress(ErrorMessage = "Invalid email format.")]
-        [MaxLength(255)]
-        public string? adopter_email { get; set; }
-
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Primary phone is required.")]
-        [Phone(ErrorMessage = "Invalid phone number format.")] // Basic phone format check
-        [MaxLength(30)]
-        public string? adopter_primary_phone { get; set; }
-
-        [Required(ErrorMessage = "Primary phone type is required.")]
-        [RegularExpression("^(Cell|Home|Work)$", ErrorMessage = "Phone type must be Cell, Home, or Work.")] // Enforce specific values
-        [MaxLength(10)]
-        public string? adopter_primary_phone_type { get; set; }
-
-        [Phone(ErrorMessage = "Invalid secondary phone format.")]
-        [MaxLength(30)]
-        public string? adopter_secondary_phone { get; set; } // Optional
-
-        [RegularExpression("^(Cell|Home|Work)$", ErrorMessage = "Phone type must be Cell, Home, or Work.")]
-        [MaxLength(10)]
-        public string? adopter_secondary_phone_type { get; set; } // Optional
-
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Street address is required.")]
-        [MaxLength(255)]
-        public string? adopter_street_address { get; set; }
-
-        [MaxLength(50)]
-        public string? adopter_apt_unit { get; set; } // Optional
-
-        [Required(AllowEmptyStrings = false, ErrorMessage = "City is required.")]
-        [MaxLength(100)]
-        public string? adopter_city { get; set; }
-
-        [Required(AllowEmptyStrings = false, ErrorMessage = "State/Province is required.")]
-        [MaxLength(100)]
-        public string? adopter_state_province { get; set; }
-
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Zip/Postal code is required.")]
-        [MaxLength(20)]
-        public string? adopter_zip_postal_code { get; set; }
-
-        [MaxLength(100)]
-        public string? spouse_partner_roommate { get; set; } // Optional
-
-        // Optional fields below
-        public DateTime? adoption_date { get; set; } // Optional? Default to now if missing
-        public string? notes { get; set; }
-        public string? how_heard { get; set; }
-        public string? botcheck { get; set; } // Honeypot field for spam prevention
-    }
-
-
     public class CreateAdoption
     {
         private readonly AppDbContext _dbContext;
@@ -207,10 +140,10 @@ namespace rescueApp
             try
             {
                 // 4. Find Animal & Check Status
-                var animalToAdopt = await _dbContext.Animals.FindAsync(adoptionRequest.animal_id);
+                var animalToAdopt = await _dbContext.Animals.FindAsync(adoptionRequest.animalId);
                 if (animalToAdopt == null)
                 {
-                    _logger.LogWarning("Animal not found for adoption. Animal ID: {animal_id}", adoptionRequest.animal_id);
+                    _logger.LogWarning("Animal not found for adoption. Animal ID: {animalId}", adoptionRequest.animalId);
                     return req.CreateResponse(HttpStatusCode.NotFound);
                 }
 
@@ -218,7 +151,7 @@ namespace rescueApp
                 var adoptableStatuses = new List<string> { "Available", "Available - In Foster", "Adoption Pending", "Adopted" };
                 if (animalToAdopt!.adoption_status == null || !adoptableStatuses.Contains(animalToAdopt.adoption_status))
                 {
-                    _logger.LogWarning("Animal not found for adoption. Animal ID: {animal_id}", adoptionRequest.animal_id);
+                    _logger.LogWarning("Animal not found for adoption. Animal ID: {animalId}", adoptionRequest.animalId);
                     return req.CreateResponse(HttpStatusCode.NotFound);
                 }
 
@@ -243,11 +176,11 @@ namespace rescueApp
 
                 // 6. Check Active Adoption History
                 bool alreadyActivelyAdopted = await _dbContext.AdoptionHistories
-                    .AnyAsync(ah => ah.animal_id == adoptionRequest.animal_id && ah.return_date == null);
+                    .AnyAsync(ah => ah.animalId == adoptionRequest.animalId && ah.return_date == null);
                 if (alreadyActivelyAdopted)
                 {
                     /* Log, Rollback, return 409 Conflict */
-                    _logger.LogWarning("Animal ID {animal_id} already has an active adoption record.", adoptionRequest.animal_id);
+                    _logger.LogWarning("Animal ID {animalId} already has an active adoption record.", adoptionRequest.animalId);
                     await transaction.RollbackAsync();
                     return await CreateErrorResponse(req, HttpStatusCode.Conflict, "Animal already has an active adoption record.");
                 }
@@ -257,7 +190,7 @@ namespace rescueApp
                 var utcNow = DateTime.UtcNow;
                 var newAdoptionRecord = new AdoptionHistory
                 {
-                    animal_id = animalToAdopt.id,
+                    animalId = animalToAdopt.id,
                     adopter_id = adopter.Id, // Use ID from found/created adopter
                     // Use provided date (ensure UTC) or default to now
                     adoption_date = adoptionRequest.adoption_date.HasValue
@@ -282,7 +215,7 @@ namespace rescueApp
                 // 10. Commit Transaction
                 await transaction.CommitAsync();
 
-                _logger.LogInformation("Successfully recorded adoption for Animal ID: {animal_id}. Adopter ID: {AdopterId}, History ID: {HistoryId}", animalToAdopt.id, adopter.Id, newAdoptionRecord.id);
+                _logger.LogInformation("Successfully recorded adoption for Animal ID: {animalId}. Adopter ID: {AdopterId}, History ID: {HistoryId}", animalToAdopt.id, adopter.Id, newAdoptionRecord.id);
 
                 // 11. Return Success Response
                 var response = req.CreateResponse(HttpStatusCode.Created);
@@ -296,7 +229,7 @@ namespace rescueApp
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                _logger.LogError(ex, "Error processing adoption transaction for Animal ID: {animal_id}. Request Body Preview: {BodyPreview}", adoptionRequest?.animal_id, requestBody.Substring(0, Math.Min(requestBody.Length, 500)));
+                _logger.LogError(ex, "Error processing adoption transaction for Animal ID: {animalId}. Request Body Preview: {BodyPreview}", adoptionRequest?.animalId, requestBody.Substring(0, Math.Min(requestBody.Length, 500)));
                 return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An internal error occurred while finalizing the adoption.");
             }
         }

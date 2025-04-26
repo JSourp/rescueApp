@@ -9,7 +9,7 @@ namespace rescueApp.Models
         public int id { get; set; }
 
         // [ForeignKey("Animal")] // Optional attribute for clarity
-        public int animal_id { get; set; }
+        public int animalId { get; set; }
 
         // [ForeignKey("Adopter")] // Optional attribute for clarity
         public int adopter_id { get; set; }
