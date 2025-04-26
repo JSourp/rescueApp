@@ -2,13 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
-import { LoadingSpinner, SuccessCheckmarkIcon } from '@/components/Icons'; // Assuming Icons component exists
+import { LoadingSpinner, SuccessCheckmarkIcon } from '@/components/Icons';
 import { getAuth0AccessToken } from '@/utils/auth'; // Shared helper
 import { Animal } from '@/types/animal'; // Import your Animal type
 import { format } from 'date-fns'; // For default date
 
-// Define the shape of the form data (matches Adopters table + adoption notes/date)
-// Using camelCase for frontend consistency
 interface FinalizeFormData {
 	// Adopter Info
 	adopter_first_name: string;
@@ -77,7 +75,7 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 		}
 		// --- Got Token ---
 
-		// Construct payload matching backend CreateAdoptionRequest DTO (PascalCase)
+		// Construct payload matching backend CreateAdoptionRequest DTO
 		// And include animalId
 		const payload = {
 			animalId: animal.id,
@@ -85,18 +83,17 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 			adopter_last_name: formData.adopter_last_name,
 			adopter_email: formData.adopter_email,
 			adopter_primary_phone: formData.adopter_primary_phone,
-			adopter_primary_phone_type: formData.adopter_primary_phone_type, // Match backend DTO prop name if different
+			adopter_primary_phone_type: formData.adopter_primary_phone_type,
 			adopter_secondary_phone: formData.adopter_secondary_phone || null, // Send null if empty
-			adopter_secondary_phone_type: formData.adopter_secondary_phone_type || null, // Match backend DTO prop name if different
+			adopter_secondary_phone_type: formData.adopter_secondary_phone_type || null, // Send null if empty
 			adopter_street_address: formData.adopter_street_address,
-			adopter_apt_unit: formData.adopter_apt_unit || null,
+			adopter_apt_unit: formData.adopter_apt_unit || null, // Send null if empty
 			adopter_city: formData.adopter_city,
 			adopter_state_province: formData.adopter_state_province,
 			adopter_zip_postal_code: formData.adopter_zip_postal_code,
 			spouse_partner_roommate: formData.spouse_partner_roommate || null,
 			adoption_date: formData.adoption_date ? new Date(formData.adoption_date).toISOString() : new Date().toISOString(), // Send as ISO string
 			notes: formData.notes || null,
-			// Add how_heard etc. if needed
 		};
 
 		console.log('Finalizing adoption with payload:', payload);
@@ -154,7 +151,7 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 	return (
 		<div className="flex flex-col max-h-[85vh]">
 			{/* Header */}
-			<div className="flex-shrink-0 p-5 bg-indigo-600"> {/* Indigo theme */}
+			<div className="flex-shrink-0 p-5 bg-indigo-600">
 				<h3 className="text-lg text-white text-center font-semibold">
 					Finalize Adoption for {animal.name} (ID: {animal.id})
 				</h3>
@@ -293,8 +290,7 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 					<div className="flex flex-col items-center justify-center text-center min-h-[200px]">
 						<SuccessCheckmarkIcon className="h-16 w-16 text-green-500 dark:text-green-400" />
 						<h3 className="py-5 text-xl text-green-600 dark:text-green-400 font-semibold">Adoption Finalized!</h3>
-						<p className="text-gray-700 dark:text-gray-300 md:px-3">{submitMessage}</p>
-						{/* Close button removed - will close automatically */}
+							<p className="text-gray-700 dark:text-gray-300 md:px-3">{submitMessage}</p>
 					</div>
 				)}
 				{/* Display API error message if not successful */}

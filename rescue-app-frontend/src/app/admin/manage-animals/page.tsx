@@ -318,7 +318,7 @@ export default function AdminAnimalsPage() {
 
 				{/* Add Animal Button - Right Aligned */}
 				{/* Conditionally render this div only if the user has the correct role */}
-				{['Admin', 'Staff', 'Volunteer'].includes(currentUserRole ?? '') && (
+				{['Admin', 'Staff'].includes(currentUserRole ?? '') && (
 					<div className="flex justify-end mb-6"> {/* Use flexbox to push content to the end (right), add margin below */}
 						<button
 							onClick={handleAddAnimalClick}
@@ -448,7 +448,7 @@ export default function AdminAnimalsPage() {
 												{['Admin', 'Staff', 'Volunteer'].includes(currentUserRole ?? '') && (
 													<button onClick={() => handleEditClick(animal)} className="..." title="Edit"> <PencilSquareIcon className="w-5 h-5 inline" /> <span className="sr-only">Edit</span> </button>
 												)}
-												{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Available', 'Available - In Foster', 'Adoption Pending'].includes(animal.adoption_status ?? '') && (
+												{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Available', 'Available - In Foster', 'Adoption Pending', 'Adopted'].includes(animal.adoption_status ?? '') && (
 													<button onClick={() => handleFinalizeClick(animal)} className="text-green-600 hover:text-green-900 ..." title="Finalize Adoption">
 														<SuccessCheckmarkIcon className="w-5 h-5 inline" />
 													</button>
