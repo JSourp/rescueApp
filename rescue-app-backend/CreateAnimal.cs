@@ -109,8 +109,8 @@ namespace rescueApp
                     return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User not authorized or inactive.");
                 }
 
-                // Check Role - Admins, Staff, or Volunteers can create
-                var allowedRoles = new[] { "Admin", "Staff", "Volunteer" }; // Case-sensitive match with DB role
+                // Check Role - Admins and Staff can create
+                var allowedRoles = new[] { "Admin", "Staff" }; // Case-sensitive match with DB role
                 if (!allowedRoles.Contains(currentUser.role))
                 {
                     _logger.LogWarning("User Role '{UserRole}' not authorized to create animal. UserID: {UserId}", currentUser.role, currentUser.id);

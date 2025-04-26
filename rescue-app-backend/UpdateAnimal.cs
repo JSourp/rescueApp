@@ -107,8 +107,8 @@ namespace rescueApp
                     return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User not authorized or inactive.");
                 }
 
-                // Check Role - Admins, Staff, or Volunteers can update
-                var allowedRoles = new[] { "Admin", "Staff", "Volunteer" }; // Case-sensitive
+                // Check Role - Admins and Staff can update
+                var allowedRoles = new[] { "Admin", "Staff" }; // Case-sensitive
                 if (!allowedRoles.Contains(currentUser.role))
                 {
                     _logger.LogWarning("User Role '{UserRole}' not authorized to update animal. UserID: {UserId}", currentUser.role, currentUser.id);

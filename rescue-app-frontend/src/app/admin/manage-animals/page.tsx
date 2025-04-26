@@ -445,7 +445,7 @@ export default function AdminAnimalsPage() {
 											<td className={tdClasses}>{format(new Date(animal.date_updated), 'P')}</td>
 											<td className={`${tdClasses} text-right space-x-2`}>
 												{/* Edit Button - Conditional */}
-												{['Admin', 'Staff', 'Volunteer'].includes(currentUserRole ?? '') && (
+												{['Admin', 'Staff'].includes(currentUserRole ?? '') && (
 													<button onClick={() => handleEditClick(animal)} className="..." title="Edit"> <PencilSquareIcon className="w-5 h-5 inline" /> <span className="sr-only">Edit</span> </button>
 												)}
 												{/* Finalize Adoption Button - Conditional */}

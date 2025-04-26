@@ -13,6 +13,6 @@ export interface UserProfile {
 /* Role Types
  * Admin: Full access to all features and settings.
  * Staff: Can manage animals, and finalize adoptions.
- * Volunteer: Limited access, can edit animals (should they be able to though?)
+ * Volunteer: Limited access, view only for now.
  * Guest: Read-only access to public information.
 */
