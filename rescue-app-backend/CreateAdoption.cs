@@ -235,29 +235,47 @@ namespace rescueApp
         }
 
 
-        // --- Helper Method: Find Or Create Adopter ---
+        // --- Helper Method: Find Or Create Adopter (Corrected for snake_case DTO) ---
         private async Task<Adopter?> FindOrCreateAdopterAsync(CreateAdoptionRequest reqData)
         {
-            // Use email as the unique identifier (ensure it's not null/whitespace due to prior validation)
-            var adopterEmailLower = reqData.adopter_email!.ToLower();
+            // Use snake_case DTO property, ensure not null after validation
+            var inputEmail = reqData.adopter_email!;
+            var adopterEmailLower = inputEmail.ToLowerInvariant(); // Still useful for logging consistency
+
+            _logger.LogInformation("Attempting to find adopter case-insensitively with email: {Email}", inputEmail);
+
+            // Use EF.Functions.ILike with the snake_case MODEL property 'adopter_email'
             var existingAdopter = await _dbContext.Adopters
-                                      .FirstOrDefaultAsync(a => a.adopter_email.ToLower() == adopterEmailLower);
+                                      .FirstOrDefaultAsync(a => EF.Functions.ILike(a.adopter_email, inputEmail));
+
             var utcNow = DateTime.UtcNow;
 
             if (existingAdopter != null)
             {
                 _logger.LogInformation("Found existing adopter by email. Adopter Id: {adopter_id}", existingAdopter.Id);
+
                 // Optional: Update existing adopter's info if provided data differs
+                // Compare Model.snake_case with DTO.snake_case
                 bool changed = false;
                 if (existingAdopter.adopter_first_name != reqData.adopter_first_name) { existingAdopter.adopter_first_name = reqData.adopter_first_name!; changed = true; }
                 if (existingAdopter.adopter_last_name != reqData.adopter_last_name) { existingAdopter.adopter_last_name = reqData.adopter_last_name!; changed = true; }
-                // ... check/update other fields ...
+                if (existingAdopter.adopter_primary_phone != reqData.adopter_primary_phone) { existingAdopter.adopter_primary_phone = reqData.adopter_primary_phone!; changed = true; }
+                if (existingAdopter.adopter_primary_phone_type != reqData.adopter_primary_phone_type) { existingAdopter.adopter_primary_phone_type = reqData.adopter_primary_phone_type!; changed = true; }
+                if (existingAdopter.adopter_street_address != reqData.adopter_street_address) { existingAdopter.adopter_street_address = reqData.adopter_street_address!; changed = true; }
+                if (existingAdopter.adopter_city != reqData.adopter_city) { existingAdopter.adopter_city = reqData.adopter_city!; changed = true; }
+                if (existingAdopter.adopter_state_province != reqData.adopter_state_province) { existingAdopter.adopter_state_province = reqData.adopter_state_province!; changed = true; }
+                if (existingAdopter.adopter_zip_postal_code != reqData.adopter_zip_postal_code) { existingAdopter.adopter_zip_postal_code = reqData.adopter_zip_postal_code!; changed = true; }
+                // Optional Fields
+                if (existingAdopter.adopter_secondary_phone != reqData.adopter_secondary_phone) { existingAdopter.adopter_secondary_phone = reqData.adopter_secondary_phone; changed = true; } // Nullable
+                if (existingAdopter.adopter_secondary_phone_type != reqData.adopter_secondary_phone_type) { existingAdopter.adopter_secondary_phone_type = reqData.adopter_secondary_phone_type; changed = true; } // Nullable
+                if (existingAdopter.spouse_partner_roommate != reqData.spouse_partner_roommate) { existingAdopter.spouse_partner_roommate = reqData.spouse_partner_roommate; changed = true; } // Nullable
+                if (existingAdopter.adopter_apt_unit != reqData.adopter_apt_unit) { existingAdopter.adopter_apt_unit = reqData.adopter_apt_unit; changed = true; } // Nullable
+
                 if (changed)
                 {
                     _logger.LogInformation("Updating existing adopter info for Adopter Id: {adopter_id}", existingAdopter.Id);
-                    existingAdopter.date_updated = utcNow;
-                    _dbContext.Adopters.Update(existingAdopter);
-                    // SaveChanges will happen in the main transaction
+                    existingAdopter.date_updated = utcNow; // Set timestamp or rely on trigger
+                                                           // _dbContext.Adopters.Update(existingAdopter); // Not needed - EF Core tracks changes
                 }
                 return existingAdopter;
             }
@@ -266,7 +284,7 @@ namespace rescueApp
                 _logger.LogInformation("Creating new adopter record for email: {Email}", reqData.adopter_email);
                 var newAdopter = new Adopter
                 {
-                    // Map ALL required fields from reqData (use ! safely after validation)
+                    // Map snake_case DTO to snake_case Model (use ! safely after validation)
                     adopter_first_name = reqData.adopter_first_name!,
                     adopter_last_name = reqData.adopter_last_name!,
                     adopter_email = reqData.adopter_email!,
@@ -276,16 +294,17 @@ namespace rescueApp
                     adopter_city = reqData.adopter_city!,
                     adopter_state_province = reqData.adopter_state_province!,
                     adopter_zip_postal_code = reqData.adopter_zip_postal_code!,
-                    // Map optional fields
+                    // Optional fields
                     adopter_secondary_phone = reqData.adopter_secondary_phone,
                     adopter_secondary_phone_type = reqData.adopter_secondary_phone_type,
                     spouse_partner_roommate = reqData.spouse_partner_roommate,
                     adopter_apt_unit = reqData.adopter_apt_unit,
-                    notes = null, // General notes not part of this request DTO
-                    date_updated = utcNow //date_created too? or handled by EF config/DB defaults/triggers?
+                    //date_created = utcNow, // Explicitly set (or rely on DB default if preferred)
+                    date_updated = utcNow, // Explicitly set date_updated on creation
+                    notes = null,
                 };
                 _dbContext.Adopters.Add(newAdopter);
-                // Let the main SaveChangesAsync call handle this insert within the transaction
+                // Let the main SaveChangesAsync call handle this insert
                 return newAdopter;
             }
         }
