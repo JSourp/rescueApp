@@ -96,7 +96,7 @@ export default function AnimalDetailsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
           <Image
-            src={animal.image_url || '/placeholder-image.jpg'}
+            src={animal.image_url || '../placeholder-image.png'}
             alt={animal.name || 'Animal image'}
             width={600}
             height={450}
