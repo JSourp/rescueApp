@@ -4,9 +4,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Container } from '@/components/Container';
 import AddAnimalForm from '@/components/admin/AddAnimalForm';
 import EditAnimalForm from '@/components/admin//EditAnimalForm';
+import FinalizeAdoptionForm from '@/components/admin/FinalizeAdoptionForm';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import Modal from '@/components/Modal';
-import { LoadingSpinner, PlusIcon, PencilSquareIcon, TrashIcon } from '@/components/Icons';
+import { LoadingSpinner, PlusIcon, PencilSquareIcon, TrashIcon, SuccessCheckmarkIcon } from '@/components/Icons';
 import { Animal } from '@/types/animal';
 import { UserProfile } from '@/types/userProfile';
 import { useUser } from '@auth0/nextjs-auth0/client'; // To check login state & potentially role later
@@ -114,6 +115,7 @@ export default function AdminAnimalsPage() {
 	// State for Modals and Selected Animal
 	const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
 	const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+	const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
 	const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState<boolean>(false);
 	const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
 	const [isDeleting, setIsDeleting] = useState<boolean>(false); // Loading state for delete
@@ -231,8 +233,19 @@ export default function AdminAnimalsPage() {
 		setIsEditModalOpen(true);
 	};
 
+	const handleFinalizeClick = (animal: Animal) => {
+		setSelectedAnimal(animal);
+		setIsFinalizeModalOpen(true);
+	};
+
 	const handleAnimalUpdated = () => {
 		setIsEditModalOpen(false);
+		setSelectedAnimal(null);
+		loadAnimals(); // Refresh list
+	};
+
+	const handleAdoptionComplete = () => {
+		setIsFinalizeModalOpen(false);
 		setSelectedAnimal(null);
 		loadAnimals(); // Refresh list
 	};
@@ -435,6 +448,11 @@ export default function AdminAnimalsPage() {
 												{['Admin', 'Staff', 'Volunteer'].includes(currentUserRole ?? '') && (
 													<button onClick={() => handleEditClick(animal)} className="..." title="Edit"> <PencilSquareIcon className="w-5 h-5 inline" /> <span className="sr-only">Edit</span> </button>
 												)}
+												{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Available', 'Available - In Foster', 'Adoption Pending'].includes(animal.adoption_status ?? '') && (
+													<button onClick={() => handleFinalizeClick(animal)} className="text-green-600 hover:text-green-900 ..." title="Finalize Adoption">
+														<SuccessCheckmarkIcon className="w-5 h-5 inline" />
+													</button>
+												)}
 												{/* Delete Button - Conditional */}
 												{currentUserRole === 'Admin' && (
 													<button onClick={() => handleDeleteClick(animal)} className="..." title="Delete"> <TrashIcon className="w-5 h-5 inline" /> <span className="sr-only">Delete</span> </button>
@@ -469,6 +487,17 @@ export default function AdminAnimalsPage() {
 						animal={selectedAnimal}
 						onClose={() => { setIsEditModalOpen(false); setSelectedAnimal(null); }}
 						onAnimalUpdated={handleAnimalUpdated}
+					/>
+				</Modal>
+			)}
+
+			{isFinalizeModalOpen && selectedAnimal && (
+				<Modal onClose={() => { setIsFinalizeModalOpen(false); setSelectedAnimal(null); }}>
+					{/* Create FinalizeAdoptionForm component below */}
+					<FinalizeAdoptionForm
+						animal={selectedAnimal}
+						onClose={() => { setIsFinalizeModalOpen(false); setSelectedAnimal(null); }}
+						onAdoptionComplete={handleAdoptionComplete}
 					/>
 				</Modal>
 			)}
