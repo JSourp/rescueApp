@@ -116,8 +116,8 @@ namespace rescueApp.Migrations
                         principalTable: "adopters",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_adoptionhistory_animals_Animalid",
-                        column: x => x.Animalid,
+                        name: "FK_adoptionhistory_animals_animalId",
+                        column: x => x.animalId,
                         principalSchema: "public",
                         principalTable: "animals",
                         principalColumn: "id");
@@ -136,10 +136,10 @@ namespace rescueApp.Migrations
                 column: "AdopterId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_adoptionhistory_Animalid",
+                name: "IX_adoptionhistory_animalId",
                 schema: "public",
                 table: "adoptionhistory",
-                column: "Animalid");
+                column: "animalId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_adoptionhistory_CreatedByUserid",
