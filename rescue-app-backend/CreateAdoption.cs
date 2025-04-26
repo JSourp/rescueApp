@@ -282,7 +282,7 @@ namespace rescueApp
                     spouse_partner_roommate = reqData.spouse_partner_roommate,
                     adopter_apt_unit = reqData.adopter_apt_unit,
                     notes = null, // General notes not part of this request DTO
-                                  // date_created / date_updated handled by EF config/DB defaults/triggers
+                    date_updated = utcNow //date_created too? or handled by EF config/DB defaults/triggers?
                 };
                 _dbContext.Adopters.Add(newAdopter);
                 // Let the main SaveChangesAsync call handle this insert within the transaction
