@@ -66,9 +66,12 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 
 	const handleFinalize: SubmitHandler<FinalizeFormData> = async (formData) => {
 		// Log start
-		console.log("handleFinalize TRIGGERED at:", new Date().toISOString());
+		console.log(`%c handleFinalize TRIGGERED: ${new Date().toISOString()}`, 'color: blue; font-weight: bold;');
 		// Prevent submission if already processing
-		if (isProcessing) return;
+		if (isProcessing) {
+			console.log("handleFinalize: Already processing, returning.");
+			return;
+		}
 
 		setIsProcessing(true); // <--- Set processing TRUE immediately
 		setApiError(null);
