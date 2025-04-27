@@ -134,7 +134,7 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 
 			// Success: Show message, then call parent handler after delay
 			setIsSuccess(true);
-			setSubmitMessage(`${result.name} Adoption finalized successfully!`);
+			setSubmitMessage('Adoption finalized successfully!');
 			setApiError(null);
 
 			// Delay the form closure to let the user see the success message
