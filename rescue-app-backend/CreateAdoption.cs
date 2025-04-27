@@ -205,7 +205,6 @@ namespace rescueApp
 
                 // 8. Update Animal
                 animalToAdopt.adoption_status = "Adopted";
-                //animalToAdopt.date_updated = utcNow; // Explicitly set or rely on DB trigger configured via EF
                 _dbContext.Animals.Update(animalToAdopt);
 
 
@@ -248,8 +247,6 @@ namespace rescueApp
             var existingAdopter = await _dbContext.Adopters
                                       .FirstOrDefaultAsync(a => EF.Functions.ILike(a.adopter_email, inputEmail));
 
-            var utcNow = DateTime.UtcNow;
-
             if (existingAdopter != null)
             {
                 _logger.LogInformation("Found existing adopter by email. Adopter Id: {adopter_id}", existingAdopter.Id);
@@ -274,7 +271,6 @@ namespace rescueApp
                 if (changed)
                 {
                     _logger.LogInformation("Updating existing adopter info for Adopter Id: {adopter_id}", existingAdopter.Id);
-                    //existingAdopter.date_updated = utcNow; // Set timestamp or rely on trigger
                     // _dbContext.Adopters.Update(existingAdopter); // Not needed - EF Core tracks changes
                 }
                 return existingAdopter;
@@ -299,8 +295,6 @@ namespace rescueApp
                     adopter_secondary_phone_type = reqData.adopter_secondary_phone_type,
                     spouse_partner_roommate = reqData.spouse_partner_roommate,
                     adopter_apt_unit = reqData.adopter_apt_unit,
-                    //date_created = utcNow, // Explicitly set (or rely on DB default if preferred)
-                    //date_updated = utcNow, // Explicitly set date_updated on creation
                     notes = null,
                 };
                 _dbContext.Adopters.Add(newAdopter);
