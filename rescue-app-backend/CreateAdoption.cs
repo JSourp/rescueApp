@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -229,8 +230,17 @@ namespace rescueApp
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
-                _logger.LogError(ex, "Error processing adoption transaction for Animal ID: {animal_id}. Request Body Preview: {BodyPreview}", adoptionRequest?.animal_id, requestBody.Substring(0, Math.Min(requestBody.Length, 500)));
+                // Only attempt rollback if transaction is still active (wasn't committed)
+                if (transaction.GetDbTransaction().Connection != null) // Check if connection underlying transaction is still open
+                {
+                    try { await transaction.RollbackAsync(); } catch (Exception rbEx) { _logger.LogError(rbEx, "Error during transaction rollback."); }
+                }
+                // Log the detailed original exception
+                _logger.LogError(ex, "Exception caught after potentially committing transaction for Animal ID: {AnimalId}. ExceptionType: {ExType}, Message: {ExMsg}, InnerMessage: {InnerMsg}",
+                    adoptionRequest?.animal_id ?? -1,
+                    ex.GetType().FullName,
+                    ex.Message,
+                    ex.InnerException?.Message ?? "N/A");
                 return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An internal error occurred while finalizing the adoption.");
             }
         }
