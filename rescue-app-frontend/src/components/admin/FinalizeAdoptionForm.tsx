@@ -37,6 +37,8 @@ interface FinalizeAdoptionFormProps {
 export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComplete }: FinalizeAdoptionFormProps) {
 	const [apiError, setApiError] = useState<string | null>(null);
 	const [isSuccess, setIsSuccess] = useState<boolean>(false); // State to show success message
+	// Add a specific saving state, independent of RHF's isSubmitting just for this check
+	const [isProcessing, setIsProcessing] = useState<boolean>(false);
 	const [submitMessage, setSubmitMessage] = useState("");
 
 	const {
@@ -63,6 +65,12 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 	});
 
 	const handleFinalize: SubmitHandler<FinalizeFormData> = async (formData) => {
+		// Log start
+		console.log("handleFinalize TRIGGERED at:", new Date().toISOString());
+		// Prevent submission if already processing
+		if (isProcessing) return;
+
+		setIsProcessing(true); // <--- Set processing TRUE immediately
 		setApiError(null);
 		setIsSuccess(false);
 		setSubmitMessage("");
@@ -71,6 +79,7 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 		const accessToken = await getAuth0AccessToken(); // Use imported helper
 		if (!accessToken) {
 			setApiError("Authentication error. Could not get token.");
+			setIsProcessing(false); // <--- Reset on early exit
 			return; // Stop submission if token fails
 		}
 		// --- Got Token ---
@@ -138,6 +147,8 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 			setApiError(error.message || "An unknown error occurred while finalizing adoption."); // Display the specific error
 			setIsSuccess(false);
 			setSubmitMessage(""); // Clear the success message
+		} finally {
+			setIsProcessing(false); // <--- Reset processing on finish/error
 		}
 	};
 
@@ -281,13 +292,9 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 								className="bg-neutral-200 hover:bg-neutral-300 text-neutral-800 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500 font-medium py-2 px-5 rounded-md transition duration-300">
 								Cancel
 							</button>
-							<button type="submit" disabled={isSubmitting}
+							<button type="submit" disabled={isSubmitting || isProcessing}
 								className="bg-sc-asparagus-500 hover:bg-sc-asparagus-600 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50">
-								{isSubmitting ? (
-									<LoadingSpinner className="w-5 h-5 mx-auto" />
-								) : (
-									'Confirm Adoption'
-								)}
+								{isProcessing ? 'Processing...' : 'Confirm Adoption'}
 							</button>
 						</div>
 					</form>
