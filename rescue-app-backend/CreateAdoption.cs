@@ -219,28 +219,40 @@ namespace rescueApp
                     adopter.Id, // ID is now available after SaveChanges
                     newAdoptionRecord.id); // ID is now available after SaveChanges
 
-                // 11. Return Success Response
+                // 11. Create Success Response using a DTO ---
                 var response = req.CreateResponse(HttpStatusCode.Created);
+                response.Headers.Add("Location", $"/api/adoptionhistory/{newAdoptionRecord.id}"); // Location of new resource
+
+                // 12. Create a simple object/DTO to return, avoiding potential cycles
+                var responseDto = new
+                {
+                    id = newAdoptionRecord.id,
+                    animalId = newAdoptionRecord.animal_id,
+                    adopterId = newAdoptionRecord.adopter_id,
+                    adoptionDate = newAdoptionRecord.adoption_date
+                    // Add any other simple fields the frontend might need immediately
+                };
+
+                // Define serialization options
                 var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-                var jsonPayload = JsonSerializer.Serialize(newAdoptionRecord, jsonOptions); // Return history record
-                response.Headers.Add("Content-Type", "application/json; charset=utf-8");
-                response.Headers.Add("Location", $"/api/adoptionhistory/{newAdoptionRecord.id}"); // Example location
-                await response.WriteStringAsync(jsonPayload);
-                return response;
+
+                // Manually serialize DTO and use WriteStringAsync ---
+                var jsonPayload = JsonSerializer.Serialize(responseDto, jsonOptions);
+                response.Headers.Add("Content-Type", "application/json; charset=utf-8"); // Set Content-Type
+                await response.WriteStringAsync(jsonPayload); // Write the JSON string
+
+                return response; // Return the successful response
             }
             catch (Exception ex)
             {
-                // Only attempt rollback if transaction is still active (wasn't committed)
-                if (transaction.GetDbTransaction().Connection != null) // Check if connection underlying transaction is still open
+                // This catch block should now only catch errors during the transaction itself
+                if (transaction != null && transaction.GetDbTransaction().Connection != null)
                 {
                     try { await transaction.RollbackAsync(); } catch (Exception rbEx) { _logger.LogError(rbEx, "Error during transaction rollback."); }
                 }
-                // Log the detailed original exception
-                _logger.LogError(ex, "Exception caught after potentially committing transaction for Animal ID: {AnimalId}. ExceptionType: {ExType}, Message: {ExMsg}, InnerMessage: {InnerMsg}",
-                    adoptionRequest?.animal_id ?? -1,
-                    ex.GetType().FullName,
-                    ex.Message,
-                    ex.InnerException?.Message ?? "N/A");
+                // Log the actual exception from the try block
+                _logger.LogError(ex, "Error processing adoption transaction for Animal ID: {AnimalId}. ExceptionType: {ExType}, Message: {ExMsg}, InnerMsg: {InnerMsg}",
+                    adoptionRequest?.animal_id ?? -1, ex.GetType().FullName, ex.Message, ex.InnerException?.Message ?? "N/A");
                 return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An internal error occurred while finalizing the adoption.");
             }
         }
