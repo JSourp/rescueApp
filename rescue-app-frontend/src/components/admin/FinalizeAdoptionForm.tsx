@@ -134,11 +134,11 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 
 		} catch (error: any) {
 			console.error("Finalize adoption error:", error);
-			setApiError(error.message || "An unknown error occurred.");
+			// Use the message received from the backend API response if available
+			setApiError(error.message || "An unknown error occurred while finalizing adoption."); // Display the specific error
 			setIsSuccess(false);
 			setSubmitMessage(""); // Clear the success message
 		}
-		// isSubmitting is handled by RHF
 	};
 
 	// --- Base styling classes (using Indigo theme for Adoption) ---
@@ -299,8 +299,10 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 							<p className="text-gray-700 dark:text-gray-300 md:px-3">{submitMessage}</p>
 					</div>
 				)}
-				{/* Display API error message if not successful */}
-				{!isSuccess && apiError && (<p className="mt-4 text-center text-red-500 dark:text-red-400">{apiError}</p>)}
+				{/* Display API Error if not successful */}
+				{!isSuccess && apiError && (
+					<p className="mb-4 text-sm text-center text-red-600 dark:text-red-400">Error: {apiError}</p>
+				)}
 			</div>
 		</div>
 	);

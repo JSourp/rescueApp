@@ -173,9 +173,12 @@ namespace rescueApp
                     .AnyAsync(ah => ah.animal_id == adoptionRequest.animal_id && ah.return_date == null);
                 if (alreadyActivelyAdopted)
                 {
-                    _logger.LogWarning("Animal ID {animal_id} already has an active adoption record.", adoptionRequest.animal_id);
+                    // Create more specific message
+                    string conflictMessage = $"Cannot finalize: '{animalToAdopt.name ?? "Animal"}' (ID: {adoptionRequest.animal_id}) already has an active adoption record where a return has not been logged.";
+                    _logger.LogWarning(conflictMessage);
                     await transaction.RollbackAsync();
-                    return await CreateErrorResponse(req, HttpStatusCode.Conflict, "Animal already has an active adoption record.");
+                    // Send specific message back in the error response
+                    return await CreateErrorResponse(req, HttpStatusCode.Conflict, conflictMessage);
                 }
 
 
