@@ -143,7 +143,8 @@ namespace rescueApp
                 var animalToAdopt = await _dbContext.Animals.FindAsync(adoptionRequest.animal_id);
                 if (animalToAdopt == null)
                 {
-                    _logger.LogWarning("Animal not found for adoption. Animal ID: {animal_id}", adoptionRequest.animal_id);
+                    _logger.LogWarning("Animal not found for adoption. Animal Id: {animal_id}", adoptionRequest.animal_id);
+                    await transaction.RollbackAsync(); // Rollback before returning error
                     return req.CreateResponse(HttpStatusCode.NotFound);
                 }
 
@@ -152,6 +153,7 @@ namespace rescueApp
                 if (animalToAdopt!.adoption_status == null || !adoptableStatuses.Contains(animalToAdopt.adoption_status))
                 {
                     _logger.LogWarning("Animal not found for adoption. Animal ID: {animal_id}", adoptionRequest.animal_id);
+                    await transaction.RollbackAsync(); // Rollback before returning error
                     return req.CreateResponse(HttpStatusCode.NotFound);
                 }
 
@@ -160,17 +162,9 @@ namespace rescueApp
                 var adopter = await FindOrCreateAdopterAsync(adoptionRequest);
                 if (adopter == null)
                 {
-                    // This implies DB save failed within helper or data was invalid, should not happen if validation is good
                     _logger.LogError("Failed to find or create adopter record.");
                     await transaction.RollbackAsync();
                     return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Failed to process adopter information.");
-                }
-                // Ensure adopter ID is available if newly created (SaveChanges in helper not ideal for transaction)
-                if (adopter.Id <= 0 && _dbContext.Entry(adopter).State == EntityState.Added)
-                {
-                    // If FindOrCreateAdopterAsync adds but doesn't save, save here to get ID
-                    // OR modify FindOrCreateAdopterAsync to just return the *object* and add it here
-                    await _dbContext.SaveChangesAsync(); // Save Adopter first if new to get ID
                 }
 
 
@@ -179,7 +173,6 @@ namespace rescueApp
                     .AnyAsync(ah => ah.animal_id == adoptionRequest.animal_id && ah.return_date == null);
                 if (alreadyActivelyAdopted)
                 {
-                    /* Log, Rollback, return 409 Conflict */
                     _logger.LogWarning("Animal ID {animal_id} already has an active adoption record.", adoptionRequest.animal_id);
                     await transaction.RollbackAsync();
                     return await CreateErrorResponse(req, HttpStatusCode.Conflict, "Animal already has an active adoption record.");
@@ -191,30 +184,36 @@ namespace rescueApp
                 var newAdoptionRecord = new AdoptionHistory
                 {
                     animal_id = animalToAdopt.id,
-                    adopter_id = adopter.Id, // Use ID from found/created adopter
-                    // Use provided date (ensure UTC) or default to now
+                    // --- Use Navigation Property instead of ID ---
+                    // adopter_id = adopter.Id, // Let EF Core handle this
+                    Adopter = adopter, // Assign the Adopter object directly
                     adoption_date = adoptionRequest.adoption_date.HasValue
                                     ? DateTime.SpecifyKind(adoptionRequest.adoption_date.Value, DateTimeKind.Utc)
                                     : utcNow,
                     return_date = null,
                     notes = adoptionRequest.notes,
-                    created_by_user_id = currentUser.id, // Use the validated admin/staff user ID
+                    created_by_user_id = currentUser!.id, // Use the validated admin/staff user ID, non-null assertion after auth check
                     date_created = utcNow // Explicitly set or rely on DB default configured via EF
                 };
                 _dbContext.AdoptionHistories.Add(newAdoptionRecord);
 
+
                 // 8. Update Animal
                 animalToAdopt.adoption_status = "Adopted";
-                _dbContext.Animals.Update(animalToAdopt);
+                //animalToAdopt.date_updated = utcNow;
 
 
-                // 9. Save Changes (Adopter, History, Animal)
+                // 9. Save ALL Changes ONCE
                 await _dbContext.SaveChangesAsync();
+
 
                 // 10. Commit Transaction
                 await transaction.CommitAsync();
 
-                _logger.LogInformation("Successfully recorded adoption for Animal ID: {animal_id}. Adopter ID: {adopter_id}, History ID: {HistoryId}", animalToAdopt.id, adopter.Id, newAdoptionRecord.id);
+                _logger.LogInformation("Successfully recorded adoption for Animal ID: {animal_id}. Adopter ID: {adopter_id}, History ID: {HistoryId}",
+                    animalToAdopt.id,
+                    adopter.Id, // ID is now available after SaveChanges
+                    newAdoptionRecord.id); // ID is now available after SaveChanges
 
                 // 11. Return Success Response
                 var response = req.CreateResponse(HttpStatusCode.Created);
