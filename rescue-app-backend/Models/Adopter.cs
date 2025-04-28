@@ -9,7 +9,7 @@ namespace rescueApp.Models
     public class Adopter
     {
         [Key]
-        public int Id { get; set; }
+        public int id { get; set; }
 
         [Required]
         [MaxLength(100)]

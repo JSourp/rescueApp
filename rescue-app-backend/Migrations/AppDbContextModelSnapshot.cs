@@ -24,11 +24,11 @@ namespace rescueApp.Migrations
 
             modelBuilder.Entity("rescueApp.Models.Adopter", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("id"));
 
                     b.Property<string>("adopter_apt_unit")
                         .HasMaxLength(50)
@@ -103,7 +103,7 @@ namespace rescueApp.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.HasKey("Id");
+                    b.HasKey("id");
 
                     b.HasIndex("adopter_email")
                         .IsUnique();

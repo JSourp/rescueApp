@@ -216,7 +216,7 @@ namespace rescueApp
 
                 _logger.LogInformation("Successfully recorded adoption for Animal ID: {animal_id}. Adopter ID: {adopter_id}, History ID: {HistoryId}",
                     animalToAdopt.id,
-                    adopter.Id, // ID is now available after SaveChanges
+                    adopter.id, // ID is now available after SaveChanges
                     newAdoptionRecord.id); // ID is now available after SaveChanges
 
                 // 11. Create Success Response using a DTO ---
@@ -273,7 +273,7 @@ namespace rescueApp
 
             if (existingAdopter != null)
             {
-                _logger.LogInformation("Found existing adopter by email. Adopter Id: {adopter_id}", existingAdopter.Id);
+                _logger.LogInformation("Found existing adopter by email. Adopter Id: {adopter_id}", existingAdopter.id);
 
                 // Optional: Update existing adopter's info if provided data differs
                 // Compare Model.snake_case with DTO.snake_case
@@ -294,7 +294,7 @@ namespace rescueApp
 
                 if (changed)
                 {
-                    _logger.LogInformation("Updating existing adopter info for Adopter Id: {adopter_id}", existingAdopter.Id);
+                    _logger.LogInformation("Updating existing adopter info for Adopter Id: {adopter_id}", existingAdopter.id);
                     // _dbContext.Adopters.Update(existingAdopter); // Not needed - EF Core tracks changes
                 }
                 return existingAdopter;

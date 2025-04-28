@@ -20,7 +20,7 @@ namespace rescueApp.Migrations
                 schema: "public",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     adopter_first_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     adopter_last_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
@@ -41,7 +41,7 @@ namespace rescueApp.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_adopters", x => x.Id);
+                    table.PrimaryKey("PK_adopters", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -112,7 +112,7 @@ namespace rescueApp.Migrations
                         column: x => x.adopter_id,
                         principalSchema: "public",
                         principalTable: "adopters",
-                        principalColumn: "Id",
+                        principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_adoptionhistory_animals_animal_id",
