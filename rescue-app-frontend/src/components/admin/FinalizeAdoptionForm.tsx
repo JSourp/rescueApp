@@ -124,12 +124,12 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 					const errorBody = await response.json();
 					console.log("Parsed error body from backend:", errorBody); // Log what was parsed
 
-					// Use the specific message from the backend if it exists
-					if (errorBody && typeof errorBody.message === 'string') {
-						detailedError = errorBody.message; // Use the specific message
+					// Check for the nested error object and its message property
+					if (errorBody && errorBody.error && typeof errorBody.error.message === 'string') {
+						detailedError = errorBody.error.message; // Use the nested message
 						console.log("Using specific error message from backend:", detailedError);
 					} else {
-						console.log("Backend error body did not contain expected 'message' property.");
+						console.log("Backend error body did not contain expected 'error.message' property.");
 					}
 				} catch (jsonError) {
 					// Log if JSON parsing failed (e.g., if backend sent plain text or HTML error page)
