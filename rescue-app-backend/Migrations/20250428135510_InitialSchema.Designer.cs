@@ -12,7 +12,7 @@ using rescueApp.Data;
 namespace rescueApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250428000454_InitialSchema")]
+    [Migration("20250428135510_InitialSchema")]
     partial class InitialSchema
     {
         /// <inheritdoc />
@@ -90,6 +90,9 @@ namespace rescueApp.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<Guid?>("created_by_user_id")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("date_created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -106,10 +109,17 @@ namespace rescueApp.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<Guid?>("updated_by_user_id")
+                        .HasColumnType("uuid");
+
                     b.HasKey("id");
 
                     b.HasIndex("adopter_email")
                         .IsUnique();
+
+                    b.HasIndex("created_by_user_id");
+
+                    b.HasIndex("updated_by_user_id");
 
                     b.ToTable("adopters", "public");
                 });
@@ -139,11 +149,18 @@ namespace rescueApp.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                    b.Property<DateTime>("date_updated")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("notes")
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("return_date")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("updated_by_user_id")
+                        .HasColumnType("uuid");
 
                     b.HasKey("id");
 
@@ -173,13 +190,19 @@ namespace rescueApp.Migrations
                     b.Property<string>("breed")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("date_added")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<Guid?>("created_by_user_id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("date_created")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<DateTime?>("date_of_birth")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("date_updated")
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("gender")
@@ -194,10 +217,17 @@ namespace rescueApp.Migrations
                     b.Property<string>("story")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("updated_by_user_id")
+                        .HasColumnType("uuid");
+
                     b.Property<decimal?>("weight")
                         .HasColumnType("numeric");
 
                     b.HasKey("id");
+
+                    b.HasIndex("created_by_user_id");
+
+                    b.HasIndex("updated_by_user_id");
 
                     b.ToTable("animals", "public");
                 });
@@ -255,6 +285,23 @@ namespace rescueApp.Migrations
                     b.ToTable("users", "public");
                 });
 
+            modelBuilder.Entity("rescueApp.Models.Adopter", b =>
+                {
+                    b.HasOne("rescueApp.Models.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("created_by_user_id")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("rescueApp.Models.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("updated_by_user_id")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("UpdatedByUser");
+                });
+
             modelBuilder.Entity("rescueApp.Models.AdoptionHistory", b =>
                 {
                     b.HasOne("rescueApp.Models.Adopter", "Adopter")
@@ -279,6 +326,23 @@ namespace rescueApp.Migrations
                     b.Navigation("Animal");
 
                     b.Navigation("CreatedByUser");
+                });
+
+            modelBuilder.Entity("rescueApp.Models.Animal", b =>
+                {
+                    b.HasOne("rescueApp.Models.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("created_by_user_id")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("rescueApp.Models.User", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("updated_by_user_id")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("rescueApp.Models.Adopter", b =>

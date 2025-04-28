@@ -130,9 +130,9 @@ export default function AdminAnimalsPage() {
 	const [breedFilter, setBreedFilter] = useState<string>('');
 	const [animalTypes, setAnimalTypes] = useState<string[]>([]);
 	const [statusFilters, setStatusFilters] = useState<string[]>([]);
-	const [sortBy, setSortBy] = useState('date_added_desc');
+	const [sortBy, setSortBy] = useState('date_created_desc');
 	const sortingOptions = [
-		{ value: 'date_added_desc', label: 'Date Added' }, // Default sort
+		{ value: 'date_created_desc', label: 'Date Added' }, // Default sort
 		{ value: 'most_recent_update', label: 'Most Recent Update' }, // Matched backend key
 		{ value: 'least_recent_update', label: 'Least Recent Update' }, // Matched backend key
 		{ value: 'name_asc', label: 'Name (A-Z)' }, // Matched backend key
@@ -441,7 +441,7 @@ export default function AdminAnimalsPage() {
 													{animal.story ? animal.story : 'N/A'}
 												</div>
 											</td>
-											<td className={tdClasses}>{format(new Date(animal.date_added), 'P')}</td>
+											<td className={tdClasses}>{format(new Date(animal.date_created), 'P')}</td>
 											<td className={tdClasses}>{format(new Date(animal.date_updated), 'P')}</td>
 											<td className={`${tdClasses} text-right space-x-2`}>
 												{/* Edit Button - Conditional */}

@@ -158,9 +158,15 @@ namespace rescueApp
                     return req.CreateResponse(HttpStatusCode.NotFound);
                 }
 
+                // Ensure currentUser is not null before accessing id
+                if (currentUser == null)
+                {
+                    // This case should ideally be caught by earlier checks, but defensive programming
+                    return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Current user context lost.");
+                }
 
                 // 5. Find or Create Adopter
-                var adopter = await FindOrCreateAdopterAsync(adoptionRequest);
+                var adopter = await FindOrCreateAdopterAsync(adoptionRequest, currentUser.id);
                 if (adopter == null)
                 {
                     _logger.LogError("Failed to find or create adopter record.");
@@ -197,7 +203,9 @@ namespace rescueApp
                     return_date = null,
                     notes = adoptionRequest.notes,
                     created_by_user_id = currentUser!.id, // Use the validated admin/staff user ID, non-null assertion after auth check
-                    date_created = utcNow // Explicitly set or rely on DB default configured via EF
+                    //date_created = utcNow, // Explicitly set or rely on DB default configured via EF
+                    updated_by_user_id = currentUser!.id,
+                    //date_updated = utcNow // Explicitly set or rely on DB default configured via EF
                 };
                 _dbContext.AdoptionHistories.Add(newAdoptionRecord);
 
@@ -258,12 +266,13 @@ namespace rescueApp
         }
 
 
-        // --- Helper Method: Find Or Create Adopter (Corrected for snake_case DTO) ---
-        private async Task<Adopter?> FindOrCreateAdopterAsync(CreateAdoptionRequest reqData)
+        // --- Helper Method: Find Or Create Adopter ---
+        private async Task<Adopter?> FindOrCreateAdopterAsync(CreateAdoptionRequest reqData, Guid? currentUserId)
         {
             // Use snake_case DTO property, ensure not null after validation
             var inputEmail = reqData.adopter_email!;
-            var adopterEmailLower = inputEmail.ToLowerInvariant(); // Still useful for logging consistency
+            var adopterEmailLower = inputEmail.ToLower(); // Still useful for logging consistency
+            var utcNow = DateTime.UtcNow;
 
             _logger.LogInformation("Attempting to find adopter case-insensitively with email: {Email}", inputEmail);
 
@@ -295,8 +304,11 @@ namespace rescueApp
                 if (changed)
                 {
                     _logger.LogInformation("Updating existing adopter info for Adopter Id: {adopter_id}", existingAdopter.id);
-                    // _dbContext.Adopters.Update(existingAdopter); // Not needed - EF Core tracks changes
+                    // Set Updated By User ID when changes are detected
+                    existingAdopter.updated_by_user_id = currentUserId;
+                    existingAdopter.date_updated = utcNow;
                 }
+
                 return existingAdopter;
             }
             else
@@ -319,6 +331,10 @@ namespace rescueApp
                     adopter_secondary_phone_type = reqData.adopter_secondary_phone_type,
                     spouse_partner_roommate = reqData.spouse_partner_roommate,
                     adopter_apt_unit = reqData.adopter_apt_unit,
+                    created_by_user_id = currentUserId,
+                    date_created = utcNow,
+                    updated_by_user_id = currentUserId,
+                    date_updated = utcNow,
                     notes = null,
                 };
                 _dbContext.Adopters.Add(newAdopter);

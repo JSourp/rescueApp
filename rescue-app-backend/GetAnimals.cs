@@ -103,19 +103,19 @@ namespace rescueApp
                 switch (sortBy?.ToLowerInvariant()) // Process sortBy parameter
                 {
                     case "longest": // Alias for oldest first
-                        sortField = "date_added";
+                        sortField = "date_created";
                         ascending = true;
                         break;
                     case "shortest": // Alias for newest first
-                        sortField = "date_added";
+                        sortField = "date_created";
                         ascending = false;
                         break;
-                    case "date_added": // Explicit date added ascending
-                        sortField = "date_added";
+                    case "date_created": // Explicit date added ascending
+                        sortField = "date_created";
                         ascending = true;
                         break;
-                    case "date_added_desc": // Explicit date added descending
-                        sortField = "date_added";
+                    case "date_created_desc": // Explicit date added descending
+                        sortField = "date_created";
                         ascending = false;
                         break;
                     case "name": // Explicit name ascending
@@ -149,9 +149,9 @@ namespace rescueApp
                 // Apply sorting using property names
                 // This requires careful mapping or a more dynamic approach for many fields,
                 // but for a few common ones, a switch/if-else works.
-                if (sortField == "date_added")
+                if (sortField == "date_created")
                 {
-                    query = ascending ? query.OrderBy(a => a.date_added) : query.OrderByDescending(a => a.date_added);
+                    query = ascending ? query.OrderBy(a => a.date_created) : query.OrderByDescending(a => a.date_created);
                 }
                 else if (sortField == "name")
                 {

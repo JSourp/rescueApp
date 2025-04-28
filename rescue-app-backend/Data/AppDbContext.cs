@@ -18,26 +18,70 @@ public class AppDbContext : DbContext
 
         // --- Animal Configuration ---
         modelBuilder.Entity<Animal>(entity =>
-        {
-            entity.ToTable("animals", schema: "public");
-            entity.Property(e => e.id).UseIdentityByDefaultColumn();
-            // Add relationship back to AdoptionHistory (optional but good practice)
-            entity.HasMany(e => e.AdoptionHistories)
-                  .WithOne(ah => ah.Animal)
-                  .HasForeignKey(ah => ah.animal_id);
-        });
+    {
+        entity.ToTable("animals", schema: "public");
+        entity.HasKey(e => e.id);
+        entity.Property(e => e.id).UseIdentityByDefaultColumn();
+
+        // --- Configure Timestamp Generation ---
+        entity.Property(e => e.date_created)
+              .ValueGeneratedOnAdd()
+              .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+        entity.Property(e => e.date_updated)
+              .ValueGeneratedOnAddOrUpdate();
+        // --- End Timestamp Config ---
+
+        // --- Configure User Audit FKs == ---
+        entity.HasOne(a => a.CreatedByUser)
+              .WithMany()
+              .HasForeignKey(a => a.created_by_user_id)
+              .IsRequired(false)
+              .OnDelete(DeleteBehavior.SetNull);
+
+        entity.HasOne(a => a.UpdatedByUser)
+              .WithMany()
+              .HasForeignKey(a => a.updated_by_user_id)
+              .IsRequired(false)
+              .OnDelete(DeleteBehavior.SetNull);
+        // --- End User Audit FK Config ---
+
+        // Relationship to AdoptionHistory
+        entity.HasMany(a => a.AdoptionHistories)
+              .WithOne(ah => ah.Animal)
+              .HasForeignKey(ah => ah.animal_id);
+    });
 
         // --- Adopter Configuration ---
         modelBuilder.Entity<Adopter>(entity =>
-        {
-            entity.ToTable("adopters", schema: "public");
+    {
+        entity.ToTable("adopters", schema: "public"); // Ensure table name matches DB
+        entity.HasKey(e => e.id); // Explicitly define PK if needed (convention usually finds 'id')
+
+        // Timestamp generation config (should already be there)
         entity.Property(e => e.date_created).ValueGeneratedOnAdd().HasDefaultValueSql("CURRENT_TIMESTAMP");
-        entity.Property(e => e.date_updated).ValueGeneratedOnAddOrUpdate(); // Requires Trigger
-        entity.HasIndex(e => e.adopter_email).IsUnique(); // Ensure unique email index is configured
-                                                          // Add relationship back to AdoptionHistory (optional but good practice)
+        entity.Property(e => e.date_updated).ValueGeneratedOnAddOrUpdate(); // Correct config for trigger + potential default
+
+        entity.HasIndex(e => e.adopter_email).IsUnique();
+
+        // Relationship back to AdoptionHistory (should be there)
         entity.HasMany(e => e.AdoptionHistories)
               .WithOne(ah => ah.Adopter)
               .HasForeignKey(ah => ah.adopter_id);
+
+        // --- ADD Configurations for User Audit FKs ---
+        entity.HasOne(ad => ad.CreatedByUser) // Navigation property in Adopter
+              .WithMany() // Assuming User doesn't need a collection of Adopters they created
+              .HasForeignKey(ad => ad.created_by_user_id) // snake_case FK property in Adopter
+              .IsRequired(false) // FK is nullable
+              .OnDelete(DeleteBehavior.SetNull); // Example: Set FK null if creating user deleted
+
+        entity.HasOne(ad => ad.UpdatedByUser) // Navigation property in Adopter
+              .WithMany() // Assuming User doesn't need a collection of Adopters they updated
+              .HasForeignKey(ad => ad.updated_by_user_id) // snake_case FK property in Adopter
+              .IsRequired(false) // FK is nullable
+              .OnDelete(DeleteBehavior.SetNull); // Example: Set FK null if updating user deleted
+        // --- END User Audit FK Config ---
     });
 
         // --- User Configuration ---
@@ -55,26 +99,46 @@ public class AppDbContext : DbContext
                   .OnDelete(DeleteBehavior.SetNull); // Example: Set FK null if user deleted
         });
 
-        // --- AdoptionHistory Configuration (Most Important Part for the Fix) ---
+        // --- Configuration for AdoptionHistory Entity ---
         modelBuilder.Entity<AdoptionHistory>(entity =>
         {
-            entity.ToTable("adoptionhistory", schema: "public"); // Use lowercase table name
-        entity.Property(e => e.date_created).ValueGeneratedOnAdd().HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.ToTable("adoptionhistory", schema: "public");
 
-        // -- Explicitly define relationships using the correct snake_case FKs --
-        entity.HasOne(ah => ah.Animal) // Navigation property in AdoptionHistory
-              .WithMany(a => a.AdoptionHistories) // Inverse navigation property in Animal
-              .HasForeignKey(ah => ah.animal_id); // The ACTUAL foreign key property in AdoptionHistory
+            // Configure date_created (as before)
+            entity.Property(e => e.date_created)
+                  .ValueGeneratedOnAdd()
+                  .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-        entity.HasOne(ah => ah.Adopter) // Navigation property in AdoptionHistory
-              .WithMany(ad => ad.AdoptionHistories) // Inverse navigation property in Adopter
-              .HasForeignKey(ah => ah.adopter_id); // The ACTUAL foreign key property
+            // --- ADD CONFIGURATION FOR date_updated ---
+            // Tell EF Core DB generates 'date_updated' on ADD (via DEFAULT) OR UPDATE (via TRIGGER)
+            entity.Property(e => e.date_updated)
+                  .ValueGeneratedOnAddOrUpdate();
+            // --- END CONFIGURATION ---
 
-        entity.HasOne(ah => ah.CreatedByUser) // Navigation property in AdoptionHistory
-              .WithMany(u => u.CreatedAdoptionHistories) // Inverse navigation property in User
-              .HasForeignKey(ah => ah.created_by_user_id); // The ACTUAL foreign key property
-                                                           // Add .IsRequired(false) / .OnDelete here if needed, matching User config
-    });
+            // Explicit FK configurations (recommended)
+            entity.HasOne(ah => ah.Animal)
+                  .WithMany(a => a.AdoptionHistories)
+                  .HasForeignKey(ah => ah.animal_id);
+
+            entity.HasOne(ah => ah.Adopter)
+                  .WithMany(ad => ad.AdoptionHistories)
+                  .HasForeignKey(ah => ah.adopter_id);
+
+            entity.HasOne(ah => ah.CreatedByUser)
+                  .WithMany(u => u.CreatedAdoptionHistories) // Assumes ICollection name on User model
+                  .HasForeignKey(ah => ah.created_by_user_id)
+                  .IsRequired(false) // Since Guid? is nullable
+                  .OnDelete(DeleteBehavior.SetNull); // Example delete behavior
+
+            // --- Optional: Configure relationship for updated_by_user_id ---
+            // If you add the UpdatedByUser navigation property to AdoptionHistory model:
+            // entity.HasOne(ah => ah.UpdatedByUser)
+            //       .WithMany() // Assuming User doesn't need collection of records they updated
+            //       .HasForeignKey(ah => ah.updated_by_user_id)
+            //       .IsRequired(false)
+            //       .OnDelete(DeleteBehavior.SetNull);
+            // --- End Optional Config ---
+        });
 
         // Add configurations for other entities if needed
     }

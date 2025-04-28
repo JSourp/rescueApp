@@ -67,9 +67,19 @@ namespace rescueApp.Models
         public DateTime date_created { get; set; }
 
         public DateTime date_updated { get; set; }
+        public Guid? created_by_user_id { get; set; } // Nullable Guid (matches User PK type)
+        public Guid? updated_by_user_id { get; set; } // Nullable Guid
 
         public string? notes { get; set; }
 
         public virtual ICollection<AdoptionHistory>? AdoptionHistories { get; set; } // Adopter has many histories
+
+        // Optional: Navigation properties for user tracking
+        [ForeignKey("created_by_user_id")]
+        public virtual User? CreatedByUser { get; set; }
+
+        [ForeignKey("updated_by_user_id")]
+        public virtual User? UpdatedByUser { get; set; }
+        // --- End Navigation Properties ---
     }
 }

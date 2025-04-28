@@ -9,6 +9,8 @@ export interface Animal {
 	story?: string;
 	adoption_status?: string;
 	image_url?: string;
-	date_added: string;
+	date_created: string;
 	date_updated: string;
+	created_by_user_id: string;
+	updated_by_user_id: string;
   }

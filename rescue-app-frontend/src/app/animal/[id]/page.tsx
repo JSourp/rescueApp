@@ -82,10 +82,10 @@ export default function AnimalDetailsPage() {
   }
 
   // Format the intake date
-  const intakeDate = format(new Date(animal.date_added), "MMM dd yyyy"); // Format as "Apr 09 2025"
+  const intakeDate = format(new Date(animal.date_created), "MMM dd yyyy"); // Format as "Apr 09 2025"
 
   // Calculate the number of days the animal has been with you
-  const daysWithUs = differenceInDays(new Date(), new Date(animal.date_added));
+  const daysWithUs = differenceInDays(new Date(), new Date(animal.date_created));
 
   // Determine the correct label for "day" or "days"
   const daysLabel = daysWithUs === 1 ? "day" : "days";

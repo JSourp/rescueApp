@@ -311,7 +311,7 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 				)}
 				{/* Display API Error if not successful */}
 				{!isSuccess && apiError && (
-					<p className="mb-4 text-sm text-center text-red-600 dark:text-red-400">Error: {apiError}</p>
+					<p className="mb-4 text-sm text-center text-red-600 dark:text-red-400">{apiError}</p>
 				)}
 			</div>
 		</div>

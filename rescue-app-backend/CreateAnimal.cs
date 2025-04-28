@@ -179,9 +179,10 @@ namespace rescueApp
                     story = createData.Story, // Nullable string
                     adoption_status = createData.adoption_status!, // Use status from request
                     image_url = "/placeholder-image.png", // Image handling comes later
-                    date_added = utcNow, // Already Utc
-                    date_updated = utcNow // Already Utc
-                    // created_by_user_id = currentUser.id // Optional link
+                    date_created = utcNow,
+                    date_updated = utcNow,
+                    created_by_user_id = currentUser.id,
+                    updated_by_user_id = currentUser.id
                 };
 
                 _dbContext.Animals.Add(newAnimal);
