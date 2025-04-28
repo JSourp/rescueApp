@@ -137,6 +137,9 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 			setSubmitMessage('Adoption finalized successfully!');
 			setApiError(null);
 
+			// Call parent AFTER success and state is set
+			onAdoptionComplete(); // Notify parent list needs refresh
+
 			// Delay the form closure to let the user see the success message
 			setTimeout(() => {
 				onClose(); // Close the form after a delay
