@@ -77,6 +77,7 @@ namespace rescueApp
             User? currentUser;
             ClaimsPrincipal? principal;
             string? auth0UserId = null;
+            var utcNow = DateTime.UtcNow;
 
             // --- 1. Authentication & Authorization ---
             try
@@ -194,6 +195,7 @@ namespace rescueApp
                 if (changed)
                 {
                     existingAnimal.updated_by_user_id = currentUser.id;
+                    existingAnimal.date_updated = utcNow;
                     _logger.LogInformation("Updating Animal ID: {animal_id} by User ID: {UserId}", existingAnimal.id, currentUser.id);
                     await _dbContext.SaveChangesAsync();
                 }
