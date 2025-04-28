@@ -117,19 +117,26 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 			});
 
 			if (!response.ok) {
+				console.log(`API call failed with status: ${response.status} ${response.statusText}`);
 				let detailedError = `Error ${response.status}: ${response.statusText}`; // Default error
 				try {
 					// Attempt to parse the JSON body sent by your backend's CreateErrorResponse helper
 					const errorBody = await response.json();
+					console.log("Parsed error body from backend:", errorBody); // Log what was parsed
+
 					// Use the specific message from the backend if it exists
-					if (errorBody && errorBody.message) {
-						detailedError = errorBody.message;
+					if (errorBody && typeof errorBody.message === 'string') {
+						detailedError = errorBody.message; // Use the specific message
+						console.log("Using specific error message from backend:", detailedError);
+					} else {
+						console.log("Backend error body did not contain expected 'message' property.");
 					}
 				} catch (jsonError) {
-					// The error response wasn't valid JSON, stick with status text
-					console.error("Could not parse error response body as JSON", jsonError);
+					// Log if JSON parsing failed (e.g., if backend sent plain text or HTML error page)
+					console.error("Could not parse error response body as JSON:", jsonError);
 				}
 				// Throw an error with the detailed message
+				console.log("Throwing error with message:", detailedError);
 				throw new Error(detailedError);
 			}
 
@@ -152,14 +159,14 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 			}, 5000); // Adjust the delay time (e.g., 5000ms = 5 seconds)
 
 		} catch (error: any) {
-			console.error("Finalize adoption error:", error);
-			// Use the message received from the backend API response if available
-			console.error("Finalize adoption error catch block:", error);
-			setApiError(error.message || "An unknown error occurred.");
+			// This catch block receives the Error thrown above
+			console.error("Finalize adoption catch block:", error);
+			const errorMessageToSet = error.message || "An unknown error occurred while finalizing adoption.";
+			console.log("Setting apiError state to:", errorMessageToSet); // Log what's being set
+			setApiError(errorMessageToSet);
 			setIsSuccess(false);
-			setSubmitMessage(""); // Clear the success message
 		} finally {
-			setIsProcessing(false); // <--- Reset processing on finish/error
+			setIsProcessing(false);
 		}
 	};
 
