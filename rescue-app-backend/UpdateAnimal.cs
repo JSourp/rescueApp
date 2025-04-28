@@ -164,12 +164,10 @@ namespace rescueApp
                     return req.CreateResponse(HttpStatusCode.NotFound);
                 }
 
-                bool changed = false;
-
                 // Update properties only if a value was provided in the request DTO
-                if (updateData.animal_type != null && existingAnimal.animal_type != updateData.animal_type) { existingAnimal.animal_type = updateData.animal_type; changed = true; }
-                if (updateData.Name != null && existingAnimal.name != updateData.Name) { existingAnimal.name = updateData.Name; changed = true; }
-                if (updateData.Breed != null && existingAnimal.breed != updateData.Breed) { existingAnimal.breed = updateData.Breed; changed = true; }
+                if (updateData.animal_type != null && existingAnimal.animal_type != updateData.animal_type) { existingAnimal.animal_type = updateData.animal_type; }
+                if (updateData.Name != null && existingAnimal.name != updateData.Name) { existingAnimal.name = updateData.Name; }
+                if (updateData.Breed != null && existingAnimal.breed != updateData.Breed) { existingAnimal.breed = updateData.Breed; }
                 if (updateData.date_of_birth.HasValue) // Check if a value was provided
                 {
                     // Create a UTC DateTime from the potentially Unspecified input
@@ -177,31 +175,32 @@ namespace rescueApp
                     if (existingAnimal.date_of_birth != dobUtc) // Compare with UTC value
                     {
                         existingAnimal.date_of_birth = dobUtc; // Assign the UTC DateTime
-                        changed = true;
                     }
                 } // Optional: Handle case where user explicitly clears the date
                 else if (updateData.date_of_birth == null && existingAnimal.date_of_birth != null)
                 {
                     existingAnimal.date_of_birth = null;
-                    changed = true;
                 }
-                if (updateData.Gender != null && existingAnimal.gender != updateData.Gender) { existingAnimal.gender = updateData.Gender; changed = true; }
-                if (updateData.Weight != null && existingAnimal.weight != updateData.Weight) { existingAnimal.weight = updateData.Weight; changed = true; }
-                if (updateData.Story != null && existingAnimal.story != updateData.Story) { existingAnimal.story = updateData.Story; changed = true; }
-                if (updateData.adoption_status != null && existingAnimal.adoption_status != updateData.adoption_status) { existingAnimal.adoption_status = updateData.adoption_status; changed = true; }
-                if (updateData.image_url != null && existingAnimal.image_url != updateData.image_url) { existingAnimal.image_url = updateData.image_url; changed = true; }
+                if (updateData.Gender != null && existingAnimal.gender != updateData.Gender) { existingAnimal.gender = updateData.Gender; }
+                if (updateData.Weight != null && existingAnimal.weight != updateData.Weight) { existingAnimal.weight = updateData.Weight; }
+                if (updateData.Story != null && existingAnimal.story != updateData.Story) { existingAnimal.story = updateData.Story; }
+                if (updateData.adoption_status != null && existingAnimal.adoption_status != updateData.adoption_status) { existingAnimal.adoption_status = updateData.adoption_status; }
+                if (updateData.image_url != null && existingAnimal.image_url != updateData.image_url) { existingAnimal.image_url = updateData.image_url; }
                 // Add other updatable fields...
 
-                if (changed)
+                // Always set the user performing the update if any profile data changed
+                existingAnimal.updated_by_user_id = currentUser.id;
+
+                // ---- Save if ANY changes were detected by EF Core ----
+                // (This includes changes to updated_by_user_id or any other field)
+                if (_dbContext.ChangeTracker.HasChanges())
                 {
-                    existingAnimal.updated_by_user_id = currentUser.id;
-                    existingAnimal.date_updated = utcNow;
-                    _logger.LogInformation("Updating Animal ID: {animal_id} by User ID: {UserId}", existingAnimal.id, currentUser.id);
-                    await _dbContext.SaveChangesAsync();
+                    _logger.LogInformation("Saving updates for Animal ID: {AnimalId} by User ID: {UserId}.", existingAnimal.id, currentUser!.id);
+                    await _dbContext.SaveChangesAsync(); // Save changes
                 }
                 else
                 {
-                    _logger.LogInformation("No changes detected for Animal ID: {animal_id}", existingAnimal.id);
+                    _logger.LogInformation("No changes detected by EF Core for Animal ID: {AnimalId}", existingAnimal.id);
                 }
 
                 // --- 4. Return Response ---

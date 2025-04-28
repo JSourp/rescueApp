@@ -12,7 +12,7 @@ using rescueApp.Data;
 namespace rescueApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250428144117_InitialSchema")]
+    [Migration("20250428190716_InitialSchema")]
     partial class InitialSchema
     {
         /// <inheritdoc />
