@@ -102,11 +102,11 @@ namespace rescueApp
 					existingUser.last_login_date = utcNow;
 
 					// --- Conditionally set date_updated ONLY if profile data changed ---
-					if (profileDataUpdated)
-					{
-						existingUser.date_updated = utcNow;
-						_logger.LogInformation("Profile data fields require update for UserId: {UserId}", existingUser.id);
-					}
+					//if (profileDataUpdated)
+					//{
+					//	existingUser.date_updated = utcNow;
+					//	_logger.LogInformation("Profile data fields require update for UserId: {UserId}", existingUser.id);
+					//}
 
 					// --- Always Save Changes if the entity is tracked and potentially modified ---
 					// EF Core Change Tracker will detect if last_login_date or any profile field changed.
@@ -137,8 +137,6 @@ namespace rescueApp
 						last_name = syncRequest.LastName ?? "User",
 						role = "Guest", // Default role
 						is_active = true,
-						date_created = utcNow,
-						date_updated = utcNow,
 						last_login_date = utcNow
 					};
 					_dbContext.Users.Add(newUser);

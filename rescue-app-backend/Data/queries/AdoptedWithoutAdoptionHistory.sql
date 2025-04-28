@@ -1,6 +1,8 @@
+-- Animals that have been Adopted but do not have a AdoptionHistory record
 SELECT
-    a.id,       -- Select the animal's ID
-    a.name      -- Select the animal's name
+    a.id,          -- Select the animal's ID
+    a.name,         -- Select the animal's name
+	a.date_created -- Select the date that the animal record was created
 FROM
     public.animals AS a
 WHERE
@@ -9,10 +11,5 @@ WHERE
         SELECT 1                   -- ...any record...
         FROM public.adoptionhistory AS ah
         WHERE ah.animal_id = a.id  -- ...in adoptionhistory for this animal's ID
-    );
-
--- Adoption Records:
-SELECT a.name, b.adopter_first_name, ah.*
-FROM public.adoptionhistory AS ah
-	INNER JOIN public.animals AS a ON ah.animal_id = a.id
-	INNER JOIN public.adopters AS b ON ah.adopter_id = b.id
+    )
+ORDER BY a.date_created ASC;

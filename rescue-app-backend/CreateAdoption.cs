@@ -203,16 +203,13 @@ namespace rescueApp
                     return_date = null,
                     notes = adoptionRequest.notes,
                     created_by_user_id = currentUser!.id, // Use the validated admin/staff user ID, non-null assertion after auth check
-                    //date_created = utcNow, // Explicitly set or rely on DB default configured via EF
                     updated_by_user_id = currentUser!.id,
-                    //date_updated = utcNow // Explicitly set or rely on DB default configured via EF
                 };
                 _dbContext.AdoptionHistories.Add(newAdoptionRecord);
 
 
                 // 8. Update Animal
                 animalToAdopt.adoption_status = "Adopted";
-                //animalToAdopt.date_updated = utcNow;
 
 
                 // 9. Save ALL Changes ONCE
@@ -306,7 +303,6 @@ namespace rescueApp
                     _logger.LogInformation("Updating existing adopter info for Adopter Id: {adopter_id}", existingAdopter.id);
                     // Set Updated By User ID when changes are detected
                     existingAdopter.updated_by_user_id = currentUserId;
-                    existingAdopter.date_updated = utcNow;
                 }
 
                 return existingAdopter;
@@ -332,9 +328,7 @@ namespace rescueApp
                     spouse_partner_roommate = reqData.spouse_partner_roommate,
                     adopter_apt_unit = reqData.adopter_apt_unit,
                     created_by_user_id = currentUserId,
-                    date_created = utcNow,
                     updated_by_user_id = currentUserId,
-                    date_updated = utcNow,
                     notes = null,
                 };
                 _dbContext.Adopters.Add(newAdopter);

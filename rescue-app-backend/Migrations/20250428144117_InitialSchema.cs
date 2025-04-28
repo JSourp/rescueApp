@@ -28,7 +28,7 @@ namespace rescueApp.Migrations
                     role = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     is_active = table.Column<bool>(type: "boolean", nullable: false),
                     date_created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    date_updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    date_updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     last_login_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
@@ -57,7 +57,7 @@ namespace rescueApp.Migrations
                     adopter_zip_postal_code = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     spouse_partner_roommate = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     date_created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    date_updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    date_updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     created_by_user_id = table.Column<Guid>(type: "uuid", nullable: true),
                     updated_by_user_id = table.Column<Guid>(type: "uuid", nullable: true),
                     notes = table.Column<string>(type: "text", nullable: true)
@@ -98,7 +98,7 @@ namespace rescueApp.Migrations
                     adoption_status = table.Column<string>(type: "text", nullable: true),
                     image_url = table.Column<string>(type: "text", nullable: true),
                     date_created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    date_updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    date_updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     created_by_user_id = table.Column<Guid>(type: "uuid", nullable: true),
                     updated_by_user_id = table.Column<Guid>(type: "uuid", nullable: true)
                 },
@@ -136,7 +136,7 @@ namespace rescueApp.Migrations
                     created_by_user_id = table.Column<Guid>(type: "uuid", nullable: true),
                     date_created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     updated_by_user_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    date_updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    date_updated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {

@@ -97,7 +97,8 @@ namespace rescueApp.Migrations
 
                     b.Property<DateTime>("date_updated")
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("notes")
                         .HasColumnType("text");
@@ -148,7 +149,8 @@ namespace rescueApp.Migrations
 
                     b.Property<DateTime>("date_updated")
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("notes")
                         .HasColumnType("text");
@@ -200,7 +202,8 @@ namespace rescueApp.Migrations
 
                     b.Property<DateTime>("date_updated")
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("gender")
                         .HasColumnType("text");
@@ -242,7 +245,8 @@ namespace rescueApp.Migrations
 
                     b.Property<DateTime>("date_updated")
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("email")
                         .IsRequired()

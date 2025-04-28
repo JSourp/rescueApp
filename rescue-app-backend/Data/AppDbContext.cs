@@ -24,12 +24,8 @@ public class AppDbContext : DbContext
         entity.Property(e => e.id).UseIdentityByDefaultColumn();
 
         // --- Configure Timestamp Generation ---
-        entity.Property(e => e.date_created)
-              .ValueGeneratedOnAdd()
-              .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-        entity.Property(e => e.date_updated)
-              .ValueGeneratedOnAddOrUpdate();
+        entity.Property(e => e.date_created).ValueGeneratedOnAdd().HasDefaultValueSql("CURRENT_TIMESTAMP");
+        entity.Property(e => e.date_updated).ValueGeneratedOnAddOrUpdate().HasDefaultValueSql("CURRENT_TIMESTAMP");
         // --- End Timestamp Config ---
 
         // --- Configure User Audit FKs == ---
@@ -58,9 +54,10 @@ public class AppDbContext : DbContext
         entity.ToTable("adopters", schema: "public"); // Ensure table name matches DB
         entity.HasKey(e => e.id); // Explicitly define PK if needed (convention usually finds 'id')
 
-        // Timestamp generation config (should already be there)
+        // --- Configure Timestamp Generation ---
         entity.Property(e => e.date_created).ValueGeneratedOnAdd().HasDefaultValueSql("CURRENT_TIMESTAMP");
-        entity.Property(e => e.date_updated).ValueGeneratedOnAddOrUpdate(); // Correct config for trigger + potential default
+        entity.Property(e => e.date_updated).ValueGeneratedOnAddOrUpdate().HasDefaultValueSql("CURRENT_TIMESTAMP");
+        // --- End Timestamp Config ---
 
         entity.HasIndex(e => e.adopter_email).IsUnique();
 
@@ -89,9 +86,12 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("users", schema: "public");
             entity.HasIndex(e => e.email).IsUnique();
+
+            // --- Configure Timestamp Generation ---
             entity.Property(e => e.date_created).ValueGeneratedOnAdd().HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.Property(e => e.date_updated).ValueGeneratedOnAddOrUpdate(); // Requires Trigger
-                                                                                // Add relationship back to AdoptionHistory (optional but good practice)
+            entity.Property(e => e.date_updated).ValueGeneratedOnAddOrUpdate().HasDefaultValueSql("CURRENT_TIMESTAMP");
+            // --- End Timestamp Config ---
+
             entity.HasMany(e => e.CreatedAdoptionHistories)
                   .WithOne(ah => ah.CreatedByUser)
                   .HasForeignKey(ah => ah.created_by_user_id)
@@ -104,16 +104,10 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("adoptionhistory", schema: "public");
 
-            // Configure date_created (as before)
-            entity.Property(e => e.date_created)
-                  .ValueGeneratedOnAdd()
-                  .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-            // --- ADD CONFIGURATION FOR date_updated ---
-            // Tell EF Core DB generates 'date_updated' on ADD (via DEFAULT) OR UPDATE (via TRIGGER)
-            entity.Property(e => e.date_updated)
-                  .ValueGeneratedOnAddOrUpdate();
-            // --- END CONFIGURATION ---
+            // --- Configure Timestamp Generation ---
+            entity.Property(e => e.date_created).ValueGeneratedOnAdd().HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(e => e.date_updated).ValueGeneratedOnAddOrUpdate().HasDefaultValueSql("CURRENT_TIMESTAMP");
+            // --- End Timestamp Config ---
 
             // Explicit FK configurations (recommended)
             entity.HasOne(ah => ah.Animal)

@@ -193,7 +193,7 @@ namespace rescueApp
 
                 if (changed)
                 {
-                    existingAnimal.date_updated = DateTime.UtcNow; // Rely on DB trigger OR set explicitly
+                    existingAnimal.updated_by_user_id = currentUser.id;
                     _logger.LogInformation("Updating Animal ID: {animal_id} by User ID: {UserId}", existingAnimal.id, currentUser.id);
                     await _dbContext.SaveChangesAsync();
                 }

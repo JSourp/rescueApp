@@ -140,8 +140,6 @@ namespace rescueApp
 
 				if (changed)
 				{
-					// date_updated should be handled by DB trigger or ValueGeneratedOnAddOrUpdate config
-					// If not, uncomment: userToUpdate.date_updated = DateTime.UtcNow;
 					_logger.LogInformation("Updating profile for User ID: {UserId}", userToUpdate.id);
 					await _dbContext.SaveChangesAsync();
 				}

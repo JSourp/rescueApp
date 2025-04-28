@@ -179,8 +179,6 @@ namespace rescueApp
                     story = createData.Story, // Nullable string
                     adoption_status = createData.adoption_status!, // Use status from request
                     image_url = "/placeholder-image.png", // Image handling comes later
-                    date_created = utcNow,
-                    date_updated = utcNow,
                     created_by_user_id = currentUser.id,
                     updated_by_user_id = currentUser.id
                 };

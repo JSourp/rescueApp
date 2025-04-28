@@ -12,7 +12,7 @@ using rescueApp.Data;
 namespace rescueApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250428135510_InitialSchema")]
+    [Migration("20250428144117_InitialSchema")]
     partial class InitialSchema
     {
         /// <inheritdoc />
@@ -100,7 +100,8 @@ namespace rescueApp.Migrations
 
                     b.Property<DateTime>("date_updated")
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("notes")
                         .HasColumnType("text");
@@ -151,7 +152,8 @@ namespace rescueApp.Migrations
 
                     b.Property<DateTime>("date_updated")
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("notes")
                         .HasColumnType("text");
@@ -203,7 +205,8 @@ namespace rescueApp.Migrations
 
                     b.Property<DateTime>("date_updated")
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("gender")
                         .HasColumnType("text");
@@ -245,7 +248,8 @@ namespace rescueApp.Migrations
 
                     b.Property<DateTime>("date_updated")
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("email")
                         .IsRequired()
