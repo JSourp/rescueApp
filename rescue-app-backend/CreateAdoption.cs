@@ -149,8 +149,7 @@ namespace rescueApp
                     return req.CreateResponse(HttpStatusCode.NotFound);
                 }
 
-                {/* TODO: remove 'Adopted' from this, once all current test 'Adopted' animals have an adoption record */}
-                var adoptableStatuses = new List<string> { "Available", "Available - In Foster", "Adoption Pending", "Adopted" };
+                var adoptableStatuses = new List<string> { "Available", "Available - In Foster", "Adoption Pending" };
                 if (animalToAdopt!.adoption_status == null || !adoptableStatuses.Contains(animalToAdopt.adoption_status))
                 {
                     _logger.LogWarning("Animal not found for adoption. Animal ID: {animal_id}", adoptionRequest.animal_id);
