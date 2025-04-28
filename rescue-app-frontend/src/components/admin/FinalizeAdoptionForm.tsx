@@ -65,18 +65,12 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 	});
 
 	const handleFinalize: SubmitHandler<FinalizeFormData> = async (formData) => {
-		// Log start
-		console.log(`%c handleFinalize TRIGGERED: ${new Date().toISOString()}`, 'color: blue; font-weight: bold;');
-		// Prevent submission if already processing
-		if (isProcessing) {
-			console.log("handleFinalize: Already processing, returning.");
-			return;
-		}
-
-		setIsProcessing(true); // <--- Set processing TRUE immediately
-		setApiError(null);
+		if (isProcessing) return;
+		setIsProcessing(true);
+		setApiError(null); // Clear previous errors
 		setIsSuccess(false);
-		setSubmitMessage("");
+		setSubmitMessage(""); // Clear previous success message
+
 
 		// --- Get Access Token INSIDE the handler ---
 		const accessToken = await getAuth0AccessToken(); // Use imported helper
@@ -123,10 +117,20 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 			});
 
 			if (!response.ok) {
-				let errorMsg = `Error ${response.status}: Failed to finalize adoption.`;
-				try { const errorBody = await response.json(); errorMsg = errorBody.message || errorMsg; }
-				catch (_) { errorMsg = `${response.status}: ${response.statusText}`; }
-				throw new Error(errorMsg);
+				let detailedError = `Error ${response.status}: ${response.statusText}`; // Default error
+				try {
+					// Attempt to parse the JSON body sent by your backend's CreateErrorResponse helper
+					const errorBody = await response.json();
+					// Use the specific message from the backend if it exists
+					if (errorBody && errorBody.message) {
+						detailedError = errorBody.message;
+					}
+				} catch (jsonError) {
+					// The error response wasn't valid JSON, stick with status text
+					console.error("Could not parse error response body as JSON", jsonError);
+				}
+				// Throw an error with the detailed message
+				throw new Error(detailedError);
 			}
 
 			const result = await response.json(); // Get created AdoptionHistory record back
@@ -150,7 +154,8 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 		} catch (error: any) {
 			console.error("Finalize adoption error:", error);
 			// Use the message received from the backend API response if available
-			setApiError(error.message || "An unknown error occurred while finalizing adoption."); // Display the specific error
+			console.error("Finalize adoption error catch block:", error);
+			setApiError(error.message || "An unknown error occurred.");
 			setIsSuccess(false);
 			setSubmitMessage(""); // Clear the success message
 		} finally {
