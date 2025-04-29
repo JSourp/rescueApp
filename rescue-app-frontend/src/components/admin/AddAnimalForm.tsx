@@ -94,9 +94,16 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 
 			try {
 				// 1a. Get SAS URL from backend
-				const sasUrlResponse = await fetch(`/api/generate-upload-url?filename=${encodeURIComponent(selectedFile.name)}&contentType=${encodeURIComponent(selectedFile.type)}`, {
+				const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL; // Get backend base URL
+				if (!apiBaseUrl) {
+					throw new Error("API Base URL is not configured."); // Add check
+				}
+				const filename = encodeURIComponent(selectedFile.name);
+				const contentType = encodeURIComponent(selectedFile.type);
+				const sasUrlResponse = await fetch(`${apiBaseUrl}/generate-upload-url?filename=${filename}&contentType=${contentType}`, { // <-- CORRECTED: Use apiBaseUrl
 					headers: { 'Authorization': `Bearer ${accessToken}` }
 				});
+
 				if (!sasUrlResponse.ok) {
 					throw new Error(`Failed to get upload URL: ${sasUrlResponse.statusText}`);
 				}
