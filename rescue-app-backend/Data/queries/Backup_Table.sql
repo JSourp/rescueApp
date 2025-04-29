@@ -1,7 +1,10 @@
+-- If taking a fresh backup, drop the previously backed up tables
+DROP TABLE IF EXISTS public.animals_dev;
+
 -- Create Backup
-CREATE TABLE public.users_dev AS
+CREATE TABLE public.animals_dev AS
 SELECT *
-FROM public.users;
+FROM public.animals_dev;
 
 -- Validate backups
 SELECT * FROM public.users_dev;

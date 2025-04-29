@@ -112,7 +112,7 @@ export default function ProcessReturnForm({ animal, onClose, onReturnComplete }:
 			{/* Header */}
 			<div className="flex-shrink-0 p-5 bg-blue-600">
 				<h3 className="text-lg text-white text-center font-semibold">
-					Process Return for {animal.name} (ID: {animal.id})
+					Process Return for {animal.name}
 				</h3>
 			</div>
 
