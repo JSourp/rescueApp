@@ -90,15 +90,15 @@ namespace rescueApp
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User not authorized or inactive.");
 				}
 
-				// Check Role - Admins or Staff can finalize an adoption
+				// Check Role - Admins or Staff
 				var allowedRoles = new[] { "Admin", "Staff" }; // Case-sensitive match with DB role
 				if (!allowedRoles.Contains(currentUser.role))
 				{
-					_logger.LogWarning("User Role '{UserRole}' not authorized to finalize an adoption. UserID: {UserId}", currentUser.role, currentUser.id);
-					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "Permission denied to finalize an adoption.");
+					_logger.LogWarning("User Role '{UserRole}' not authorized. UserID: {UserId}", currentUser.role, currentUser.id);
+					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "Permission denied.");
 				}
 
-				_logger.LogInformation("User {UserId} with role {UserRole} authorized to finalize an adoption.", currentUser.id, currentUser.role);
+				_logger.LogInformation("User {UserId} with role {UserRole} authorized.", currentUser.id, currentUser.role);
 
 			}
 			catch (Exception ex) // Catch potential exceptions during auth/authz
@@ -112,6 +112,8 @@ namespace rescueApp
 			var queryParams = HttpUtility.ParseQueryString(req.Url.Query);
 			string? filename = queryParams["filename"];
 			string? contentType = queryParams["contentType"]; // e.g., image/jpeg, image/png
+
+			_logger.LogInformation("filename is '{filename}' with contentType of '{contentType}'.", filename, contentType);
 
 			if (string.IsNullOrWhiteSpace(filename) || string.IsNullOrWhiteSpace(contentType))
 			{
@@ -155,6 +157,8 @@ namespace rescueApp
 					var parts = _blobConnectionString.Split(';');
 					accountName = parts.FirstOrDefault(p => p.StartsWith("AccountName=", StringComparison.OrdinalIgnoreCase))?["AccountName=".Length..] ?? string.Empty;
 					accountKey = parts.FirstOrDefault(p => p.StartsWith("AccountKey=", StringComparison.OrdinalIgnoreCase))?["AccountKey=".Length..] ?? string.Empty;
+
+					_logger.LogInformation("accountName is '{accountName}' with accountKey of '{accountKey}'.", accountName, accountKey);
 
 					if (string.IsNullOrEmpty(accountName) || string.IsNullOrEmpty(accountKey))
 					{
