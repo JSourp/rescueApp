@@ -4,10 +4,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Container } from '@/components/Container';
 import AddAnimalForm from '@/components/admin/AddAnimalForm';
 import EditAnimalForm from '@/components/admin//EditAnimalForm';
+import ProcessReturnForm from '@/components/admin/ProcessReturnForm';
 import FinalizeAdoptionForm from '@/components/admin/FinalizeAdoptionForm';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import Modal from '@/components/Modal';
-import { LoadingSpinner, PlusIcon, PencilSquareIcon, TrashIcon, SuccessCheckmarkIcon } from '@/components/Icons';
+import { LoadingSpinner, PlusIcon, PencilSquareIcon, TrashIcon, SuccessCheckmarkIcon, ArrowUturnLeftIcon } from '@/components/Icons';
 import { Animal } from '@/types/animal';
 import { UserProfile } from '@/types/userProfile';
 import { useUser } from '@auth0/nextjs-auth0/client'; // To check login state & potentially role later
@@ -115,6 +116,7 @@ export default function AdminAnimalsPage() {
 	// State for Modals and Selected Animal
 	const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
 	const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+	const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
 	const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
 	const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState<boolean>(false);
 	const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
@@ -231,6 +233,18 @@ export default function AdminAnimalsPage() {
 	const handleEditClick = (animal: Animal) => {
 		setSelectedAnimal(animal);
 		setIsEditModalOpen(true);
+	};
+
+	const handleReturnCompletion = () => {
+		console.log("Return finalized, closing modal and refreshing list.");
+		setIsReturnModalOpen(false); // Close the return modal
+		setSelectedAnimal(null); // Clear the selected animal
+		loadAnimals(); // Refresh the animal list
+	};
+
+	const handleReturnClick = (animal: Animal) => {
+		setSelectedAnimal(animal);
+		setIsReturnModalOpen(true);
 	};
 
 	const handleFinalizeClick = (animal: Animal) => {
@@ -448,6 +462,12 @@ export default function AdminAnimalsPage() {
 												{['Admin', 'Staff'].includes(currentUserRole ?? '') && (
 													<button onClick={() => handleEditClick(animal)} className="..." title="Edit"> <PencilSquareIcon className="w-5 h-5 inline" /> <span className="sr-only">Edit</span> </button>
 												)}
+												{/* Process Return Button - Conditional */}
+												{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Adopted'].includes(animal.adoption_status ?? '') && (
+													<button onClick={() => handleReturnClick(animal)} className="text-green-600 hover:text-green-900 ..." title="Process Return">
+														<ArrowUturnLeftIcon className="w-5 h-5 inline" />
+													</button>
+												)}
 												{/* Finalize Adoption Button - Conditional */}
 												{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Available', 'Available - In Foster', 'Adoption Pending'].includes(animal.adoption_status ?? '') && (
 													<button onClick={() => handleFinalizeClick(animal)} className="text-green-600 hover:text-green-900 ..." title="Finalize Adoption">
@@ -488,6 +508,16 @@ export default function AdminAnimalsPage() {
 						animal={selectedAnimal}
 						onClose={() => { setIsEditModalOpen(false); setSelectedAnimal(null); }}
 						onAnimalUpdated={handleAnimalUpdated}
+					/>
+				</Modal>
+			)}
+
+			{isReturnModalOpen && selectedAnimal && (
+				<Modal onClose={() => { setIsReturnModalOpen(false); setSelectedAnimal(null); }}>
+					<ProcessReturnForm
+						animal={selectedAnimal}
+						onClose={() => { setIsReturnModalOpen(false); setSelectedAnimal(null); }}
+						onReturnComplete={handleReturnCompletion}
 					/>
 				</Modal>
 			)}

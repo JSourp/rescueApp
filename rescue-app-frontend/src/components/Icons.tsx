@@ -13,6 +13,22 @@ interface LoadingSpinnerProps {
 	className?: string; // Additional Tailwind CSS classes
 }
 
+export const ArrowUturnLeftIcon = ({ size = 20, className = "" }: IconProps) => (
+	<svg
+		xmlns="http://www.w3.org/2000/svg"
+		fill="none"
+		viewBox="0 0 24 24"
+		strokeWidth={1.5}
+		stroke="currentColor"
+		width={size}
+		height={size}
+		aria-hidden="true"
+		className={className}
+	>
+		<path strokeLinecap="round" strokeLinejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
+	</svg>
+);
+
 export const ExclamationTriangleIcon = ({ size = 24, className = "" }: IconProps) => ( // Default to 24 for warning icons? Or keep 20? Let's use 24 as often used larger.
 	<svg
 		xmlns="http://www.w3.org/2000/svg"

@@ -1,4 +1,3 @@
-// src/components/admin/EditAnimalForm.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -251,7 +250,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 								className="bg-sc-asparagus-500 hover:bg-sc-asparagus-600 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50" // Use theme color
 							>
 								{isSubmitting ? (
-									<LoadingSpinner className="w-5 h-5 mx-auto" /> // Show spinner
+									<LoadingSpinner className="text-center w-5 h-5 mx-auto" /> // Show spinner
 								) : (
 									'Save Changes'
 								)}
