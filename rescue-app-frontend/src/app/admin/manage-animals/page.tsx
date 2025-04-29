@@ -420,10 +420,10 @@ export default function AdminAnimalsPage() {
 									<th className={thClasses}>Type</th>
 									<th className={thClasses}>Breed</th>
 									<th className={thClasses}>Adoption Status</th>
-									<th className={thClasses}>Gender</th>
-									<th className={thClasses}>Date of Birth</th>
-									<th className={thClasses}>Weight</th>
-									<th className={thClasses}>Story</th>
+									{/* <th className={thClasses}>Gender</th> */}
+									{/* <th className={thClasses}>Date of Birth</th> */}
+									{/* <th className={thClasses}>Weight</th> */}
+									{/* <th className={thClasses}>Story</th> */}
 									<th className={thClasses}>Date Added</th>
 									<th className={thClasses}>Last Updated</th>
 									<th className={`${thClasses} text-right`}>Actions</th>
@@ -447,14 +447,14 @@ export default function AdminAnimalsPage() {
 											<td className={tdClasses}>{animal.animal_type ? `${animal.animal_type}` : 'N/A'}</td>
 											<td className={tdClasses}>{animal.breed ? `${animal.breed}` : 'N/A'}</td>
 											<td className={tdClasses}>{animal.adoption_status ? `${animal.adoption_status}` : 'N/A'}</td>
-											<td className={tdClasses}>{animal.gender ? `${animal.gender}` : 'N/A'}</td>
-											<td className={tdClasses}>{animal.date_of_birth ? format(new Date(animal.date_of_birth), 'P') : 'N/A'}</td>
-											<td className={tdClasses}>{animal.weight ? `${animal.weight} lbs` : 'N/A'}</td>
-											<td className={`${tdClasses} max-w-xs`}>
+											{/* <td className={tdClasses}>{animal.gender ? `${animal.gender}` : 'N/A'}</td> */}
+											{/* <td className={tdClasses}>{animal.date_of_birth ? format(new Date(animal.date_of_birth), 'P') : 'N/A'}</td> */}
+											{/* <td className={tdClasses}>{animal.weight ? `${animal.weight} lbs` : 'N/A'}</td> */}
+											{/* <td className={`${tdClasses} max-w-xs`}>
 												<div className="overflow-hidden overflow-ellipsis whitespace-nowrap" title={animal.story}>
 													{animal.story ? animal.story : 'N/A'}
 												</div>
-											</td>
+											</td> */}
 											<td className={tdClasses}>{format(new Date(animal.date_created), 'P')}</td>
 											<td className={tdClasses}>{format(new Date(animal.date_updated), 'P')}</td>
 											<td className={`${tdClasses} text-right space-x-2`}>
