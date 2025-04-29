@@ -51,6 +51,8 @@ namespace rescueApp
         [Required(AllowEmptyStrings = false)]
         [MaxLength(50)] // Match DB size if needed
         public string? adoption_status { get; set; } // e.g., "Available", "Not Yet Available"
+
+        public string? image_url { get; set; }
     }
 
     public class CreateAnimal
@@ -178,7 +180,7 @@ namespace rescueApp
                     weight = createData.Weight, // Nullable decimal?
                     story = createData.Story, // Nullable string
                     adoption_status = createData.adoption_status!, // Use status from request
-                    image_url = "/placeholder-image.png", // Image handling comes later
+                    image_url = createData.image_url, // Image handling comes later
                     created_by_user_id = currentUser.id,
                     updated_by_user_id = currentUser.id
                 };

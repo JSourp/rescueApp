@@ -177,7 +177,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 			submissionData.date_of_birth = null;
 		}
 
-		submissionData.imageUrl = image_url; // Add the uploaded image URL
+		submissionData.image_url = image_url; // Add the uploaded image URL
 
 		console.log(`Submitting update for animal ID ${animal.id}:`, submissionData);
 

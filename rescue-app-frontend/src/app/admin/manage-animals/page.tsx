@@ -436,7 +436,7 @@ export default function AdminAnimalsPage() {
 											<td className={tdClasses}>
 												{animal.image_url ? (
 													<img
-														src={animal.image_url}
+														src={animal.image_url || '/placeholder-image.png'}
 														className="w-10 h-10 object-cover rounded"
 													/>
 												) : (

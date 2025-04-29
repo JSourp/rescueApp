@@ -165,7 +165,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 			submissionData.date_of_birth = null;
 		}
 
-		submissionData.imageUrl = image_url; // Add the uploaded image URL
+		submissionData.image_url = image_url; // Add the uploaded image URL
 
 		console.log('Submitting new animal data:', submissionData);
 
