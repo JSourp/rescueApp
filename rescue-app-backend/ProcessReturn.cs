@@ -26,19 +26,19 @@ namespace rescueApp
     // DTO for the request body for processing a return
     public class ProcessReturnRequest
     {
-        [Required(ErrorMessage = "AnimalId is required.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Valid AnimalId is required.")]
-        public int AnimalId { get; set; }
+		[Required(ErrorMessage = "Animal Id is required.")]
+		[Range(1, int.MaxValue, ErrorMessage = "Valid Animal Id is required.")]
+		public int animal_id { get; set; }
 
-        [Required(ErrorMessage = "Return date is required.")]
-        public DateTime? ReturnDate { get; set; } // Frontend should send YYYY-MM-DD or ISO string
+		[Required(ErrorMessage = "Return date is required.")]
+		public DateTime? return_date { get; set; } // Frontend should send YYYY-MM-DD or ISO string
 
-        [Required(AllowEmptyStrings = false, ErrorMessage = "New animal status is required.")]
+		[Required(AllowEmptyStrings = false, ErrorMessage = "New animal status is required.")]
         [MaxLength(50)]
-        public string? NewAnimalStatus { get; set; } // The status AFTER the return
+		public string? adoption_status { get; set; } // The status AFTER the return
 
-        public string? Notes { get; set; } // Optional notes about the return
-    }
+		public string? notes { get; set; } // Optional notes about the return
+	}
 
     public class ProcessReturn
     {
@@ -152,44 +152,45 @@ namespace rescueApp
                 // 4. Find the ACTIVE AdoptionHistory record
                 var activeAdoption = await _dbContext.AdoptionHistories
                     .Include(ah => ah.Animal) // Include animal to check status easily
-                    .FirstOrDefaultAsync(ah => ah.animal_id == returnRequest.AnimalId && ah.return_date == null);
+					.FirstOrDefaultAsync(ah => ah.animal_id == returnRequest.animal_id && ah.return_date == null);
 
-                if (activeAdoption == null)
+				if (activeAdoption == null)
                 {
-                    _logger.LogWarning("No active adoption record found for Animal ID: {AnimalId} to process return.", returnRequest.AnimalId);
-                    await transaction.RollbackAsync();
-                    return await CreateErrorResponse(req, HttpStatusCode.NotFound, $"No active (non-returned) adoption record found for Animal ID {returnRequest.AnimalId}.");
-                }
+					_logger.LogWarning("No active adoption record found for Animal ID: {animal_id} to process return.", returnRequest.animal_id);
+					await transaction.RollbackAsync();
+					return await CreateErrorResponse(req, HttpStatusCode.NotFound, $"No active (non-returned) adoption record found for Animal ID {returnRequest.animal_id}.");
+				}
 
                  // 5. Find the Animal (should be loaded via Include) & Check Status
                  var animalToUpdate = activeAdoption.Animal;
                  if (animalToUpdate == null) { // Should not happen if FK constraint exists
-                      _logger.LogError("Animal record not found for AdoptionHistory ID: {HistoryId}, Animal ID: {AnimalId}", activeAdoption.id, activeAdoption.animal_id);
-                      await transaction.RollbackAsync();
+					_logger.LogError("Animal record not found for AdoptionHistory ID: {HistoryId}, Animal ID: {animal_id}", activeAdoption.id, activeAdoption.animal_id);
+					await transaction.RollbackAsync();
                       return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Data inconsistency: Animal not found for existing adoption record.");
                  }
 
                  if (animalToUpdate.adoption_status != "Adopted")
                  {
-                     _logger.LogWarning("Attempted to return animal whose status is not 'Adopted'. AnimalId: {AnimalId}, Status: {Status}", animalToUpdate.id, animalToUpdate.adoption_status);
-                     await transaction.RollbackAsync();
+					_logger.LogWarning("Attempted to return animal whose status is not 'Adopted'. Animal Id: {animal_id}, Status: {Status}", animalToUpdate.id, animalToUpdate.adoption_status);
+					await transaction.RollbackAsync();
                       // Use Conflict or BadRequest? Conflict seems appropriate as state doesn't match expected pre-condition.
                      return await CreateErrorResponse(req, HttpStatusCode.Conflict, $"Cannot process return: Animal status is currently '{animalToUpdate.adoption_status ?? "None"}', not 'Adopted'.");
                  }
 
 				// 6. Update AdoptionHistory Record
-                 // Ensure ReturnDate has UTC Kind
-                 activeAdoption.return_date = DateTime.SpecifyKind(returnRequest.ReturnDate!.Value, DateTimeKind.Utc); // Use ! after validation ensures it has value
-                 activeAdoption.updated_by_user_id = currentUser.id;
-                 if (!string.IsNullOrWhiteSpace(returnRequest.Notes)) { // Append to existing notes
-                     activeAdoption.notes = string.IsNullOrEmpty(activeAdoption.notes)
-                         ? $"Return processed on {utcNow:yyyy-MM-dd}: {returnRequest.Notes}"
-                         : $"{activeAdoption.notes}\nReturn processed on {utcNow:yyyy-MM-dd}: {returnRequest.Notes}";
-                 }
+				// Ensure return_date has UTC Kind
+				activeAdoption.return_date = DateTime.SpecifyKind(returnRequest.return_date!.Value, DateTimeKind.Utc); // Use ! after validation ensures it has value
+				activeAdoption.updated_by_user_id = currentUser.id;
+				if (!string.IsNullOrWhiteSpace(returnRequest.notes))
+				{ // Append to existing notes
+					activeAdoption.notes = string.IsNullOrEmpty(activeAdoption.notes)
+						 ? $"Return processed on {utcNow:yyyy-MM-dd}: {returnRequest.notes}"
+						 : $"{activeAdoption.notes}\nReturn processed on {utcNow:yyyy-MM-dd}: {returnRequest.notes}";
+				}
 
-                // 7. Update Animal Record
-                 animalToUpdate.adoption_status = returnRequest.NewAnimalStatus!; // Use validated status from request
-                 animalToUpdate.updated_by_user_id = currentUser.id;
+				// 7. Update Animal Record
+				animalToUpdate.adoption_status = returnRequest.adoption_status!; // Use validated status from request
+				animalToUpdate.updated_by_user_id = currentUser.id;
 
                  _dbContext.AdoptionHistories.Update(activeAdoption); // Mark history as updated
                  _dbContext.Animals.Update(animalToUpdate); // Mark animal as updated
@@ -200,8 +201,8 @@ namespace rescueApp
                 // 9. Commit Transaction
                  await transaction.CommitAsync();
 
-                 _logger.LogInformation("Successfully processed return for Animal ID: {AnimalId}. AdoptionHistory ID: {HistoryId}. New Status: {NewStatus}",
-                    animalToUpdate.id, activeAdoption.id, animalToUpdate.adoption_status);
+				_logger.LogInformation("Successfully processed return for Animal ID: {animal_id}. AdoptionHistory ID: {HistoryId}. New Status: {NewStatus}",
+				   animalToUpdate.id, activeAdoption.id, animalToUpdate.adoption_status);
 
                 // 10. Return Success Response (200 OK is fine for updates)
                  var response = req.CreateResponse(HttpStatusCode.OK);
@@ -211,8 +212,8 @@ namespace rescueApp
             catch (Exception ex)
             {
                  await transaction.RollbackAsync();
-                 _logger.LogError(ex, "Error processing return transaction for Animal ID: {AnimalId}. Request Body Preview: {BodyPreview}", returnRequest?.AnimalId ?? -1, requestBody.Substring(0, Math.Min(requestBody.Length, 500)));
-                 return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An internal error occurred while processing the return.");
+				_logger.LogError(ex, "Error processing return transaction for Animal ID: {animal_id}. Request Body Preview: {BodyPreview}", returnRequest?.animal_id ?? -1, requestBody.Substring(0, Math.Min(requestBody.Length, 500)));
+				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An internal error occurred while processing the return.");
             }
         }
 

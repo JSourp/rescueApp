@@ -255,7 +255,7 @@ namespace rescueApp
                     try { await transaction.RollbackAsync(); } catch (Exception rbEx) { _logger.LogError(rbEx, "Error during transaction rollback."); }
                 }
                 // Log the actual exception from the try block
-                _logger.LogError(ex, "Error processing adoption transaction for Animal ID: {AnimalId}. ExceptionType: {ExType}, Message: {ExMsg}, InnerMsg: {InnerMsg}",
+                _logger.LogError(ex, "Error processing adoption transaction for Animal ID: {animal_id}. ExceptionType: {ExType}, Message: {ExMsg}, InnerMsg: {InnerMsg}",
                     adoptionRequest?.animal_id ?? -1, ex.GetType().FullName, ex.Message, ex.InnerException?.Message ?? "N/A");
                 return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An internal error occurred while finalizing the adoption.");
             }

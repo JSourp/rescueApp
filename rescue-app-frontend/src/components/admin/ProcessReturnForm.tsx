@@ -55,7 +55,7 @@ export default function ProcessReturnForm({ animal, onClose, onReturnComplete }:
 
 		// Construct payload matching backend ProcessReturnRequest DTO
 		const payload = {
-			AnimalId: animal.id,
+			animal_id: animal.id,
 			return_date: formData.return_date ? new Date(formData.return_date).toISOString() : new Date().toISOString(),
 			adoption_status: formData.adoption_status,
 			Notes: formData.notes || null,
@@ -121,7 +121,7 @@ export default function ProcessReturnForm({ animal, onClose, onReturnComplete }:
 				<form onSubmit={handleSubmit(handleProcessReturn)} noValidate>
 					{apiError && (
 						<p className="mb-4 p-3 text-sm text-center text-red-700 bg-red-100 dark:text-red-200 dark:bg-red-900/30 border border-red-300 dark:border-red-600 rounded-md">
-							<ExclamationTriangleIcon className="h-5 w-5 inline mr-1 align-text-bottom" /> Error: {apiError}
+							<ExclamationTriangleIcon className="h-5 w-5 inline mr-1 align-text-bottom" /> {apiError}
 						</p>
 					)}
 

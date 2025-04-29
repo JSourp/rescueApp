@@ -195,12 +195,12 @@ namespace rescueApp
                 // (This includes changes to updated_by_user_id or any other field)
                 if (_dbContext.ChangeTracker.HasChanges())
                 {
-                    _logger.LogInformation("Saving updates for Animal ID: {AnimalId} by User ID: {UserId}.", existingAnimal.id, currentUser!.id);
+                    _logger.LogInformation("Saving updates for Animal ID: {animal_id} by User ID: {UserId}.", existingAnimal.id, currentUser!.id);
                     await _dbContext.SaveChangesAsync(); // Save changes
                 }
                 else
                 {
-                    _logger.LogInformation("No changes detected by EF Core for Animal ID: {AnimalId}", existingAnimal.id);
+                    _logger.LogInformation("No changes detected by EF Core for Animal ID: {animal_id}", existingAnimal.id);
                 }
 
                 // --- 4. Return Response ---
