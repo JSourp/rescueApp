@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { LoadingSpinner, SuccessCheckmarkIcon } from '@/components/Icons';
 import { getAuth0AccessToken } from '@/utils/auth';
@@ -29,6 +29,11 @@ interface EditAnimalFormProps {
 
 export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: EditAnimalFormProps) {
 	const [apiError, setApiError] = useState<string | null>(null);
+	const [isUploading, setIsUploading] = useState<boolean>(false); // For image upload state
+	const [uploadProgress, setUploadProgress] = useState<number>(0); // Optional progress
+	const [selectedFile, setSelectedFile] = useState<File | null>(null); // State for the selected file
+	const fileInputRef = useRef<HTMLInputElement>(null); // Ref for file input
+
 	const {
 		register,
 		handleSubmit,
@@ -69,6 +74,16 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 	const [isSuccess, setIsSuccess] = useState(false);
 	const [submitMessage, setSubmitMessage] = useState("");
 
+	// Handler for file input change
+	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		if (event.target.files && event.target.files[0]) {
+			setSelectedFile(event.target.files[0]);
+			console.log("File selected:", event.target.files[0].name);
+		} else {
+			setSelectedFile(null);
+		}
+	};
+
 	const handleUpdateAnimal: SubmitHandler<EditAnimalFormData> = async (formData) => {
 		setApiError(null);
 		setIsSuccess(false);
@@ -81,6 +96,64 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 			return; // Stop submission if token fails
 		}
 		// --- Got Token ---
+
+		let image_url: string | null = null; // URL to save in the DB
+
+		// --- Step 1: Upload Image if selected ---
+		if (selectedFile) {
+			setIsUploading(true); // Indicate image upload started
+			setUploadProgress(0); // Reset progress
+			console.log("Attempting to upload image:", selectedFile.name);
+
+			try {
+				// 1a. Get SAS URL from backend
+				const sasUrlResponse = await fetch(`/api/generate-upload-url?filename=${encodeURIComponent(selectedFile.name)}&contentType=${encodeURIComponent(selectedFile.type)}`, {
+					headers: { 'Authorization': `Bearer ${accessToken}` }
+				});
+				if (!sasUrlResponse.ok) {
+					throw new Error(`Failed to get upload URL: ${sasUrlResponse.statusText}`);
+				}
+				const sasData = await sasUrlResponse.json();
+				const { sasUrl, blobUrl } = sasData;
+
+				if (!sasUrl || !blobUrl) {
+					throw new Error("Backend did not return valid SAS/Blob URL.");
+				}
+				console.log("Got SAS URL, attempting direct upload to Azure...");
+
+				// 1b. Upload file directly to Azure Blob Storage using SAS URL
+				// NOTE: Fetch API upload progress isn't easily tracked.
+				// For progress, use XMLHttpRequest or a library like Axios.
+				const uploadResponse = await fetch(sasUrl, {
+					method: 'PUT',
+					headers: {
+						'x-ms-blob-type': 'BlockBlob',
+						'Content-Type': selectedFile.type,
+					},
+					body: selectedFile
+				});
+
+				if (!uploadResponse.ok) {
+					// Try to get error details from Azure Blob Storage response
+					const errorText = await uploadResponse.text();
+					console.error("Azure Blob Upload Error:", errorText);
+					throw new Error(`Failed to upload image to Azure: ${uploadResponse.statusText}`);
+				}
+
+				console.log("Image uploaded successfully to:", blobUrl);
+				image_url = blobUrl; // Set the URL to save with animal data
+
+			} catch (uploadError: any) {
+				console.error("Image upload process failed:", uploadError);
+				setApiError(`Image upload failed: ${uploadError.message}`);
+				setIsUploading(false);
+				// Stop the whole process if image upload fails? Or allow saving without image?
+				return; // Stop here if upload fails
+			} finally {
+				setIsUploading(false); // Indicate image upload finished
+			}
+		}
+		// --- End Image Upload ---
 
 		// Convert weight to number if it's a non-empty string
 		let submissionData: any = { ...formData };
@@ -97,6 +170,8 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 		if (submissionData.date_of_birth === '') {
 			submissionData.date_of_birth = null;
 		}
+
+		submissionData.imageUrl = image_url; // Add the uploaded image URL
 
 		console.log(`Submitting update for animal ID ${animal.id}:`, submissionData);
 
@@ -215,6 +290,34 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 								{errors.weight && <p className={errorTextClasses}>{errors.weight.message}</p>}
 							</div>
 
+							{/* Image Upload Field (Optional) */}
+							<div>
+								<label htmlFor="animalImage" className={labelBaseClasses}>Animal Image</label>
+								<input
+									type="file"
+									id="animalImage"
+									accept="image/png, image/jpeg, image/webp, image/gif" // Specify accepted types
+									ref={fileInputRef} // Optional ref if needed
+									onChange={handleFileChange}
+									className={`block w-full text-sm text-slate-500 dark:text-slate-400
+										file:mr-4 file:py-2 file:px-4
+										file:rounded-full file:border-0
+										file:text-sm file:font-semibold
+										file:bg-sc-asparagus-50 dark:file:bg-sc-asparagus-900/30
+										file:text-sc-asparagus-700 dark:file:text-sc-asparagus-200
+										hover:file:bg-sc-asparagus-100 dark:hover:file:bg-sc-asparagus-900/50`}
+								/>
+								{/* Optional: Show image preview */}
+								{selectedFile && (
+									<div className="mt-2">
+										<img src={URL.createObjectURL(selectedFile)} alt="Preview" className="h-20 w-20 object-cover rounded" />
+										<button type="button" onClick={() => { setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }} className="text-xs text-red-600 hover:underline ml-2">Remove</button>
+									</div>
+								)}
+								{/* Optional: Show Upload Progress */}
+								{isUploading && <p className="text-sm text-blue-600 mt-1">Uploading image... {uploadProgress > 0 ? `${uploadProgress}%` : ''}</p>}
+							</div>
+
 							{/* Story (Optional) */}
 							<div>
 								<label htmlFor="story" className={labelBaseClasses}>Story / Description</label>
@@ -239,6 +342,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 						<div className="flex justify-end gap-3 pt-6 border-t border-gray-300 dark:border-gray-700 mt-6">
 							<button
 								type="button"
+								disabled={isSubmitting || isUploading} // Use RHF submitting state
 								onClick={onClose}
 								className="bg-neutral-200 hover:bg-neutral-300 text-neutral-800 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500 font-medium py-2 px-5 rounded-md transition duration-300"
 							>
@@ -246,7 +350,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 							</button>
 							<button
 								type="submit"
-								disabled={isSubmitting || !isDirty} // Use RHF submitting state
+								disabled={isSubmitting || isUploading || !isDirty} // Use RHF submitting state
 								className="bg-sc-asparagus-500 hover:bg-sc-asparagus-600 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50" // Use theme color
 							>
 								{isSubmitting ? (

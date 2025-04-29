@@ -7,15 +7,20 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Ensure the trigger is attached to the animals table
-DROP TRIGGER IF EXISTS set_timestamp_animals ON public.animals;
-CREATE TRIGGER set_timestamp_animals
-BEFORE UPDATE ON public.animals
+-- Ensure the trigger is attached to the users table
+DROP TRIGGER IF EXISTS set_timestamp_users ON public.users;
+CREATE TRIGGER set_timestamp_users
+BEFORE UPDATE ON public.users
 FOR EACH ROW
 EXECUTE PROCEDURE trigger_set_timestamp();
 
-
+-- Check one
 SELECT tgname, tgenabled
 FROM pg_trigger
-WHERE tgrelid = 'public.animals'::regclass -- Use quotes for "animals" if needed
-AND tgname = 'set_timestamp_animals';
+WHERE tgrelid = 'public.users'::regclass
+AND tgname = 'set_timestamp_users';
+
+-- Check all
+SELECT tgname, tgenabled
+FROM pg_trigger
+WHERE tgname LIKE 'set_timestamp_%';
