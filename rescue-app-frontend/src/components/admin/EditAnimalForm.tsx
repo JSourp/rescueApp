@@ -209,14 +209,14 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 
 		// Create payload matching backend DTO (snake_case)
 		const backendPayload = {
-			animal_type: submissionData.animalType, // Map from form state
+			animal_type: submissionData.animal_type, // Map from form state
 			name: submissionData.name,
 			breed: submissionData.breed,
-			date_of_birth: submissionData.dateOfBirth,
+			date_of_birth: submissionData.date_of_birth,
 			gender: submissionData.gender,
 			weight: submissionData.weight,
 			story: submissionData.story,
-			adoption_status: submissionData.adoptionStatus,
+			adoption_status: submissionData.adoption_status,
 			image_url: submissionData.image_url // Send new, null, or original URL
 		};
 
