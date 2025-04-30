@@ -53,7 +53,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 			weight: animal.weight ?? '', // Handle null weight
 			story: animal.story || '',
 			adoption_status: animal.adoption_status || '',
-			// image_url: animal.image_url || '', // Handle image separately
+			image_url: animal.image_url || '',
 		}
 	});
 
@@ -350,10 +350,6 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 								{/* Button to explicitly remove image */}
 								{previewUrl && !removeCurrentImage && (
 									<button type="button" onClick={handleRemoveImage} className="mt-1 text-xs text-red-600 hover:underline"> Remove Current Image </button>
-								)}
-								{/* Button to cancel newly selected file */}
-								{selectedFile && (
-									<button type="button" onClick={handleRemoveImage} className="mt-1 text-xs text-red-600 hover:underline"> Cancel Image Change </button>
 								)}
 								{isUploading && <p className="text-sm text-blue-600 mt-1">Uploading image...</p>}
 							</div>
