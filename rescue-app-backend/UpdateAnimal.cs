@@ -28,20 +28,20 @@ namespace rescueApp
         public string? animal_type { get; set; }
 
         [MaxLength(100)]
-        public string? Name { get; set; }
+        public string? name { get; set; }
 
         [MaxLength(100)]
-        public string? Breed { get; set; }
+        public string? breed { get; set; }
 
         public DateTime? date_of_birth { get; set; }
 
         [MaxLength(10)]
-        public string? Gender { get; set; }
+        public string? gender { get; set; }
 
         [Range(0.1, 300)]
-        public decimal? Weight { get; set; }
+        public decimal? weight { get; set; }
 
-        public string? Story { get; set; }
+        public string? story { get; set; }
 
         [MaxLength(50)]
         public string? adoption_status { get; set; }
@@ -164,29 +164,19 @@ namespace rescueApp
                     return req.CreateResponse(HttpStatusCode.NotFound);
                 }
 
-                // Update properties only if a value was provided in the request DTO
-                if (updateData.animal_type != null && existingAnimal.animal_type != updateData.animal_type) { existingAnimal.animal_type = updateData.animal_type; }
-                if (updateData.Name != null && existingAnimal.name != updateData.Name) { existingAnimal.name = updateData.Name; }
-                if (updateData.Breed != null && existingAnimal.breed != updateData.Breed) { existingAnimal.breed = updateData.Breed; }
-                if (updateData.date_of_birth.HasValue) // Check if a value was provided
-                {
-                    // Create a UTC DateTime from the potentially Unspecified input
-                    DateTime dobUtc = DateTime.SpecifyKind(updateData.date_of_birth.Value, DateTimeKind.Utc);
-                    if (existingAnimal.date_of_birth != dobUtc) // Compare with UTC value
-                    {
-                        existingAnimal.date_of_birth = dobUtc; // Assign the UTC DateTime
-                    }
-                } // Optional: Handle case where user explicitly clears the date
-                else if (updateData.date_of_birth == null && existingAnimal.date_of_birth != null)
-                {
-                    existingAnimal.date_of_birth = null;
-                }
-                if (updateData.Gender != null && existingAnimal.gender != updateData.Gender) { existingAnimal.gender = updateData.Gender; }
-                if (updateData.Weight != null && existingAnimal.weight != updateData.Weight) { existingAnimal.weight = updateData.Weight; }
-                if (updateData.Story != null && existingAnimal.story != updateData.Story) { existingAnimal.story = updateData.Story; }
-                if (updateData.adoption_status != null && existingAnimal.adoption_status != updateData.adoption_status) { existingAnimal.adoption_status = updateData.adoption_status; }
-                if (updateData.image_url != null && existingAnimal.image_url != updateData.image_url) { existingAnimal.image_url = updateData.image_url; }
-                // Add other updatable fields...
+                // Update properties comparing model to DTO
+                if (existingAnimal.animal_type != updateData.animal_type) { existingAnimal.animal_type = updateData.animal_type; }
+                if (existingAnimal.name != updateData.name) { existingAnimal.name = updateData.name; }
+                if (existingAnimal.breed != updateData.breed) { existingAnimal.breed = updateData.breed; }
+                // Use SpecifyKind for date again
+                DateTime? dobUtc = updateData.date_of_birth.HasValue ? DateTime.SpecifyKind(updateData.date_of_birth.Value, DateTimeKind.Utc) : null;
+                if (existingAnimal.date_of_birth != dobUtc) { existingAnimal.date_of_birth = dobUtc; }
+                if (existingAnimal.gender != updateData.gender) { existingAnimal.gender = updateData.gender; }
+                if (existingAnimal.weight != updateData.weight) { existingAnimal.weight = updateData.weight; }
+                if (existingAnimal.story != updateData.story) { existingAnimal.story = updateData.story; }
+                if (existingAnimal.adoption_status != updateData.adoption_status) { existingAnimal.adoption_status = updateData.adoption_status; }
+                // Directly compare and assign the value sent from the frontend (which could be new URL, null, or original URL)
+                if (existingAnimal.image_url != updateData.image_url) { existingAnimal.image_url = updateData.image_url; }
 
                 // Always set the user performing the update if any profile data changed
                 existingAnimal.updated_by_user_id = currentUser.id;
