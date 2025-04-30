@@ -123,7 +123,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 		}
 		// --- Got Token ---
 
-		let image_url: string | null = null; // URL to save in the DB
+		let final_image_url: string | null = animal.image_url ?? null;
 
 		// --- Step 1: Upload Image if selected ---
 		if (selectedFile) {
@@ -173,7 +173,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 				}
 
 				console.log("Image uploaded successfully to:", blobUrl);
-				image_url = blobUrl; // Set the URL to save with animal data
+				final_image_url = blobUrl; // Set the URL to save with animal data
 
 			} catch (uploadError: any) {
 				console.error("Image upload process failed:", uploadError);
@@ -184,6 +184,8 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 			} finally {
 				setIsUploading(false); // Indicate image upload finished
 			}
+		} else if (removeCurrentImage) { // User explicitly removed image
+			final_image_url = null; // Set to null to remove existing image URL
 		}
 		// --- End Image Upload ---
 
@@ -203,9 +205,22 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 			submissionData.date_of_birth = null;
 		}
 
-		submissionData.image_url = image_url; // Add the uploaded image URL
+		submissionData.image_url = final_image_url; // Add the uploaded image URL
 
-		console.log(`Submitting update for animal ID ${animal.id}:`, submissionData);
+		// Create payload matching backend DTO (snake_case)
+		const backendPayload = {
+			animal_type: submissionData.animalType, // Map from form state
+			name: submissionData.name,
+			breed: submissionData.breed,
+			date_of_birth: submissionData.dateOfBirth,
+			gender: submissionData.gender,
+			weight: submissionData.weight,
+			story: submissionData.story,
+			adoption_status: submissionData.adoptionStatus,
+			image_url: submissionData.image_url // Send new, null, or original URL
+		};
+
+		console.log(`Submitting update for animal ID ${animal.id}:`, backendPayload);
 
 		try {
 			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -215,7 +230,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 					'Content-Type': 'application/json',
 					'Authorization': `Bearer ${accessToken}`,
 				},
-				body: JSON.stringify(submissionData),
+				body: JSON.stringify(backendPayload),
 			});
 
 			if (!response.ok) {
