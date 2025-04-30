@@ -287,6 +287,8 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 	const errorTextClasses = "text-red-500 dark:text-red-400 text-xs mt-1";
 	const labelBaseClasses = "block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300";
 
+	// Determine if the save button should be enabled
+	const canSaveChanges = isDirty || selectedFile !== null || removeCurrentImage;
 
 	return (
 		<div className="flex flex-col max-h-[85vh]">
@@ -412,10 +414,14 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 							</button>
 							<button
 								type="submit"
-								disabled={isSubmitting || isUploading || !isDirty} // Use RHF submitting state
+								disabled={isSubmitting || isUploading || !canSaveChanges} // Use RHF submitting state
 								className="bg-sc-asparagus-500 hover:bg-sc-asparagus-600 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50" // Use theme color
 							>
-								{isSubmitting || isUploading ? <LoadingSpinner className="text-center w-5 h-5 mx-auto" /> : 'Save Changes'}
+								{isSubmitting || isUploading ? (
+									<LoadingSpinner className="text-center w-5 h-5 mx-auto" />
+								) : (
+									'Save Changes'
+								)}
 							</button>
 						</div>
 					</form>
