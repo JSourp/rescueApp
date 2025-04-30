@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
-import { LoadingSpinner, SuccessCheckmarkIcon, TrashIcon } from '@/components/Icons';
+import { LoadingSpinner, SuccessCheckmarkIcon } from '@/components/Icons';
 import { getAuth0AccessToken } from '@/utils/auth';
 import { Animal } from '@/types/animal'; // Assuming Animal type includes all fields
 import { format } from 'date-fns';
@@ -18,6 +18,7 @@ interface EditAnimalFormData {
 	weight?: number | string;
 	story?: string;
 	adoption_status: string;
+	image_url?: string | null; // Allow updating image URL later
 }
 
 interface EditAnimalFormProps {
@@ -31,9 +32,9 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 	const [isUploading, setIsUploading] = useState<boolean>(false); // For image upload state
 	const [uploadProgress, setUploadProgress] = useState<number>(0); // Optional progress
 	const [selectedFile, setSelectedFile] = useState<File | null>(null); // State for the selected file
-	const fileInputRef = useRef<HTMLInputElement>(null); // Ref for file input
 	const [previewUrl, setPreviewUrl] = useState<string | null>(animal.image_url || null); // Initialize with existing URL
 	const [removeCurrentImage, setRemoveCurrentImage] = useState<boolean>(false); // Track if user wants to remove existing image
+	const fileInputRef = useRef<HTMLInputElement>(null); // Ref for file input
 
 	const {
 		register,
@@ -52,6 +53,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 			weight: animal.weight ?? '', // Handle null weight
 			story: animal.story || '',
 			adoption_status: animal.adoption_status || '',
+			// image_url: animal.image_url || '', // Handle image separately
 		}
 	});
 
@@ -107,6 +109,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 		if (fileInputRef.current) fileInputRef.current.value = ''; // Clear file input visually
 	}
 
+	// Handle Save/Submit
 	const handleUpdateAnimal: SubmitHandler<EditAnimalFormData> = async (formData) => {
 		setApiError(null);
 		setIsSuccess(false);
@@ -120,9 +123,9 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 		}
 		// --- Got Token ---
 
-		let final_image_url: string | null | undefined = undefined; // Use undefined to signify "no change intended unless explicitly set"
+		let image_url: string | null = null; // URL to save in the DB
 
-		// --- Step 1: Handle Image Upload/Removal ---
+		// --- Step 1: Upload Image if selected ---
 		if (selectedFile) {
 			setIsUploading(true); // Indicate image upload started
 			setUploadProgress(0); // Reset progress
@@ -170,7 +173,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 				}
 
 				console.log("Image uploaded successfully to:", blobUrl);
-				final_image_url = blobUrl; // Set the URL to save with animal data
+				image_url = blobUrl; // Set the URL to save with animal data
 
 			} catch (uploadError: any) {
 				console.error("Image upload process failed:", uploadError);
@@ -181,18 +184,11 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 			} finally {
 				setIsUploading(false); // Indicate image upload finished
 			}
-		} else if (removeCurrentImage) { // User explicitly removed image
-			final_image_url = null; // Set to null to remove existing image URL
-		} else {
-			// No new file selected, not removing image -> keep original URL
-			// We don't need to include image_url in the PUT payload if it didn't change
-			final_image_url = undefined; // Explicitly undefined means no change
 		}
-
-		// --- Step 2: Submit Animal Data ---
-		let submissionData: any = { ...formData };
+		// --- End Image Upload ---
 
 		// Convert weight to number if it's a non-empty string
+		let submissionData: any = { ...formData };
 		if (submissionData.weight && typeof submissionData.weight === 'string') {
 			submissionData.weight = parseFloat(submissionData.weight);
 			if (isNaN(submissionData.weight)) {
@@ -202,35 +198,14 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 		} else if (submissionData.weight === '') {
 			submissionData.weight = null; // Treat empty string as null
 		}
-
 		// Clear date if empty string was somehow submitted
 		if (submissionData.date_of_birth === '') {
 			submissionData.date_of_birth = null;
 		}
 
-		// Only include imageUrl in payload if it actually changed (new upload or removal)
-		if (final_image_url !== undefined) {
-			submissionData.imageUrl = final_image_url;
-		} else {
-			// Remove imageUrl key if no change was intended, backend PUT shouldn't require it
-			delete submissionData.imageUrl;
-		}
+		submissionData.image_url = image_url; // Add the uploaded image URL
 
-		// Map to snake_case expected by backend C# Model or rely on case-insensitive DTO binding
-		const backendPayload = {
-			animal_type: submissionData.animal_type,
-			name: submissionData.name,
-			breed: submissionData.breed,
-			date_of_birth: submissionData.date_of_birth,
-			gender: submissionData.gender,
-			weight: submissionData.weight,
-			story: submissionData.story,
-			adoption_status: submissionData.adoption_status,
-			// Only include image_url if it changed
-			...(final_image_url !== undefined && { image_url: final_image_url })
-		};
-
-		console.log(`Submitting update for animal ID ${animal.id}:`, backendPayload);
+		console.log(`Submitting update for animal ID ${animal.id}:`, submissionData);
 
 		try {
 			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -240,7 +215,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 					'Content-Type': 'application/json',
 					'Authorization': `Bearer ${accessToken}`,
 				},
-				body: JSON.stringify(backendPayload),
+				body: JSON.stringify(submissionData),
 			});
 
 			if (!response.ok) {
@@ -281,14 +256,15 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 		}
 	};
 
+	// Determine if the save button should be enabled
+	const canSaveChanges = isDirty || selectedFile !== null || removeCurrentImage;
+
 	// --- Base styling classes (use same theme as Add form, e.g., Asparagus) ---
 	const inputBaseClasses = "w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-sc-asparagus-100 dark:focus:ring-sc-asparagus-900 focus:border-sc-asparagus-500 dark:focus:border-sc-asparagus-500";
 	const inputBorderClasses = (hasError: boolean) => hasError ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600';
 	const errorTextClasses = "text-red-500 dark:text-red-400 text-xs mt-1";
 	const labelBaseClasses = "block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300";
 
-	// Determine if the save button should be enabled
-	const canSaveChanges = isDirty || selectedFile !== null || removeCurrentImage;
 
 	return (
 		<div className="flex flex-col max-h-[85vh]">
@@ -417,8 +393,8 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 								disabled={isSubmitting || isUploading || !canSaveChanges} // Use RHF submitting state
 								className="bg-sc-asparagus-500 hover:bg-sc-asparagus-600 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50" // Use theme color
 							>
-								{isSubmitting || isUploading ? (
-									<LoadingSpinner className="text-center w-5 h-5 mx-auto" />
+								{isSubmitting ? (
+									<LoadingSpinner className="text-center w-5 h-5 mx-auto" /> // Show spinner
 								) : (
 									'Save Changes'
 								)}
