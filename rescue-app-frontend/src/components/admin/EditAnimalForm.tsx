@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
-import { LoadingSpinner, SuccessCheckmarkIcon } from '@/components/Icons';
+import { LoadingSpinner, SuccessCheckmarkIcon, TrashIcon } from '@/components/Icons';
 import { getAuth0AccessToken } from '@/utils/auth';
 import { Animal } from '@/types/animal'; // Assuming Animal type includes all fields
 import { format } from 'date-fns';
@@ -18,7 +18,6 @@ interface EditAnimalFormData {
 	weight?: number | string;
 	story?: string;
 	adoption_status: string;
-	image_url?: string | null; // Allow updating image URL later
 }
 
 interface EditAnimalFormProps {
@@ -33,6 +32,8 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 	const [uploadProgress, setUploadProgress] = useState<number>(0); // Optional progress
 	const [selectedFile, setSelectedFile] = useState<File | null>(null); // State for the selected file
 	const fileInputRef = useRef<HTMLInputElement>(null); // Ref for file input
+	const [previewUrl, setPreviewUrl] = useState<string | null>(animal.image_url || null); // Initialize with existing URL
+	const [removeCurrentImage, setRemoveCurrentImage] = useState<boolean>(false); // Track if user wants to remove existing image
 
 	const {
 		register,
@@ -51,7 +52,6 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 			weight: animal.weight ?? '', // Handle null weight
 			story: animal.story || '',
 			adoption_status: animal.adoption_status || '',
-			// image_url: animal.image_url || '', // Handle image separately
 		}
 	});
 
@@ -68,21 +68,44 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 				story: animal.story || '',
 				adoption_status: animal.adoption_status || '',
 			});
+			// Reset image state based on incoming animal
+			setSelectedFile(null);
+			setPreviewUrl(animal.image_url || null);
+			setRemoveCurrentImage(false);
+			if (fileInputRef.current) fileInputRef.current.value = ''; // Clear file input visually
 		}
 	}, [animal, reset]);
 
 	const [isSuccess, setIsSuccess] = useState(false);
 	const [submitMessage, setSubmitMessage] = useState("");
 
-	// Handler for file input change
+	// Handler for file input change - generates preview
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		if (event.target.files && event.target.files[0]) {
-			setSelectedFile(event.target.files[0]);
-			console.log("File selected:", event.target.files[0].name);
+			const file = event.target.files[0];
+			setSelectedFile(file);
+			setRemoveCurrentImage(false); // Selecting a new file cancels removal intention
+			// Create preview URL
+			const reader = new FileReader();
+			reader.onloadend = () => {
+				setPreviewUrl(reader.result as string);
+			}
+			reader.readAsDataURL(file);
+			console.log("New file selected:", file.name);
 		} else {
 			setSelectedFile(null);
+			// If they cancelled file selection, revert preview to original image if it exists
+			setPreviewUrl(animal.image_url || null);
 		}
 	};
+
+	// Handler for removing the current/selected image
+	const handleRemoveImage = () => {
+		setSelectedFile(null); // Clear selected file
+		setPreviewUrl(null); // Clear preview
+		setRemoveCurrentImage(true); // Mark intent to remove existing image on save
+		if (fileInputRef.current) fileInputRef.current.value = ''; // Clear file input visually
+	}
 
 	const handleUpdateAnimal: SubmitHandler<EditAnimalFormData> = async (formData) => {
 		setApiError(null);
@@ -97,9 +120,9 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 		}
 		// --- Got Token ---
 
-		let image_url: string | null = null; // URL to save in the DB
+		let final_image_url: string | null | undefined = undefined; // Use undefined to signify "no change intended unless explicitly set"
 
-		// --- Step 1: Upload Image if selected ---
+		// --- Step 1: Handle Image Upload/Removal ---
 		if (selectedFile) {
 			setIsUploading(true); // Indicate image upload started
 			setUploadProgress(0); // Reset progress
@@ -147,7 +170,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 				}
 
 				console.log("Image uploaded successfully to:", blobUrl);
-				image_url = blobUrl; // Set the URL to save with animal data
+				final_image_url = blobUrl; // Set the URL to save with animal data
 
 			} catch (uploadError: any) {
 				console.error("Image upload process failed:", uploadError);
@@ -158,11 +181,18 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 			} finally {
 				setIsUploading(false); // Indicate image upload finished
 			}
+		} else if (removeCurrentImage) { // User explicitly removed image
+			final_image_url = null; // Set to null to remove existing image URL
+		} else {
+			// No new file selected, not removing image -> keep original URL
+			// We don't need to include image_url in the PUT payload if it didn't change
+			final_image_url = undefined; // Explicitly undefined means no change
 		}
-		// --- End Image Upload ---
+
+		// --- Step 2: Submit Animal Data ---
+		let submissionData: any = { ...formData };
 
 		// Convert weight to number if it's a non-empty string
-		let submissionData: any = { ...formData };
 		if (submissionData.weight && typeof submissionData.weight === 'string') {
 			submissionData.weight = parseFloat(submissionData.weight);
 			if (isNaN(submissionData.weight)) {
@@ -172,14 +202,35 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 		} else if (submissionData.weight === '') {
 			submissionData.weight = null; // Treat empty string as null
 		}
+
 		// Clear date if empty string was somehow submitted
 		if (submissionData.date_of_birth === '') {
 			submissionData.date_of_birth = null;
 		}
 
-		submissionData.image_url = image_url; // Add the uploaded image URL
+		// Only include imageUrl in payload if it actually changed (new upload or removal)
+		if (final_image_url !== undefined) {
+			submissionData.imageUrl = final_image_url;
+		} else {
+			// Remove imageUrl key if no change was intended, backend PUT shouldn't require it
+			delete submissionData.imageUrl;
+		}
 
-		console.log(`Submitting update for animal ID ${animal.id}:`, submissionData);
+		// Map to snake_case expected by backend C# Model or rely on case-insensitive DTO binding
+		const backendPayload = {
+			animal_type: submissionData.animal_type,
+			name: submissionData.name,
+			breed: submissionData.breed,
+			date_of_birth: submissionData.date_of_birth,
+			gender: submissionData.gender,
+			weight: submissionData.weight,
+			story: submissionData.story,
+			adoption_status: submissionData.adoption_status,
+			// Only include image_url if it changed
+			...(final_image_url !== undefined && { image_url: final_image_url })
+		};
+
+		console.log(`Submitting update for animal ID ${animal.id}:`, backendPayload);
 
 		try {
 			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -189,7 +240,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 					'Content-Type': 'application/json',
 					'Authorization': `Bearer ${accessToken}`,
 				},
-				body: JSON.stringify(submissionData),
+				body: JSON.stringify(backendPayload),
 			});
 
 			if (!response.ok) {
@@ -296,32 +347,37 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 								{errors.weight && <p className={errorTextClasses}>{errors.weight.message}</p>}
 							</div>
 
-							{/* Image Upload Field (Optional) */}
+							{/* --- Image Upload/Preview --- */}
 							<div>
 								<label htmlFor="animalImage" className={labelBaseClasses}>Animal Image</label>
+								{/* Show current or new preview */}
+								{previewUrl && !removeCurrentImage && (
+									<div className="mt-2 mb-2">
+										<img src={previewUrl} alt="Current animal image" className="h-32 w-32 object-cover rounded shadow" />
+									</div>
+								)}
+								{/* Show message if image marked for removal */}
+								{removeCurrentImage && !selectedFile && (
+									<p className="text-sm text-gray-500 dark:text-gray-400 italic mt-1 mb-2">Current image will be removed on save.</p>
+								)}
+
 								<input
 									type="file"
 									id="animalImage"
-									accept="image/png, image/jpeg, image/webp, image/gif" // Specify accepted types
-									ref={fileInputRef} // Optional ref if needed
+									accept="image/png, image/jpeg, image/webp, image/gif"
+									ref={fileInputRef}
 									onChange={handleFileChange}
-									className={`block w-full text-sm text-slate-500 dark:text-slate-400
-										file:mr-4 file:py-2 file:px-4
-										file:rounded-full file:border-0
-										file:text-sm file:font-semibold
-										file:bg-sc-asparagus-50 dark:file:bg-sc-asparagus-900/30
-										file:text-sc-asparagus-700 dark:file:text-sc-asparagus-200
-										hover:file:bg-sc-asparagus-100 dark:hover:file:bg-sc-asparagus-900/50`}
+									className={`block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-sc-asparagus-50 dark:file:bg-sc-asparagus-900/30 file:text-sc-asparagus-700 dark:file:text-sc-asparagus-200 hover:file:bg-sc-asparagus-100 dark:hover:file:bg-sc-asparagus-900/50`}
 								/>
-								{/* Optional: Show image preview */}
-								{selectedFile && (
-									<div className="mt-2">
-										<img src={URL.createObjectURL(selectedFile)} alt="Preview" className="h-20 w-20 object-cover rounded" />
-										<button type="button" onClick={() => { setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }} className="text-xs text-red-600 hover:underline ml-2">Remove</button>
-									</div>
+								{/* Button to explicitly remove image */}
+								{previewUrl && !removeCurrentImage && (
+									<button type="button" onClick={handleRemoveImage} className="mt-1 text-xs text-red-600 hover:underline"> Remove Current Image </button>
 								)}
-								{/* Optional: Show Upload Progress */}
-								{isUploading && <p className="text-sm text-blue-600 mt-1">Uploading image... {uploadProgress > 0 ? `${uploadProgress}%` : ''}</p>}
+								{/* Button to cancel newly selected file */}
+								{selectedFile && (
+									<button type="button" onClick={handleRemoveImage} className="mt-1 text-xs text-red-600 hover:underline"> Cancel Image Change </button>
+								)}
+								{isUploading && <p className="text-sm text-blue-600 mt-1">Uploading image...</p>}
 							</div>
 
 							{/* Story (Optional) */}
@@ -359,11 +415,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 								disabled={isSubmitting || isUploading || !isDirty} // Use RHF submitting state
 								className="bg-sc-asparagus-500 hover:bg-sc-asparagus-600 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50" // Use theme color
 							>
-								{isSubmitting ? (
-									<LoadingSpinner className="text-center w-5 h-5 mx-auto" /> // Show spinner
-								) : (
-									'Save Changes'
-								)}
+								{isSubmitting || isUploading ? <LoadingSpinner className="text-center w-5 h-5 mx-auto" /> : 'Save Changes'}
 							</button>
 						</div>
 					</form>
