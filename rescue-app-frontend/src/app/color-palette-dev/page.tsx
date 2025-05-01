@@ -90,7 +90,7 @@ export default function ColorPaletteDevPage() {
 					<Disclosure key={colorName} as="div" className="bg-white dark:bg-gray-800 shadow rounded-lg">
 						{({ open }) => (
 							<>
-								<DisclosureButton className="flex justify-between w-full px-4 py-3 text-lg font-medium text-left text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring focus-visible:ring-indigo-500 focus-visible:ring-opacity-75 rounded-lg">
+								<DisclosureButton className="flex justify-between w-full px-4 py-3 text-lg font-medium text-left text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring focus-visible:ring-text-link focus-visible:ring-opacity-75 rounded-lg">
 									<span className="capitalize">{colorName.replace('sc-', 'SC ')}</span>
 									<ChevronUpIcon
 										className={`${open ? 'rotate-180 transform' : ''

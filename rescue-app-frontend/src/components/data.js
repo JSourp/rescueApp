@@ -72,22 +72,22 @@ export const fetchSpotlights = async () => {
           {
             title: "Breed:",
             desc: animal.breed,
-            icon: <ArrowRightIcon />,
+            icon: <ArrowRightIcon/>,
           },
           {
             title: "Age:",
             desc: calculateAge(animal.date_of_birth),
-            icon: <ArrowRightIcon />,
+            icon: <ArrowRightIcon/>,
           },
           {
             title: "Gender:",
             desc: animal.gender,
-            icon: <ArrowRightIcon />,
+            icon: <ArrowRightIcon/>,
           },
           {
             title: "Time with us:",
             desc: timeWithUs, // Add "Time with us" logic here
-            icon: <ArrowRightIcon />,
+            icon: <ArrowRightIcon/>,
           },
         ],
       };

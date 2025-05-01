@@ -188,7 +188,7 @@ export default function GraduatesPage() {
 						{graduates.map((graduate, index) => (
 							<div
 								key={graduate.id}
-								className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden"
+								className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 border border-gray-300 dark:border-transparent"
 							>
 								<div className="text-center">
 									<h2 className="text-xl font-semibold py-2 text-gray-900 dark:text-gray-100 truncate px-2">
@@ -203,11 +203,11 @@ export default function GraduatesPage() {
 									className="w-full h-64 object-cover"
 									priority={index < 4}
 								/>
-								<div className="p-4 text-center min-h-[50px]">
+								{/*<div className="p-4 text-center min-h-[50px]">
 									<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
 										{graduate.breed} ({graduate.animal_type})
 									</p>
-								</div>
+								</div>*/}
 							</div>
 						))}
 					</div>
@@ -229,7 +229,7 @@ export default function GraduatesPage() {
 					<div className="flex flex-col sm:flex-row justify-center gap-4">
 						<Link
 							href="/available-animals"
-							className="inline-block bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-5 rounded-md transition duration-300 text-base shadow-md"
+							className="inline-block bg-primary hover:bg-primary-800 text-white font-bold py-2 px-5 rounded-md transition duration-300 text-base shadow-md"
 						>
 							See Available Animals
 						</Link>

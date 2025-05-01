@@ -24,72 +24,76 @@ export default function GetInvolvedPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center">
         {/* Adoption Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xl">
-          <h2 className="text-2xl font-semibold mb-4 text-indigo-600 dark:text-indigo-400">Adopt a Friend</h2>
-          <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xl border border-gray-300 dark:border-transparent">
+          <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
+            Adopt a Friend
+          </h2>
+          <p className="text-text-base dark:text-text-light mb-4 flex-grow">
             Ready to open your heart and home? Adopting a rescued animal provides a second chance at a happy life. Browse our available animals and submit an application to start the process.
           </p>
           <button
             onClick={() => setShowAdoptForm(true)}
-            className="bg-blue-500 hover:bg-blue-700 mt-auto w-full text-white font-bold py-2 px-4 rounded transition duration-300"
-          >
+            className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow mt-auto w-full py-2 px-4">
             Apply to Adopt
           </button>
         </div>
 
         {/* Fostering Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xl">
-          <h2 className="text-2xl font-semibold mb-4 text-teal-600 dark:text-teal-400">Foster an Animal</h2>
-          <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xl border border-gray-300 dark:border-transparent">
+          <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
+            Foster an Animal
+          </h2>
+          <p className="text-text-base dark:text-text-light mb-4 flex-grow">
             Foster homes provide temporary care for animals before they find their forever families. By fostering, you help us save more lives and provide animals with a loving home environment while they wait.
           </p>
           <button
             onClick={() => setShowFosterForm(true)}
-            className="mt-auto w-full bg-teal-500 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded transition duration-300"
-          >
+            className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow mt-auto w-full py-2 px-4">
             Apply to Foster
           </button>
         </div>
 
         {/* Volunteering Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xl">
-          <h2 className="text-2xl font-semibold mb-4 text-orange-600 dark:text-orange-400">Volunteer Your Time</h2>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xl border border-gray-300 dark:border-transparent">
+          <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
+            Volunteer Your Time
+          </h2>
           <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
             Our volunteers are the backbone of our rescue! From dog walking and cat socializing to helping at events or with administrative tasks, your time makes a huge difference. Let us know how you&apos;d like to help.
           </p>
           <button
             onClick={() => setShowVolunteerForm(true)}
-            className="mt-auto w-full bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded transition duration-300"
-          >
+            className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow mt-auto w-full py-2 px-4">
             Apply to Volunteer
           </button>
         </div>
 
         {/* Partner/Sponsor Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xl">
-          <h2 className="text-2xl font-semibold mb-4 text-purple-600 dark:text-purple-400">Partner or Sponsor</h2>
-
-          <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xl border border-gray-300 dark:border-transparent">
+          <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
+            Partner or Sponsor
+          </h2>
+          <p className="text-text-base dark:text-text-light mb-4 flex-grow">
             As a new rescue, community partnerships and sponsorships are vital. Support from local businesses and individuals helps us provide essential care, supplies, and facilities. Contact us to learn about opportunities.
           </p>
           <button
             onClick={() => setShowPartnershipSponsorshipForm(true)}
-            className="mt-auto w-full bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition duration-300"
-          >
+            className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow mt-auto w-full py-2 px-4">
             Inquire About Partnership/Sponsorship
           </button>
         </div>
 
         {/* Donations Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col justify-self-center md:col-span-2 max-w-xl">
-          <h2 className="text-2xl font-semibold mb-4 text-green-600 dark:text-green-400">Make a Donation</h2>
-          <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col justify-self-center md:col-span-2 max-w-xl border border-gray-300 dark:border-transparent">
+          <h2 className="text-2xl font-semibold mb-4 text-accent">
+            Make a Donation
+          </h2>
+          <p className="text-text-base dark:text-text-light mb-4 flex-grow">
             Your donations help us provide food, medical care, and shelter for rescued animals. Every dollar counts and goes directly to the care of our animals. Thank you for your support!
           </p>
           <button
             onClick={() => window.location.href = '/donate'}
-            className="mt-auto w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition duration-300"
-          >
+            className="text-text-on-accent bg-accent transition duration-300 rounded-md shadow mt-auto w-full py-2 px-4">
             Donate Now
           </button>
         </div>
@@ -97,9 +101,9 @@ export default function GetInvolvedPage() {
 
       {/* --- Modals for Forms --- */}
       {showAdoptForm && (
-          <Modal onClose={() => setShowAdoptForm(false)}>
-            <AdoptionForm onClose={() => setShowAdoptForm(false)} />
-          </Modal>
+        <Modal onClose={() => setShowAdoptForm(false)}>
+          <AdoptionForm onClose={() => setShowAdoptForm(false)} />
+        </Modal>
       )}
 
       {showFosterForm && (

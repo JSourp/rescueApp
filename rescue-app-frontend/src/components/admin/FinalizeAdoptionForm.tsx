@@ -170,8 +170,8 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 		}
 	};
 
-	// --- Base styling classes (using Indigo theme for Adoption) ---
-	const inputBaseClasses = "w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-indigo-100 dark:focus:ring-indigo-900 focus:border-indigo-500 dark:focus:border-indigo-500";
+	// --- Base styling classes ---
+	const inputBaseClasses = "w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-gray-100 dark:focus:ring-gray-900 focus:border-gray-500 dark:focus:border-gray-500";
 	const inputBorderClasses = (hasError: boolean) => hasError ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600';
 	const errorTextClasses = "text-red-500 dark:text-red-400 text-xs mt-1";
 	const labelBaseClasses = "block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300";
@@ -180,7 +180,7 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 	return (
 		<div className="flex flex-col max-h-[85vh]">
 			{/* Header */}
-			<div className="flex-shrink-0 p-5 bg-indigo-600">
+			<div className="flex-shrink-0 p-5 bg-gray-600">
 				<h3 className="text-lg text-white text-center font-semibold">
 					Finalize Adoption for {animal.name}
 				</h3>

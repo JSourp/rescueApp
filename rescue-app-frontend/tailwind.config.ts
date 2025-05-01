@@ -132,7 +132,74 @@ const config: Config = {
           '800': '#292524', // dark
           '900': '#1c1917',
           '950': '#0c0a09',
-        }
+        },
+        // --- ADD NEW SEMANTIC DEFINITIONS ---
+        primary: { // Based on sc-asparagus
+          DEFAULT: '#53723e', // sc-asparagus-600
+          '50': '#f2f7ee',
+          '100': '#e3ecdb',
+          '200': '#cadbbb',
+          '300': '#a9c492', // sc-asparagus-300
+          '400': '#80a663',
+          '500': '#6c9151',
+          '600': '#53723e', // Default
+          '700': '#415932',
+          '800': '#37482c',
+          '900': '#303f28',
+          '950': '#172112',
+        },
+        secondary: { // Based on sc-sandal
+          DEFAULT: '#a68863', // sc-sandal-400
+          '50': '#f6f5f0',
+          '100': '#e9e3d8',
+          '200': '#d5c9b3',
+          '300': '#bca788',
+          '400': '#a68863', // Default
+          '500': '#997a59',
+          '600': '#83634b',
+          '700': '#6a4d3e',
+          '800': '#5a4239',
+          '900': '#4f3a34',
+          '950': '#2d1f1b',
+        },
+        accent: { // Based on sc-pumpkin
+          DEFAULT: '#f97316', // sc-pumpkin-500 (or use 400: #fb8a3c)
+          '50': '#fff4ed',
+          '100': '#ffe6d5',
+          '200': '#feccaa',
+          '300': '#fdac74',
+          '400': '#fb8a3c', // sc-pumpkin-400
+          '500': '#f97316', // Default
+          '600': '#ea670c',
+          '700': '#c2570c',
+          '800': '#9a4a12',
+          '900': '#7c3d12',
+          '950': '#432007',
+        },
+        // Optional: Define alternative accent if needed
+        'accent-alt': { // Based on sc-trendy-pink
+          DEFAULT: '#a263a6', // sc-trendy-pink-600
+          // ... fill in other shades ...
+        },
+        text: { // Define text colors based on neutrals, sand, roast
+          DEFAULT: '#292524', // Example: neutral-800 for base body text
+          'base': '#292524', // Explicit base
+          'muted': '#57534e', // Example: neutral-600
+          'heading': '#1c1917', // Example: neutral-900 or sc-dk-roast-900
+          'on-primary': '#FFFFFF', // White text on primary buttons (asparagus-600)
+          'on-secondary': '#FFFFFF', // White text might work on secondary (sandal-400/500) - check contrast! Or use dark text.
+          'on-accent': '#FFFFFF', // White text on accent (pumpkin-500)
+          'link': '#4f46e5', // Example: Default Indigo for links, or use primary/accent
+          'light': '#f5f5f4', // Example: neutral-100 for text on dark backgrounds
+        },
+        // Backgrounds could use neutrals or shades of primary/secondary/accent
+        background: {
+          DEFAULT: '#FFFFFF', // Or neutral-50
+          'base': '#FFFFFF',
+          'alt': '#f5f5f4', // neutral-100
+          'primary-light': '#f2f7ee', // primary-50
+          'secondary-light': '#f6f5f0', // secondary-50
+        },
       },
     },
     fontFamily: {

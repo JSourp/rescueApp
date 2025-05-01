@@ -210,7 +210,7 @@ export default function AvailableAnimalsPage() {
               animals.map((animal) => (
                 <div
                   key={animal.id}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105" // Added hover effect
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 border border-gray-300 dark:border-transparent" // Added hover effect
                 >
                   <Link href={`/animal/${animal.id}`} className="block"> {/* Make entire card clickable */}
                     <div className="text-center">
@@ -226,12 +226,12 @@ export default function AvailableAnimalsPage() {
                       className="w-full h-64 object-cover" // Ensure consistent image size
                       priority={animals.indexOf(animal) < 4} // Prioritize loading images for first few animals
                     />
+                    <div className="p-4 text-center">
+                      <p className="text-sm text-stone-950 dark:text-stone-200">{animal.breed} ({animal.animal_type})</p>
+                      <p className="text-sm text-stone-950 dark:text-stone-200">{animal.gender}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">{animal.adoption_status}</p>
+                    </div>
                   </Link>
-                  <div className="p-4 text-center">
-                    <p className="text-sm text-stone-950 dark:text-stone-200">{animal.breed} ({animal.animal_type})</p>
-                    <p className="text-sm text-stone-950 dark:text-stone-200">{animal.gender}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">{animal.adoption_status}</p>
-                  </div>
                 </div>
               ))
             ) : (
@@ -248,7 +248,7 @@ export default function AvailableAnimalsPage() {
                       setBreedFilter('');
                       setSortBy('longest'); // Reset to default sort
                     }}
-                    className="mt-4 px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline focus:outline-none"
+                    className="mt-4 px-4 py-2 text-sm font-medium text-text-link dark:text-text-link hover:underline focus:outline-none"
                   >
                     Reset Filters
                   </button>

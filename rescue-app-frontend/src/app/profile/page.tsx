@@ -91,7 +91,7 @@ export default async function ProfilePage() {
 				<h1 className="text-3xl font-bold mb-4">Profile Access Error</h1>
 				<p className="text-red-500">Could not retrieve necessary credentials (Access Token) to load your profile.</p>
 				<p className="text-sm text-gray-500 mt-2">This might be due to application configuration issues. Please contact support.</p>
-				<a href="/api/auth/logout" className="mt-4 inline-block text-indigo-600 hover:underline">Logout</a>
+				<a href="/api/auth/logout" className="mt-4 inline-block text-text-link hover:underline">Logout</a>
 			</Container>
 		);
 	}
@@ -108,7 +108,7 @@ export default async function ProfilePage() {
 				<p className="text-red-500">Could not load your profile data from our system.</p>
 				<p className="text-sm text-gray-500 mt-2">Your login succeeded, but we encountered an issue retrieving your details. Please try again later or contact support.</p>
 				<p className="text-xs mt-4">Auth ID: {auth0User.sub}</p>
-				<a href="/api/auth/logout" className="mt-4 inline-block text-indigo-600 hover:underline">Logout</a>
+				<a href="/api/auth/logout" className="mt-4 inline-block text-text-link hover:underline">Logout</a>
 			</Container>
 		);
 	}

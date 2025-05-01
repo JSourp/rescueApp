@@ -181,17 +181,21 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
   };
 
   // Input/Select/Textarea base classes for consistency
-  const inputBaseClasses = "w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-indigo-100 dark:focus:ring-indigo-900 focus:border-indigo-500 dark:focus:border-indigo-500";
+  const inputBaseClasses = "w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-gray-100 dark:focus:ring-gray-900 focus:border-gray-500 dark:focus:border-gray-500";
   const inputBorderClasses = (hasError: boolean) => hasError ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600';
   const errorTextClasses = "text-red-500 dark:text-red-400 text-xs mt-1";
   const labelBaseClasses = "block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300";
   const sectionTitleClasses = "text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200 flex items-center";
   const subSectionTitleClasses = "text-md font-medium mt-4 mb-2 text-gray-700 dark:text-gray-300 flex items-center";
+  const radioLabelClasses = "ml-2 text-sm text-gray-700 dark:text-gray-300";
+  const radioInputClasses = "form-radio h-4 w-4 text-gray-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600";
+  const checkboxLabelClasses = "ml-2 text-sm text-gray-700 dark:text-gray-300";
+  const checkboxInputClasses = "form-checkbox h-4 w-4 text-gray-600 border-gray-300 dark:border-gray-600 rounded focus:ring-gray-500 dark:bg-gray-700";
 
   return (
     <div className="flex flex-col max-h-[85vh]">
       {/* Header */}
-      <div className="flex-shrink-0 p-5 bg-indigo-600">
+      <div className="flex-shrink-0 p-5 bg-gray-500 dark:bg-gray-600">
         <h3 className="text-lg text-white text-center font-semibold">
           {animalName ? `Adoption Application for ${animalName}` : 'Adoption Application'}
         </h3>
@@ -350,12 +354,12 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
               <label className={labelBaseClasses}>Do you Rent or Own? *</label>
               <div className="flex flex-wrap gap-x-4 gap-y-2 mt-1">
                 <label className="inline-flex items-center">
-                  <input type="radio" value="Rent" {...register("rent_or_own", { required: "Please select Rent or Own" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Rent</span>
+                  <input type="radio" value="Rent" {...register("rent_or_own", { required: "Please select Rent or Own" })} className={radioInputClasses} />
+                  <span className={radioLabelClasses}>Rent</span>
                 </label>
                 <label className="inline-flex items-center">
-                  <input type="radio" value="Own" {...register("rent_or_own", { required: "Please select Rent or Own" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Own</span>
+                  <input type="radio" value="Own" {...register("rent_or_own", { required: "Please select Rent or Own" })} className={radioInputClasses} />
+                  <span className={radioLabelClasses}>Own</span>
                 </label>
               </div>
               {errors.rent_or_own && <p className={errorTextClasses}>{errors.rent_or_own.message}</p>}
@@ -364,8 +368,8 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
             {rentOrOwnValue === 'Rent' && (
               <div className="mb-4 p-3 bg-blue-50 dark:bg-gray-700 border-l-4 border-blue-500 dark:border-blue-400 rounded-r-md">
                 <label className={`${labelBaseClasses} flex items-center cursor-pointer`}>
-                  <input type="checkbox" id="landlord_permission" {...register("landlord_permission", { required: "Landlord permission is required if renting" })} className={`form-checkbox h-5 w-5 text-indigo-600 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded mr-2 ${errors.landlord_permission ? 'border-red-500 dark:border-red-600' : ''}`} />
-                  <span className="text-sm text-gray-800 dark:text-gray-200">I confirm I have my landlord&apos;s permission for a pet of this type/size.</span>
+                  <input type="checkbox" id="landlord_permission" {...register("landlord_permission", { required: "Landlord permission is required if renting" })} className={`form-checkbox h-5 w-5 text-gray-600 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded mr-2 ${errors.landlord_permission ? 'border-red-500 dark:border-red-600' : ''}`} />
+                  <span className={checkboxLabelClasses}>I confirm I have my landlord&apos;s permission for a pet of this type/size.</span>
                 </label>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">We may need to verify this with your landlord later in the process.</p>
                 {errors.landlord_permission && <p className={errorTextClasses}>{errors.landlord_permission.message}</p>}
@@ -400,16 +404,16 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
               <label className={labelBaseClasses}>Does anyone in the home have known pet allergies? *</label>
               <div className="flex flex-wrap gap-x-4 gap-y-2 mt-1">
                 <label className="inline-flex items-center">
-                  <input type="radio" value="Yes" {...register("has_allergies", { required: "Please select an option" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Yes</span>
+                  <input type="radio" value="Yes" {...register("has_allergies", { required: "Please select an option" })} className={radioInputClasses} />
+                  <span className={radioLabelClasses}>Yes</span>
                 </label>
                 <label className="inline-flex items-center">
-                  <input type="radio" value="No" {...register("has_allergies", { required: "Please select an option" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">No</span>
+                  <input type="radio" value="No" {...register("has_allergies", { required: "Please select an option" })} className={radioInputClasses} />
+                  <span className={radioLabelClasses}>No</span>
                 </label>
                 <label className="inline-flex items-center">
-                  <input type="radio" value="Unsure" {...register("has_allergies", { required: "Please select an option" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Unsure</span>
+                  <input type="radio" value="Unsure" {...register("has_allergies", { required: "Please select an option" })} className={radioInputClasses} />
+                  <span className={radioLabelClasses}>Unsure</span>
                 </label>
               </div>
               {errors.has_allergies && <p className={errorTextClasses}>{errors.has_allergies.message}</p>}
@@ -419,12 +423,12 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
               <label className={labelBaseClasses}>Is everyone in the household aware & supportive of adoption? *</label>
               <div className="flex flex-wrap gap-x-4 gap-y-2 mt-1">
                 <label className="inline-flex items-center">
-                  <input type="radio" value="Yes" {...register("household_aware", { required: "Please confirm household agreement" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Yes</span>
+                  <input type="radio" value="Yes" {...register("household_aware", { required: "Please confirm household agreement" })} className={radioInputClasses} />
+                  <span className={radioLabelClasses}>Yes</span>
                 </label>
                 <label className="inline-flex items-center">
-                  <input type="radio" value="No" {...register("household_aware", { required: "Please confirm household agreement" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">No</span>
+                  <input type="radio" value="No" {...register("household_aware", { required: "Please confirm household agreement" })} className={radioInputClasses} />
+                  <span className={radioLabelClasses}>No</span>
                 </label>
               </div>
               {errors.household_aware && <p className={errorTextClasses}>{errors.household_aware.message}</p>}
@@ -442,12 +446,12 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
               <label className={labelBaseClasses}>Do you currently have other pets? *</label>
               <div className="flex flex-wrap gap-x-4 gap-y-2 mt-1">
                 <label className="inline-flex items-center">
-                  <input type="radio" value="Yes" {...register("has_current_pets", { required: "Please answer about current pets" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Yes</span>
+                  <input type="radio" value="Yes" {...register("has_current_pets", { required: "Please answer about current pets" })} className={radioInputClasses} />
+                  <span className={radioLabelClasses}>Yes</span>
                 </label>
                 <label className="inline-flex items-center">
-                  <input type="radio" value="No" {...register("has_current_pets", { required: "Please answer about current pets" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">No</span>
+                  <input type="radio" value="No" {...register("has_current_pets", { required: "Please answer about current pets" })} className={radioInputClasses} />
+                  <span className={radioLabelClasses}>No</span>
                 </label>
               </div>
               {errors.has_current_pets && <p className={errorTextClasses}>{errors.has_current_pets.message}</p>}
@@ -463,12 +467,12 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
                   <label className={labelBaseClasses}>Are your current pets UTD on vaccinations? *</label>
                   <div className="flex flex-wrap gap-x-4 gap-y-2 mt-1">
                     <label className="inline-flex items-center">
-                      <input type="radio" value="Yes" {...register("current_pets_vaccinations", { required: "Vaccination status required" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
-                      <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Yes</span>
+                      <input type="radio" value="Yes" {...register("current_pets_vaccinations", { required: "Vaccination status required" })} className={radioInputClasses} />
+                      <span className={radioLabelClasses}>Yes</span>
                     </label>
                     <label className="inline-flex items-center">
-                      <input type="radio" value="No" {...register("current_pets_vaccinations", { required: "Vaccination status required" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
-                      <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">No</span>
+                      <input type="radio" value="No" {...register("current_pets_vaccinations", { required: "Vaccination status required" })} className={radioInputClasses} />
+                      <span className={radioLabelClasses}>No</span>
                     </label>
                   </div>
                   {errors.current_pets_vaccinations && <p className={errorTextClasses}>{errors.current_pets_vaccinations.message}</p>}
@@ -477,16 +481,16 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
                   <label className={labelBaseClasses}>Are your current pets spayed/neutered? *</label>
                   <div className="flex flex-wrap gap-x-4 gap-y-2 mt-1">
                     <label className="inline-flex items-center">
-                      <input type="radio" value="Yes" {...register("current_pets_spayed_neutered", { required: "Spay/neuter status required" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
-                      <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Yes, all</span>
+                      <input type="radio" value="Yes" {...register("current_pets_spayed_neutered", { required: "Spay/neuter status required" })} className={radioInputClasses} />
+                      <span className={radioLabelClasses}>Yes, all</span>
                     </label>
                     <label className="inline-flex items-center">
-                      <input type="radio" value="Some" {...register("current_pets_spayed_neutered", { required: "Spay/neuter status required" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
-                      <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Some are</span>
+                      <input type="radio" value="Some" {...register("current_pets_spayed_neutered", { required: "Spay/neuter status required" })} className={radioInputClasses} />
+                      <span className={radioLabelClasses}>Some are</span>
                     </label>
                     <label className="inline-flex items-center">
-                      <input type="radio" value="No" {...register("current_pets_spayed_neutered", { required: "Spay/neuter status required" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
-                      <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">No</span>
+                      <input type="radio" value="No" {...register("current_pets_spayed_neutered", { required: "Spay/neuter status required" })} className={radioInputClasses} />
+                      <span className={radioLabelClasses}>No</span>
                     </label>
                   </div>
                   {errors.current_pets_spayed_neutered && <p className={errorTextClasses}>{errors.current_pets_spayed_neutered.message}</p>}
@@ -499,12 +503,12 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
                 <label className={labelBaseClasses}>Have you owned pets before? *</label>
                 <div className="flex flex-wrap gap-x-4 gap-y-2 mt-1">
                   <label className="inline-flex items-center">
-                    <input type="radio" value="Yes" {...register("has_previous_pets", { required: "Please answer about previous pets" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
-                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Yes</span>
+                    <input type="radio" value="Yes" {...register("has_previous_pets", { required: "Please answer about previous pets" })} className={radioInputClasses} />
+                    <span className={radioLabelClasses}>Yes</span>
                   </label>
                   <label className="inline-flex items-center">
-                    <input type="radio" value="No" {...register("has_previous_pets", { required: "Please answer about previous pets" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
-                    <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">No</span>
+                    <input type="radio" value="No" {...register("has_previous_pets", { required: "Please answer about previous pets" })} className={radioInputClasses} />
+                    <span className={radioLabelClasses}>No</span>
                   </label>
                 </div>
                 {errors.has_previous_pets && <p className={errorTextClasses}>{errors.has_previous_pets.message}</p>}
@@ -590,12 +594,12 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">(Includes food, supplies, routine & emergency vet care, etc.)</p>
               <div className="flex flex-wrap gap-x-4 gap-y-2 mt-1">
                 <label className="inline-flex items-center">
-                  <input type="radio" value="Yes" {...register("prepared_for_costs", { required: "Please confirm financial preparedness" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Yes</span>
+                  <input type="radio" value="Yes" {...register("prepared_for_costs", { required: "Please confirm financial preparedness" })} className={radioInputClasses} />
+                  <span className={radioLabelClasses}>Yes</span>
                 </label>
                 <label className="inline-flex items-center">
-                  <input type="radio" value="No" {...register("prepared_for_costs", { required: "Please confirm financial preparedness" })} className="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600" />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">No</span>
+                  <input type="radio" value="No" {...register("prepared_for_costs", { required: "Please confirm financial preparedness" })} className={radioInputClasses} />
+                  <span className={radioLabelClasses}>No</span>
                 </label>
               </div>
               {errors.prepared_for_costs && <p className={errorTextClasses}>{errors.prepared_for_costs.message}</p>}
@@ -619,8 +623,7 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-4 py-2 text-white bg-indigo-500 rounded-md hover:bg-indigo-600 focus:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 disabled:opacity-50"
-              >
+                className="px-4 py-2 text-white bg-primary rounded-md hover:bg-primary-700 focus:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800 disabled:opacity-50">
                 {isSubmitting ? "Submitting..." : "Submit Application"}
               </button>
             </div>
@@ -631,7 +634,7 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
               <SuccessCheckmarkIcon />
             <h3 className="py-5 text-xl text-green-600 dark:text-green-400">Application Submitted!</h3>
             <p className="text-gray-700 dark:text-gray-300 md:px-3">{submitMessage}</p>
-            <button type="button" className="mt-6 text-indigo-600 dark:text-indigo-400 hover:underline focus:outline-none" onClick={onClose}>Close</button>
+              <button type="button" className="mt-6 text-gray-600 dark:text-gray-400 hover:underline focus:outline-none" onClick={onClose}>Close</button>
           </div>
         )}
         {/* Display submission error message if not successful */}

@@ -64,12 +64,19 @@ export function PopupWidget() {
     }
   };
 
+  // Input/Select/Textarea base classes for consistency
+  const inputBaseClasses = "w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-gray-100 dark:focus:ring-gray-900 focus:border-gray-500 dark:focus:border-gray-500";
+  const inputBorderClasses = (hasError: boolean) => hasError ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600';
+  const errorTextClasses = "text-red-500 dark:text-red-400 text-xs mt-1";
+  const labelBaseClasses = "block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300";
+  const sectionTitleClasses = "text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200 flex items-center";
+
   return (
     <div>
       <Disclosure>
         {({ open }) => (
           <>
-            <DisclosureButton className="fixed z-40 flex items-center justify-center transition duration-300 bg-indigo-500 rounded-full shadow-lg right-5 bottom-5 w-14 h-14 focus:outline-none hover:bg-indigo-600 focus:bg-indigo-600 ease">
+            <DisclosureButton className="fixed z-40 flex items-center justify-center transition duration-300 bg-primary hover:bg-primary-700 focus:bg-primary-700 rounded-full shadow-lg right-5 bottom-5 w-14 h-14 focus:outline-none ease">
               <span className="sr-only">Open Contact form Widget</span>
               <Transition
                 show={!open}
@@ -128,184 +135,84 @@ export function PopupWidget() {
               leaveTo="opacity-0 translate-y-5"
               as="div"
             >
-              <DisclosurePanel className="flex flex-col overflow-hidden left-0 h-full w-full sm:w-[350px] min-h-[250px] sm:h-[600px] border border-gray-300 dark:border-gray-800 bg-white shadow-2xl rounded-md sm:max-h-[calc(100vh-120px)]">
-                <div className="flex flex-col items-center justify-center h-32 p-5 bg-indigo-600">
-                  <h3 className="text-lg text-white">How can we help?</h3>
-                  {/* <p className="text-white opacity-50">
-                    We usually respond in a few hours
-                  </p> */}
+              <DisclosurePanel className="bg-white dark:bg-gray-800 flex flex-col overflow-hidden left-0 h-full w-full sm:w-[350px] min-h-[250px] sm:h-[600px] border border-gray-300 dark:border-gray-800 shadow-2xl rounded-md sm:max-h-[calc(100vh-120px)]">
+                {/* Header */}
+                <div className="flex-shrink-0 p-5 bg-gray-500 dark:bg-gray-600">
+                  <h3 className="text-lg text-white text-center font-semibold">
+                    How can we help?
+                  </h3>
                 </div>
-                <div className="flex-grow h-full p-6 overflow-auto bg-gray-50">
+
+                <div className="flex-grow h-full p-6 overflow-auto">
                   {!isSubmitSuccessful && (
                     <form onSubmit={handleSubmit(onSubmit)} noValidate>
                       <input
                         type="checkbox"
                         className="hidden"
                         style={{ display: "none" }}
-                        {...register("botcheck")}
-                      ></input>
+                        {...register("botcheck")}>
+                      </input>
 
+                      {/* First Name */}
                       <div className="mb-4">
-                        <label
-                          htmlFor="name"
-                          className="block mb-2 text-sm text-gray-600 dark:text-gray-400"
-                        >
-                          Full Name
-                        </label>
-                        <input
-                          type="text"
-                          id="name"
-                          placeholder="John Doe"
-                          {...register("name", {
-                            required: "Full name is required",
-                            maxLength: 80,
-                          })}
-                          className={`w-full px-3 py-2 text-gray-600 placeholder-gray-300 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring ${
-                            errors.name
-                              ? "border-red-600 focus:border-red-600 ring-red-100"
-                              : "border-gray-300 focus:border-indigo-600 ring-indigo-100"
-                          }`}
-                        />
-                        {errors.name && (
-                          <div className="mt-1 text-sm text-red-400 invalid-feedback">
-                            {errors.name.message as string}
-                          </div>
-                        )}
+                        <label htmlFor="fullName" className={labelBaseClasses}>Full Name *</label>
+                        <input type="text" id="fullName" placeholder="John Doe" {...register("fullName", { required: "Full name is required", maxLength: 80 })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.fullName)}`} />
+                        {errors.fullName && <p className={errorTextClasses}>{errors.fullName.message as string}</p>}
                       </div>
 
                       <div className="mb-4">
-                        <label
-                          htmlFor="email"
-                          className="block mb-2 text-sm text-gray-600 dark:text-gray-400"
-                        >
-                          Email Address
-                        </label>
-                        <input
-                          type="email"
-                          id="email"
-                          {...register("email", {
-                            required: "Enter your email",
-                            pattern: {
-                              value: /^\S+@\S+$/i,
-                              message: "Please enter a valid email",
-                            },
-                          })}
-                          placeholder="you@gmail.com"
-                          className={`w-full px-3 py-2 text-gray-600 placeholder-gray-300 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring ${
-                            errors.email
-                              ? "border-red-600 focus:border-red-600 ring-red-100"
-                              : "border-gray-300 focus:border-indigo-600 ring-indigo-100"
-                          }`}
-                        />
-                        {errors.email && (
-                          <div className="mt-1 text-sm text-red-400 invalid-feedback">
-                            {errors.email.message as string}
-                          </div>
-                        )}
+                        <label htmlFor="email" className={labelBaseClasses}>Email Address *</label>
+                        <input type="text" id="email" placeholder="you@gmail.com" {...register("email", { required: "Enter your email", pattern: { value: /^\S+@\S+$/i, message: "Please enter a valid email", }, })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.email)}`} />
+                        {errors.email && <p className={errorTextClasses}>{errors.email.message as string}</p>}
                       </div>
 
-                      {/* Phone Number Field */}
+                      {/* Email */}
                       <div className="mb-4">
-                        <label
-                          htmlFor="phone"
-                          className="block mb-2 text-sm text-gray-600 dark:text-gray-400"
-                        >
-                          Phone Number (Optional)
-                        </label>
-                        <input
-                          type="tel"
-                          id="phone"
-                          placeholder="(555) 867-5309"
-                          {...register("phone", {
-                            pattern: {
-                              value: /^\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/,
-                              message: "Please enter a valid phone number",
-                            },
-                          })}
-                          className={`w-full px-3 py-2 text-gray-600 placeholder-gray-300 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring ${
-                            errors.phone
-                              ? "border-red-600 focus:border-red-600 ring-red-100"
-                              : "border-gray-300 focus:border-indigo-600 ring-indigo-100"
-                          }`}
-                        />
-                        {errors.phone && (
-                          <div className="mt-1 text-sm text-red-400 invalid-feedback">
-                            {errors.phone.message as string}
-                          </div>
-                        )}
+                        <label htmlFor="email" className={labelBaseClasses}>Email Address *</label>
+                        <input type="email" id="email" {...register("email", { required: "Email is required", pattern: { value: /^\S+@\S+$/i, message: "Invalid email format" } })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.email)}`} />
+                        {errors.email && <p className={errorTextClasses}>{errors.email.message as string}</p>}
                       </div>
 
-                      <div className="mb-3">
-                        <label
-                          htmlFor="message"
-                          className="block mb-2 text-sm text-gray-600 dark:text-gray-400"
-                        >
-                          Your Message
-                        </label>
-                        <textarea
-                          rows={3}
-                          id="message"
-                          {...register("message", {
-                            required: "Enter your Message",
-                          })}
-                          placeholder="Your Message"
-                          className={`w-full px-3 py-2 text-gray-600 placeholder-gray-300 bg-white border border-gray-300 rounded-md h-21 focus:outline-none focus:ring ${
-                            errors.message
-                              ? "border-red-600 focus:border-red-600 ring-red-100"
-                              : "border-gray-300 focus:border-indigo-600 ring-indigo-100"
-                          }`}
-                          required
-                        ></textarea>
-                        {errors.message && (
-                          <div className="mt-1 text-sm text-red-400 invalid-feedback">
-                            {errors.message.message as string}
-                          </div>
-                        )}
+                      {/* Phone */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label htmlFor="phone" className={labelBaseClasses}>Phone *</label>
+                          <input type="tel" id="phone" {...register("phone", { required: "Phone is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.phone)}`} />
+                          {errors.phone && <p className={errorTextClasses}>{errors.phone.message as string}</p>}
+                        </div>
+                        <div>
+                          <label htmlFor="phone_type" className={labelBaseClasses}>Phone Type *</label>
+                          <select id="phone_type" {...register("phone_type", { required: "Select phone type" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.phone_type)}`}>
+                            <option value="">Select Type...</option>
+                            <option value="Cell">Cell</option>
+                            <option value="Home">Home</option>
+                            <option value="Work">Work</option>
+                          </select>
+                          {errors.phone_type && <p className={errorTextClasses}>{errors.phone_type.message as string}</p>}
+                        </div>
                       </div>
 
-                      <div className="mb-3">
+                      {/* Message */}
+                      <div className="mb-4">
+                        <label htmlFor="message" className={labelBaseClasses}>Your Message *</label>
+                        <textarea id="message" rows={2} {...register("message", { required: "Enter your Message" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.message)} h-auto`} />
+                        {errors.message && <p className={errorTextClasses}>{errors.message.message as string}</p>}
+                      </div>
+
+                      {/* Send Message Button */}
+                      <div className="flex justify-end gap-3 pt-6 border-t border-gray-300 dark:border-gray-700 mt-6">
                         <button
                           type="submit"
-                          className="w-full px-3 py-4 text-white bg-indigo-500 rounded-md focus:bg-indigo-600 focus:outline-none"
-                        >
-                          {isSubmitting ? (
-                            <svg
-                              className="w-5 h-5 mx-auto text-white animate-spin"
-                              xmlns="http://www.w3.org/2000/svg"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                            >
-                              <circle
-                                className="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                strokeWidth="4"
-                              ></circle>
-                              <path
-                                className="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                              ></path>
-                            </svg>
-                          ) : (
-                            "Send Message"
-                          )}
+                          disabled={isSubmitting}
+                          className="px-4 py-2 text-white bg-primary rounded-md hover:bg-primary-700 focus:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800 disabled:opacity-50">
+                          {isSubmitting ? "Sending..." : "Send Message"}
                         </button>
                       </div>
-                      <p
-                        className="text-xs text-center text-gray-400"
-                        id="result"
-                      >
+
+                      <p className="text-xs text-center text-gray-400 p-4" id="result">
                         <span>
                           Powered by{" "}
-                          <a
-                            href="https://Web3Forms.com"
-                            className="text-gray-600"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
+                          <a href="https://Web3Forms.com" className="text-gray-600" target="_blank" rel="noopener noreferrer">
                             Web3Forms
                           </a>
                         </span>
@@ -334,7 +241,7 @@ export function PopupWidget() {
                       </h3>
                       <p className="text-gray-700 md:px-3">{message}</p>
                       <button
-                        className="mt-6 text-indigo-600 focus:outline-none"
+                        className="mt-6 text-gray-600 focus:outline-none"
                         onClick={() => reset()}
                       >
                         Go back
@@ -364,7 +271,7 @@ export function PopupWidget() {
                       </h3>
                       <p className="text-gray-700 md:px-3">{message}</p>
                       <button
-                        className="mt-6 text-indigo-600 focus:outline-none"
+                        className="mt-6 text-gray-600 focus:outline-none"
                         onClick={() => reset()}
                       >
                         Go back

@@ -41,27 +41,26 @@ export function Footer() {
           <div>
             <div className="text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider mb-3">Learn More</div>
             <div className="flex flex-col items-start space-y-1">
-              <Link href="/about-us" className="flex items-center space-x-2 text-gray-500 rounded-md dark:text-gray-300 hover:text-indigo-500 focus:text-indigo-500 focus:bg-indigo-100 focus:outline-none dark:focus:bg-trueGray-700 p-1">
+              <Link href="/about-us" className="flex items-center space-x-2 p-1 text-gray-500 rounded-md dark:text-gray-300 hover:text-text-link focus:text-text-link focus:outline-none">
                 <InformationCircleIcon />
                 <span>About Us</span>
               </Link>
-              <Link href="/get-involved" className="flex items-center space-x-2 text-gray-500 rounded-md dark:text-gray-300 hover:text-indigo-500 focus:text-indigo-500 focus:bg-indigo-100 focus:outline-none dark:focus:bg-trueGray-700 p-1">
+              <Link href="/get-involved" className="flex items-center space-x-2 p-1 text-gray-500 rounded-md dark:text-gray-300 hover:text-text-link focus:text-text-link focus:outline-none">
                 <UserGroupIcon />
                 <span>Get Involved</span>
               </Link>
-              <Link href="/graduates" className="flex items-center space-x-2 text-gray-500 rounded-md dark:text-gray-300 hover:text-indigo-500 focus:text-indigo-500 focus:bg-indigo-100 focus:outline-none dark:focus:bg-trueGray-700 p-1">
+              <Link href="/graduates" className="flex items-center space-x-2 p-1 text-gray-500 rounded-md dark:text-gray-300 hover:text-text-link focus:text-text-link focus:outline-none">
                 <GraduationCapIcon />
                 <span>Our Graduates</span>
               </Link>
-              <Link href="/color-palette-dev" className="flex items-center space-x-2 text-gray-500 rounded-md dark:text-gray-300 hover:text-indigo-500 focus:text-indigo-500 focus:bg-indigo-100 focus:outline-none dark:focus:bg-trueGray-700 p-1">
+              {/* <Link href="/color-palette-dev" className="flex items-center space-x-2 p-1 text-gray-500 rounded-md dark:text-gray-300 hover:text-text-link focus:text-text-link focus:outline-none">
                 <span>Color Palette</span>
-              </Link>
+              </Link>*/}
               {/* Add FAQ when needed
-              <Link href="/faq" className="flex items-center space-x-2 text-gray-500 rounded-md dark:text-gray-300 hover:text-indigo-500 focus:text-indigo-500 focus:bg-indigo-100 focus:outline-none dark:focus:bg-trueGray-700 p-1">
+              <Link href="/faq" className="flex items-center space-x-2 p-1 text-gray-500 rounded-md dark:text-gray-300 hover:text-text-link focus:text-text-link focus:outline-none">
                 <QuestionMarkCircleIcon />
                 <span>FAQ</span>
-              </Link>
-               */}
+              </Link>*/}
             </div>
           </div>
 
@@ -73,12 +72,11 @@ export function Footer() {
                 href={amazonWishlistUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-2 text-gray-500 rounded-md dark:text-gray-300 hover:text-indigo-500 focus:text-indigo-500 focus:bg-indigo-100 focus:outline-none dark:focus:bg-trueGray-700 p-1" // Added padding
-              >
+                className="flex items-center space-x-2 p-1 text-gray-500 rounded-md dark:text-gray-300 hover:text-text-link focus:text-text-link focus:outline-none">
                 <GiftIcon />
                 <span>Amazon Wishlist</span>
               </a>
-              <Link href="/donate" className="flex items-center space-x-2 text-gray-500 rounded-md dark:text-gray-300 hover:text-indigo-500 focus:text-indigo-500 focus:bg-indigo-100 focus:outline-none dark:focus:bg-trueGray-700 p-1">
+              <Link href="/donate" className="flex items-center space-x-2 p-1 text-gray-500 rounded-md dark:text-gray-300 hover:text-text-link focus:text-text-link focus:outline-none">
                 <HeartIcon />
                 <span>Donate Funds</span>
               </Link>
@@ -105,14 +103,14 @@ export function Footer() {
                 <span className="sr-only">Facebook</span>
                 <Facebook />
               </a>
-              <a
+              {/* <a
                 href="https://x.com/"
                 target="_blank"
                 rel="noopener"
               >
                 <span className="sr-only">X</span>
                 <Twitter />
-              </a>
+              </a> */}
             </div>
           </div>
         </div>

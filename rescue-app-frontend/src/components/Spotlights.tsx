@@ -91,8 +91,7 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
              <div className="w-full mt-8"> {/* Add margin top */}
                  <button
                      onClick={() => setShowAdoptForm(true)}
-                     // Consistent styling (using Adoption Indigo theme)
-                     className="bg-blue-500 hover:bg-blue-700 w-full sm:w-auto px-6 py-3 text-white font-bold rounded-md transition duration-300"
+                className="bg-primary hover:bg-primary-800 w-full sm:w-auto px-6 py-3 text-white font-bold rounded-md transition duration-300"
                  >
                      Apply to Adopt {data.name}
                  </button>
@@ -120,9 +119,9 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
 function Spotlight(props: any) {
   return (
     <div className="flex items-start mt-8 space-x-3">
-      <div className="flex items-center justify-center flex-shrink-0 mt-1 bg-indigo-500 rounded-md w-11 h-11 ">
+      <div className="flex items-center justify-center flex-shrink-0 mt-1 bg-primary-800 rounded-md w-11 h-11 ">
         {React.cloneElement(props.icon, {
-          className: "w-7 h-7 text-indigo-50",
+          className: "w-7 h-7",
         })}
       </div>
       <div>

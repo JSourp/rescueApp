@@ -7,13 +7,13 @@ export const HeroSection = () => {
 	const missionStatement = "Providing a second chance for animals in need through dedicated rescue, compassionate rehabilitation, and placement into loving forever homes, operating with full transparency and unwavering advocacy for animal well-being.";
 
 	return (
-		<div className="bg-gradient-to-r from-yellow-800 via-amber-800 to-orange-900 dark:from-yellow-900 dark:via-amber-900 dark:to-orange-950 text-white py-16 md:py-24">
+		<div className="max-w-7xl mx-auto bg-white dark:bg-gray-800 p-8 md:p-4 rounded-lg shadow-lg border border-gray-300 dark:border-transparent">
 			<Container>
-				<div className="max-w-4xl mx-auto text-center">
-					<h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight text-white drop-shadow-md">
+				<div className="max-w-5xl mx-auto text-center">
+					<h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight drop-shadow-md text-base lg:leading-tight lg:text-4xl">
 						Second Chance Animal Rescue & Sanctuary
 					</h1>
-					<p className="text-lg md:text-xl font-medium mb-8 text-gray-100 dark:text-gray-200 px-4 drop-shadow-sm">
+					<p className="text-lg md:text-xl font-medium mb-8 px-4 drop-shadow-sm text-gray-500 lg:text-xl xl:text-xl dark:text-gray-300">
 						{missionStatement}
 					</p>
 
@@ -22,14 +22,14 @@ export const HeroSection = () => {
 						<Link
 							href="/available-animals"
 							// Use a contrasting light color for the primary button
-							className="inline-block bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold py-3 px-8 rounded-md transition duration-300 text-lg shadow-md"
+							className="inline-block bg-primary hover:bg-primary-800 text-on-primary font-bold py-3 px-8 rounded-md transition duration-300 text-lg shadow-md"
 						>
 							Meet Our Animals
 						</Link>
 						<Link
 							href="/get-involved"
 							// Keep transparent border style
-							className="inline-block bg-transparent hover:bg-white hover:bg-opacity-20 border-2 border-white text-white font-bold py-3 px-8 rounded-md transition duration-300 text-lg"
+							className="inline-block bg-transparent hover:bg-secondary-600 hover:bg-opacity-20 border-black dark:hover:bg-white dark:border-white border-2 font-bold py-3 px-8 rounded-md transition duration-300 text-lg"
 						>
 							Get Involved
 						</Link>

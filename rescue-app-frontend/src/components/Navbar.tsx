@@ -6,6 +6,7 @@ import Image from 'next/image';
 import ThemeChanger from "./DarkSwitch";
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
+import { HeartIcon } from "@/components/Icons";
 
 export function Navbar() {
   // Get user authentication state from Auth0 hook
@@ -40,7 +41,7 @@ export function Navbar() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="px-5 py-2 text-white bg-indigo-500 dark:bg-indigo-600 rounded-md shadow hover:bg-indigo-700 dark:hover:bg-indigo-700 transition duration-300"
+                  className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow px-5 py-2"
                 >
                   {item.name}
                 </Link>
@@ -54,23 +55,10 @@ export function Navbar() {
           {/* Donate Button */}
           <Link
             href="/donate"
-            className="px-5 py-2 text-white bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 rounded-md shadow hover:scale-105 transition-transform duration-300 mb-2 lg:mb-0"
+            className="px-5 py-2 rounded-md shadow text-text-on-accent bg-accent hover:scale-105 transition-transform duration-300 mb-2 lg:mb-0"
           >
             <span className="flex items-center space-x-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-5 h-5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-                />
-              </svg>
+              <HeartIcon />
               <span>Donate</span>
             </span>
           </Link>
@@ -86,7 +74,7 @@ export function Navbar() {
             {!isLoading && !error && !user && (
               <Link
                 href="/api/auth/login"
-                className="px-3 py-1 text-gray-700 dark:text-gray-300 hover:text-indigo-500 transition duration-300"
+                className="px-3 py-1 text-gray-700 dark:text-gray-300 hover:text-text-link transition duration-300"
               >
                 Login
               </Link>
@@ -148,7 +136,7 @@ export function Navbar() {
             {({ open }) => (
               <>
                 {/* Mobile Menu Toggle Button */}
-                <DisclosureButton className="lg:hidden flex items-center justify-center p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
+                <DisclosureButton className="lg:hidden flex items-center justify-center p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500">
                   <span className="sr-only">Open main menu</span>
                   {open ? (
                     <svg
@@ -193,7 +181,7 @@ export function Navbar() {
                         key={item.name}
                         as={Link}
                         href={item.href}
-                        className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-500 dark:hover:text-indigo-400"
+                        className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow block px-3 py-2 text-center text-base font-medium"
                       >
                         {item.name}
                       </DisclosureButton>
@@ -204,7 +192,7 @@ export function Navbar() {
                     <DisclosureButton
                       as={Link}
                       href="/donate"
-                      className="block w-full text-center px-5 py-2 text-white bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 rounded-md shadow hover:scale-105 transition-transform duration-300 text-base font-medium"
+                      className="block w-full text-center px-5 py-2 text-text-on-accent bg-accent rounded-md shadow hover:scale-105 transition-transform duration-300 text-base font-medium"
                     >
                       Donate
                     </DisclosureButton>
@@ -213,11 +201,11 @@ export function Navbar() {
                     {!isLoading && !error && user && (
                       <>
                         <Link href="/admin/manage-animals"
-                          className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-500 dark:hover:text-indigo-400">
+                          className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-500 dark:hover:text-gray-400">
                           Manage Animals
                         </Link>
                         <Link href="/profile"
-                          className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-500 dark:hover:text-indigo-400">
+                          className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-500 dark:hover:text-gray-400">
                           Profile
                         </Link>
                         <a href="/api/auth/logout"
@@ -232,7 +220,7 @@ export function Navbar() {
                       <DisclosureButton
                         as={Link}
                         href="/api/auth/login"
-                        className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-indigo-500 dark:hover:text-indigo-400"
+                        className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-500 dark:hover:text-gray-400"
                       >
                         Login
                       </DisclosureButton>

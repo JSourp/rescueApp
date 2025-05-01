@@ -160,21 +160,24 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
   };
 
   // --- Base styling classes (Orange theme) ---
-  const inputBaseClasses = "w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-orange-100 dark:focus:ring-orange-900 focus:border-orange-500 dark:focus:border-orange-500";
+  const inputBaseClasses = "w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-gray-100 dark:focus:ring-gray-900 focus:border-gray-500 dark:focus:border-gray-500";
   const inputBorderClasses = (hasError: boolean) => hasError ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600';
   const errorTextClasses = "text-red-500 dark:text-red-400 text-xs mt-1";
   const labelBaseClasses = "block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300";
   const sectionTitleClasses = "text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200 flex items-center";
+  const subSectionTitleClasses = "text-md font-medium mt-4 mb-2 text-gray-700 dark:text-gray-300 flex items-center";
   const radioLabelClasses = "ml-2 text-sm text-gray-700 dark:text-gray-300";
-  const radioInputClasses = "form-radio h-4 w-4 text-orange-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600";
+  const radioInputClasses = "form-radio h-4 w-4 text-gray-600 dark:bg-gray-700 border-gray-300 dark:border-gray-600";
   const checkboxLabelClasses = "ml-2 text-sm text-gray-700 dark:text-gray-300";
-  const checkboxInputClasses = "form-checkbox h-4 w-4 text-orange-600 border-gray-300 dark:border-gray-600 rounded focus:ring-orange-500 dark:bg-gray-700";
+  const checkboxInputClasses = "form-checkbox h-4 w-4 text-gray-600 border-gray-300 dark:border-gray-600 rounded focus:ring-gray-500 dark:bg-gray-700";
 
   return (
     <div className="flex flex-col max-h-[85vh]">
       {/* Header */}
-      <div className="flex-shrink-0 p-5 bg-orange-600">
-        <h3 className="text-lg text-white text-center font-semibold">Volunteer Application</h3>
+      <div className="flex-shrink-0 p-5 bg-gray-500 dark:bg-gray-600">
+        <h3 className="text-lg text-white text-center font-semibold">
+          Volunteer Application
+        </h3>
       </div>
 
       {/* Form Area - Scrollable */}
@@ -343,9 +346,9 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
             </div>
 
             {/* Location Acknowledgement */}
-            <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900 border border-yellow-300 dark:border-yellow-700 rounded">
-              <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-200 mb-2">Location Note:</p>
-              <p className="text-sm text-yellow-700 dark:text-yellow-300 mb-3">
+            <div className="mb-4 p-3 bg-accent-100 dark:bg-accent-900 border border-accent-300 dark:border-accent-700 rounded">
+              <p className="text-sm font-semibold text-accent-800 dark:text-accent-200 mb-2">Location Note:</p>
+              <p className="text-sm text-accent-700 dark:text-accent-300 mb-3">
                 The Second Chance shelter facility is located in the west valley (Glendale, AZ) near the intersection of Cactus Rd and 67th Ave. Please confirm this location is feasible for you to volunteer at regularly.
               </p>
               {/* Using a single required checkbox for simplicity */}
@@ -356,22 +359,9 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
                   {...register("location_acknowledgement", { required: "Please acknowledge the location information" })}
                   className={`h-4 w-4 text-orange-600 border-gray-300 dark:border-gray-600 rounded focus:ring-orange-500 dark:bg-gray-700 ${errors.location_acknowledgement ? 'border-red-500' : ''}`}
                 />
-                <label htmlFor="location_acknowledgement" className="ml-2 text-sm text-yellow-800 dark:text-yellow-200">I understand and the location works for me.</label>
+                <label htmlFor="location_acknowledgement" className={checkboxLabelClasses}>I understand and the location works for me.</label>
               </div>
               {errors.location_acknowledgement && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.location_acknowledgement.message}</p>}
-              {/* Alternative: Radio Buttons
-              <div className="space-y-1">
-                  <div className="flex items-center">
-                    <input type="radio" id="loc_ok" value="accepted" {...register("location_acknowledgement", { required: "Please select an option" })} className="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500"/>
-                    <label htmlFor="loc_ok" className="ml-2 text-sm text-yellow-800 dark:text-yellow-200">That works for me</label>
-                  </div>
-                  <div className="flex items-center">
-                      <input type="radio" id="loc_far" value="too_far" {...register("location_acknowledgement", { required: "Please select an option" })} className="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500"/>
-                    <label htmlFor="loc_far" className="ml-2 text-sm text-yellow-800 dark:text-yellow-200">Sorry, that's too far</label>
-                  </div>
-              </div>
-              {errors.location_acknowledgement && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.location_acknowledgement.message}</p>}
-              */}
             </div>
 
             {/* Reason for Volunteering */}
@@ -434,7 +424,7 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
             <div className="mb-4 mt-6">
               <label className={`${labelBaseClasses} flex items-start cursor-pointer`}>
                 <input type="checkbox" id="policy_acknowledgement" {...register("policy_acknowledgement", { required: "You must acknowledge understanding" })} className={`${checkboxInputClasses} mt-1 mr-2 flex-shrink-0 ${errors.policy_acknowledgement ? 'border-red-500' : ''}`} />
-                <span className="text-sm text-gray-700 dark:text-gray-300">
+                <span className={checkboxLabelClasses}>
                   I understand that volunteering with animals involves inherent risks and requires following safety protocols. I agree to adhere to all Second Chance Animal Rescue & Sanctuary policies and procedures. *
                 </span>
               </label>
@@ -450,8 +440,14 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
 
             {/* Submit/Cancel Buttons */}
             <div className="flex justify-end gap-3 pt-6 border-t border-gray-300 dark:border-gray-700 mt-8">
-              <button type="button" onClick={onClose} className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800">Cancel</button>
-              <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-white bg-orange-500 rounded-md hover:bg-orange-600 focus:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 dark:focus:ring-offset-gray-800 disabled:opacity-50">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800">Cancel</button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-4 py-2 text-white bg-primary rounded-md hover:bg-primary-700 focus:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800 disabled:opacity-50">
                 {isSubmitting ? "Submitting..." : "Submit Application"}
               </button>
             </div>

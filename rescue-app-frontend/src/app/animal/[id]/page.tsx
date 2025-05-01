@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { Animal } from '@/types/animal'; // Adjust import path
 import Image from 'next/image';
 import { calculateAge } from "@/components/data";
-import { PopupWidget }  from "@/components/PopupWidget";
+import { PopupWidget } from "@/components/PopupWidget";
 import Modal from '@/components/Modal';
 import AdoptionForm from '@/components/AdoptionForm';
 import { format, differenceInDays } from "date-fns";
@@ -104,34 +104,33 @@ export default function AnimalDetailsPage() {
             priority // Prioritize image on details page
           />
         </div>
-        <div>
-          <p className="text-gray-700 mb-4">{animal.story}</p>
-          <p className="text-gray-700 mb-2">Species: {animal.animal_type}</p>
-          <p className="text-gray-700 mb-2">Breed: {animal.breed}</p>
-          <p className="text-gray-700 mb-2">Age: {calculateAge(animal.date_of_birth)}</p>
-          <p className="text-gray-700 mb-2">Gender: {animal.gender}</p>
-          <p className="text-gray-700 mb-2">Weight: {animal.weight} lbs</p>
-          {/*<p className="text-gray-700 mb-2">Intake date: {intakeDate}</p>*/}
-          <p className="text-gray-700 mb-2">Time with us: {daysWithUs} {daysLabel}</p>
-          <p className="text-gray-700 mb-2">Adoption Status: {animal.adoption_status}</p>
+        <div className="text-base">
+          <p className="mb-4">{animal.story}</p>
+          <p className="mb-2">Species: {animal.animal_type}</p>
+          <p className="mb-2">Breed: {animal.breed}</p>
+          <p className="mb-2">Age: {calculateAge(animal.date_of_birth)}</p>
+          <p className="mb-2">Gender: {animal.gender}</p>
+          <p className="mb-2">Weight: {animal.weight} lbs</p>
+          {/*<p className="mb-2">Intake date: {intakeDate}</p>*/}
+          <p className="mb-2">Time with us: {daysWithUs} {daysLabel}</p>
+          <p className="mb-2">Adoption Status: {animal.adoption_status}</p>
           <button
-             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
-             onClick={() => setshowAdoptionForm(true)}
-           >
-             Apply to Adopt {animal.name}
+            className="bg-primary hover:bg-primary-800 w-full sm:w-auto text-white font-bold rounded-md transition duration-300 py-2 px-4 mt-4"
+            onClick={() => setshowAdoptionForm(true)}>
+            Apply to Adopt {animal.name}
           </button>
         </div>
       </div>
 
       {/* Conditionally render the Modal containing the Inquiry Form */}
       {showAdoptionForm && animal && ( // Rename state if desired, e.g., showAdoptionForm
-          <Modal onClose={() => setshowAdoptionForm(false)}>
-            <AdoptionForm
-              animalName={animal.name ?? undefined} // Pass optional props
+        <Modal onClose={() => setshowAdoptionForm(false)}>
+          <AdoptionForm
+            animalName={animal.name ?? undefined} // Pass optional props
             animal_id={animal.id}                  // Pass optional props
-              onClose={() => setshowAdoptionForm(false)}
-            />
-          </Modal>
+            onClose={() => setshowAdoptionForm(false)}
+          />
+        </Modal>
       )}
 
     </div>

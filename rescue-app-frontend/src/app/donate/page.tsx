@@ -15,16 +15,16 @@ export default function DonatePage() {
             </div>
 
             {/* Main content box */}
-            <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-6 md:p-8 rounded-lg shadow-lg">
-                <h2 className="text-2xl font-semibold mb-4 text-center text-indigo-600 dark:text-indigo-400">
+            <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-6 md:p-8 rounded-lg shadow-lg border border-gray-300 dark:border-transparent">
+                <h2 className="text-2xl font-semibold mb-4 text-center text-heading">
                     Online Donations - Coming Soon!
                 </h2>
                 <p className="text-gray-700 dark:text-gray-300 mb-6 text-center">
                     We&apos;re incredibly grateful for your interest in supporting us financially! We are currently in the process of finalizing our official non-profit status and obtaining our EIN (Employer Identification Number).
                 </p>
                 {/* Highlight Box for Status */}
-                <div className="mb-8 p-4 bg-indigo-50 dark:bg-gray-700 border-l-4 border-indigo-500 dark:border-indigo-400 rounded-r-md">
-                    <p className="text-indigo-800 dark:text-indigo-200 font-medium">
+                <div className="mb-8 p-4 bg-secondary-50 dark:bg-gray-700 border-l-4 border-secondary-500 dark:border-secondary-400 rounded-r-md">
+                    <p className="text-secondary-800 dark:text-secondary-200 font-medium">
                         Once our EIN is confirmed, we&apos;ll be launching our secure online donation portal through Donorbox. Thank you for your patience!
                     </p>
                 </div>
@@ -39,7 +39,7 @@ export default function DonatePage() {
                         <p className="text-gray-700 dark:text-gray-300 inline ml-1">
                             Your time and temporary home space are invaluable gifts.
                         </p>
-                        <Link href="/get-involved" className="text-indigo-600 dark:text-indigo-400 hover:underline ml-2 font-medium whitespace-nowrap">
+                        <Link href="/get-involved" className="text-text-link hover:underline ml-2 font-medium whitespace-nowrap">
                             Learn More & Apply Here
                         </Link>
                     </div>
@@ -54,7 +54,7 @@ export default function DonatePage() {
                             href="https://www.amazon.com/hz/wishlist/ls/197NWZ1O3D2O9?ref_=wl_share"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-indigo-600 dark:text-indigo-400 hover:underline ml-2 font-medium whitespace-nowrap"
+                            className="text-accent hover:underline ml-2 font-medium whitespace-nowrap"
                         >
                             View Our Wishlist
                         </a>

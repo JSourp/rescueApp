@@ -385,7 +385,7 @@ export default function AdminAnimalsPage() {
 											value={status}
 											checked={statusFilters.includes(status)} // Check if status is in the array
 											onChange={handleStatusFilterChange} // Use the new handler
-											className="h-4 w-4 text-indigo-600 border-gray-300 dark:border-gray-500 rounded focus:ring-indigo-500 dark:bg-gray-600"
+											className="h-4 w-4 text-text-link border-gray-300 dark:border-gray-500 rounded focus:ring-text-link dark:bg-gray-600"
 										/>
 										<label htmlFor={`status-${status.replace(/\s+/g, '-')}`} className="ml-2 text-sm text-gray-700 dark:text-gray-300">{status}</label>
 									</div>
@@ -476,7 +476,7 @@ export default function AdminAnimalsPage() {
 												)}
 												{/* Delete Button - Conditional */}
 												{currentUserRole === 'Admin' && (
-													<button onClick={() => handleDeleteClick(animal)} className="..." title="Delete"> <TrashIcon className="w-5 h-5 inline" /> <span className="sr-only">Delete</span> </button>
+													<button onClick={() => handleDeleteClick(animal)} className="..." title="Delete"> <TrashIcon className="w-5 h-5 inline text-accent-800" /> <span className="sr-only">Delete</span> </button>
 												)}
 											</td>
 										</tr>
