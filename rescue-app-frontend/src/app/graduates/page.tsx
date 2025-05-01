@@ -1,31 +1,32 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Container } from '@/components/Container';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Animal } from '@/types/animal';
-import { GraduationCapIcon } from "@/components/Icons";
+import { GraduationCapIcon, LoadingSpinner } from "@/components/Icons";
+import { format } from 'date-fns';
 
-// Define or import a type matching the actual API response (now snake_case)
-// This could just be your existing Animal type if it uses snake_case
-interface GraduateAnimal {
+// Define interface for the data returned by the /api/graduates endpoint
+// It includes base Animal fields plus the adoption_date
+interface Graduate extends Animal {
 	id: number;
 	name: string | null;
-	image_url: string | null; // snake_case
-	animal_type: string | null; // snake_case
+	image_url: string | null;
+	animal_type: string | null;
 	breed: string | null;
 	gender: string | null;
-	// adoptionDate is not included in this simplified version
+	adoption_date: string;
 }
 
 // Fetch function targeting the new endpoint
-async function fetchGraduates(filters: {
-	gender: string;
-	animal_type: string; // Use snake_case key matching backend expectation
-	breed: string;
-}, sortBy: string): Promise<Animal[]> { // Expecting Animal type from backend (snake_case)
+async function fetchGraduates(
+	filters: { gender: string; animal_type: string; breed: string; },
+	sortBy: string // Now expects 'adoption_date_desc' or 'adoption_date_asc' etc.
+): Promise<Graduate[]> { // Expecting array of Graduate type
 	const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+	// Ensure this endpoint returns adoption_date
 	const endpoint = `${apiBaseUrl}/graduates`;
 
 	const queryParams = new URLSearchParams();
@@ -46,8 +47,7 @@ async function fetchGraduates(filters: {
 			throw new Error(`HTTP error! Status: ${response.status}`);
 		}
 		const data = await response.json();
-		// API now returns snake_case, should match Animal type
-		return data as Animal[];
+		return data as Graduate[]; // Cast to the Graduate type
 	} catch (error) {
 		console.error('Error fetching graduates:', error);
 		return [];
@@ -71,8 +71,8 @@ async function fetchAnimalTypes(): Promise<string[]> {
 
 // --- Main Page Component ---
 export default function GraduatesPage() {
-	const [graduates, setGraduates] = useState<Animal[]>([]); // Use Animal type
-	const [loading, setLoading] = useState(true);
+	const [graduates, setGraduates] = useState<Graduate[]>([]);
+	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | null>(null);
 	const [genderFilter, setGenderFilter] = useState<string>('');
 	const [animalTypeFilter, setAnimalTypeFilter] = useState<string>('');
@@ -80,12 +80,12 @@ export default function GraduatesPage() {
 	const [animalTypes, setAnimalTypes] = useState<string[]>([]);
 
 	// --- Sorting state and options (matching backend) ---
-	const [sortBy, setSortBy] = useState('most_recent_update'); // Default sort
+	const [sortBy, setSortBy] = useState('adoption_date_desc'); // Default sort
 	const sortingOptions = [
-		{ value: 'most_recent_update', label: 'Most Recent Update' }, // Matched backend key
-		{ value: 'least_recent_update', label: 'Least Recent Update' }, // Matched backend key
-		{ value: 'name_asc', label: 'Name (A-Z)' }, // Matched backend key
-		{ value: 'name_desc', label: 'Name (Z-A)' }, // Matched backend key
+		{ value: 'adoption_date_desc', label: 'Adoption Date (Newest First)' },
+		{ value: 'adoption_date_asc', label: 'Adoption Date (Oldest First)' },
+		{ value: 'name_asc', label: 'Name (A-Z)' },
+		{ value: 'name_desc', label: 'Name (Z-A)' },
 	];
 
 	// Fetch animal types
@@ -97,27 +97,29 @@ export default function GraduatesPage() {
 		loadTypes();
 	}, []);
 
-	// Fetch graduates
+	// Fetch graduates (use useCallback)
+	const loadGraduates = useCallback(async () => {
+		setIsLoading(true);
+		setError(null);
+		try {
+			// Pass correct keys for filtering
+			const fetchedGraduates = await fetchGraduates(
+				{ gender: genderFilter, animal_type: animalTypeFilter, breed: breedFilter },
+				sortBy
+			);
+			setGraduates(fetchedGraduates);
+		} catch (err) {
+			console.error("Error loading graduates:", err);
+			setError(err instanceof Error ? err.message : 'Failed to load graduates');
+		} finally {
+			setIsLoading(false);
+		}
+	}, [genderFilter, animalTypeFilter, breedFilter, sortBy]);
+
+	// Initial load and re-fetch when filters/sort change
 	useEffect(() => {
-		const loadData = async () => {
-			setLoading(true);
-			setError(null);
-			try {
-				// Pass snake_case keys in the filter object
-				const fetchedGraduates = await fetchGraduates(
-					{ gender: genderFilter, animal_type: animalTypeFilter, breed: breedFilter },
-					sortBy
-				);
-				setGraduates(fetchedGraduates);
-			} catch (err) {
-				console.error("Error loading graduates:", err);
-				setError(err instanceof Error ? err.message : 'Failed to load graduates');
-			} finally {
-				setLoading(false);
-			}
-		};
-		loadData();
-	}, [genderFilter, animalTypeFilter, breedFilter, sortBy]); // Dependencies
+		loadGraduates();
+	}, [loadGraduates]);
 
 	// --- Handlers ---
 	const handleAnimalTypeFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => setAnimalTypeFilter(e.target.value);
@@ -127,7 +129,8 @@ export default function GraduatesPage() {
 	// --- JSX Rendering ---
 	return (
 		<Container className="py-8 px-4">
-			{graduates.length > 0 && (
+			{/* Show title/filters only if not loading initial data OR if there are graduates */}
+			{(!isLoading || graduates.length > 0) && (
 				<>
 					<GraduationCapIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
 					<h1 className="text-3xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">Our Graduates</h1>
@@ -140,8 +143,7 @@ export default function GraduatesPage() {
 						<select
 							value={animalTypeFilter}
 							onChange={handleAnimalTypeFilterChange}
-							className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm"
-						>
+							className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm">
 							<option value="">All Species</option>
 							{animalTypes.map((type) => (
 								<option key={type} value={type}>
@@ -152,8 +154,7 @@ export default function GraduatesPage() {
 						<select
 							value={genderFilter}
 							onChange={handleGenderFilterChange}
-							className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm"
-						>
+							className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm">
 							<option value="">All Genders</option>
 							<option value="Male">Male</option>
 							<option value="Female">Female</option>
@@ -161,8 +162,7 @@ export default function GraduatesPage() {
 						<select
 							value={sortBy}
 							onChange={handleSortChange}
-							className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm"
-						>
+							className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm">
 							{sortingOptions.map((option) => (
 								<option key={option.value} value={option.value}>
 									{option.label}
@@ -174,7 +174,7 @@ export default function GraduatesPage() {
 			)}
 
 			{/* Loading / Error States */}
-			{loading && (
+			{!isLoading && !error && (
 				<div className="text-center py-10 text-gray-500 dark:text-gray-400">Loading graduates...</div>
 			)}
 			{error && (
@@ -182,7 +182,7 @@ export default function GraduatesPage() {
 			)}
 
 			{/* Graduates Grid */}
-			{!loading && !error && graduates.length > 0 && (
+			{!isLoading && !error && graduates.length > 0 && (
 				<div className="flex justify-center">
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 						{graduates.map((graduate, index) => (
@@ -203,11 +203,11 @@ export default function GraduatesPage() {
 									className="w-full h-64 object-cover"
 									priority={index < 4}
 								/>
-								{/*<div className="p-4 text-center min-h-[50px]">
-									<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-										{graduate.breed} ({graduate.animal_type})
+								<div className="p-4 text-center min-h-[50px]">
+									<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+										Adopted: {format(new Date(graduate.adoption_date), 'MMM dd, yyyy')}
 									</p>
-								</div>*/}
+								</div>
 							</div>
 						))}
 					</div>
@@ -215,7 +215,7 @@ export default function GraduatesPage() {
 			)}
 
 			{/* No Results State */}
-			{!loading && !error && graduates.length === 0 && (
+			{!isLoading && !error && graduates.length === 0 && (
 				<div className="col-span-full text-center py-16 px-4">
 					<GraduationCapIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
 					<h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-3">

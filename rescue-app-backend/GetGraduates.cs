@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text.Json; // Using System.Text.Json
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Azure.Functions.Worker;
@@ -13,6 +13,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using rescueApp.Data;
 using rescueApp.Models;
+
+// Alias
+using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
@@ -29,70 +32,85 @@ namespace rescueApp
 
 		[Function("GetGraduates")]
 		public async Task<HttpResponseData> Run(
-			[HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "graduates")] HttpRequestData req)
+			[HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "graduates")] HttpRequestData req)
 		{
 			// Use the injected _logger instance
 			_logger.LogInformation("C# HTTP trigger function processed GetGraduates request.");
+			var queryParams = HttpUtility.ParseQueryString(req.Url.Query);
+
+			// Read Filters
+			string? animal_type = queryParams["animal_type"];
+			string? gender = queryParams["gender"];
+			string? breed = queryParams["breed"];
+			string? sortBy = queryParams["sortBy"];
 
 			try
 			{
-				var queryParams = HttpUtility.ParseQueryString(req.Url.Query);
+				// Join with the LATEST ACTIVE AdoptionHistory record for each animal to get the relevant adoption date.
+				// NOTE: This join logic needs care. Selecting the relevant history record might be complex.
+				// A simpler approach might be to query AdoptionHistory first WHERE return_date IS NULL
+				// and include Animal, then filter Animal properties. Like so.
 
-				// Read Filters (using snake_case keys)
-				string? animal_type = queryParams["animal_type"];
-				string? gender = queryParams["gender"];
-				string? breed = queryParams["breed"];
-				string? sortBy = queryParams["sortBy"];
+				IQueryable<AdoptionHistory> historyQuery = _dbContext.AdoptionHistories
+					.Include(ah => ah.Animal) // Include animal data
+					.Where(ah => ah.return_date == null && ah.Animal != null && ah.Animal.adoption_status == "Adopted"); // Only active adoptions for animals marked Adopted
 
-				IQueryable<Animal> query = _dbContext.Animals
-					.Where(a => a.adoption_status == "Adopted");
-
-				// Apply other filters (using snake_case properties)
+				// Apply filters based on the JOINED Animal properties
 				if (!string.IsNullOrEmpty(animal_type))
 				{
-					string lowerAnimalType = animal_type.ToLowerInvariant();
-					query = query.Where(a => a.animal_type != null && a.animal_type.ToLowerInvariant() == lowerAnimalType);
-					_logger.LogInformation("Applying GRAD filter - animal_type: {AnimalType}", animal_type); // Use _logger
+					historyQuery = historyQuery.Where(ah => ah.Animal!.animal_type != null && ah.Animal.animal_type.ToLower() == animal_type.ToLower());
 				}
 				if (!string.IsNullOrEmpty(gender))
 				{
-					string lowerGender = gender.ToLowerInvariant();
-					query = query.Where(a => a.gender != null && a.gender.ToLowerInvariant() == lowerGender);
-					_logger.LogInformation("Applying GRAD filter - gender: {Gender}", gender); // Use _logger
+					historyQuery = historyQuery.Where(ah => ah.Animal!.gender != null && ah.Animal.gender.ToLower() == gender.ToLower());
 				}
 				if (!string.IsNullOrEmpty(breed))
 				{
-					string lowerBreed = breed.ToLowerInvariant();
-					query = query.Where(a => a.breed != null && a.breed.ToLowerInvariant() == lowerBreed);
-					_logger.LogInformation("Applying GRAD filter - breed: {Breed}", breed); // Use _logger
+					historyQuery = historyQuery.Where(ah => ah.Animal!.breed != null && ah.Animal.breed.ToLower().Contains(breed.ToLower())); // Contains for breed? Or exact match?
 				}
 
 
-				// Apply Sorting (using snake_case properties)
-				_logger.LogInformation("Applying GRAD sorting - SortBy: {SortBy}", string.IsNullOrEmpty(sortBy) ? "most_recent_update (default)" : sortBy); // Use _logger
-				switch (sortBy?.ToLowerInvariant())
+				// Apply sorting based on AdoptionDate or Animal Name
+				bool descending = sortBy?.ToLowerInvariant().EndsWith("_desc") ?? true; // Default desc?
+				string? sortField = sortBy?.ToLowerInvariant().Replace("_desc", "").Replace("_asc", "");
+
+				_logger.LogInformation("Sorting Graduates by {SortField} {Direction}", sortField ?? "adoption_date", descending ? "DESC" : "ASC");
+
+				switch (sortField)
 				{
-					case "least_recent_update":
-						query = query.OrderBy(a => a.date_updated);
+					case "name":
+						historyQuery = descending
+							? historyQuery.OrderByDescending(ah => ah.Animal!.name).ThenByDescending(ah => ah.adoption_date)
+							: historyQuery.OrderBy(ah => ah.Animal!.name).ThenBy(ah => ah.adoption_date);
 						break;
-					case "name_asc":
-						query = query.OrderBy(a => a.name);
-						break;
-					case "name_desc":
-						query = query.OrderByDescending(a => a.name);
-						break;
-					case "most_recent_update":
-					default:
-						query = query.OrderByDescending(a => a.date_updated);
+					case "adoption_date":
+					default: // Default sort by adoption date
+						historyQuery = descending
+						   ? historyQuery.OrderByDescending(ah => ah.adoption_date)
+						   : historyQuery.OrderBy(ah => ah.adoption_date);
 						break;
 				}
-				query = ((IOrderedQueryable<Animal>)query).ThenBy(a => a.id);
 
+				// Select the data needed for the frontend Graduate type
+				var graduates = await historyQuery
+					.Select(ah => new // Create a DTO or anonymous type matching frontend Graduate interface
+					{
+						// Select needed properties from ah.Animal (using snake_case)
+						ah.Animal!.id,
+						ah.Animal.name,
+						ah.Animal.image_url,
+						ah.Animal.animal_type,
+						ah.Animal.breed,
+						ah.Animal.gender,
+						// Select the adoption_date from AdoptionHistory
+						ah.adoption_date
+						// Add any other needed Animal fields
+					})
+					.ToListAsync(); // Execute query
 
-				List<Animal> graduates = await query.ToListAsync();
-				_logger.LogInformation("Found {GraduateCount} graduate animals matching criteria.", graduates.Count); // Use _logger
+				_logger.LogInformation("Found {GraduateCount} graduate animals matching criteria.", graduates.Count);
 
-				// Serialize and Respond (REMOVED camelCase policy -> will output snake_case)
+				// Serialize and Respond
 				var jsonResponse = JsonSerializer.Serialize(graduates, new JsonSerializerOptions
 				{
 					// PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // REMOVED
@@ -105,7 +123,7 @@ namespace rescueApp
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "Error getting graduates. Request Query: {Query}", req.Url.Query); // Use _logger
+				_logger.LogError(ex, "Error getting graduates. Request Query: {Query}", req.Url.Query);
 				var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
 				await errorResponse.WriteStringAsync("An internal error occurred while fetching graduates data.");
 				return errorResponse;

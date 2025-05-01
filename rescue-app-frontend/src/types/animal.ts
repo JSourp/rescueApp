@@ -1,14 +1,14 @@
 export interface Animal {
 	id: number;
-	animal_type?: string;
-	name?: string;
-	breed?: string;
-	date_of_birth?: string;
-	gender?: string;
-	weight?: number;
-	story?: string;
-	adoption_status?: string;
-	image_url?: string;
+	animal_type?: string | null;
+	name?: string | null;
+	breed?: string | null;
+	date_of_birth?: string | null;
+	gender?: string | null;
+	weight?: number | null;
+	story?: string | null;
+	adoption_status?: string | null;
+	image_url?: string | null;
 	date_created: string;
 	date_updated: string;
 	created_by_user_id: string;
