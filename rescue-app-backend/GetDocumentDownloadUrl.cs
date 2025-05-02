@@ -8,63 +8,60 @@ using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Web; // For HttpUtility
 using Azure.Storage; // For StorageSharedKeyCredential
 using Azure.Storage.Blobs; // Blob SDK
-using Azure.Storage.Blobs.Models; // For PublicAccessType
 using Azure.Storage.Sas; // SAS SDK
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using rescueApp.Data;
 using rescueApp.Models;
+
 // Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
-	public class GenerateBlobUploadUrl
+	public class GetDocumentDownloadUrl
 	{
-		private readonly AppDbContext _dbContext;
-		private readonly ILogger<GenerateBlobUploadUrl> _logger;
+		private readonly AppDbContext _dbContext; // Need context to find document record
+		private readonly ILogger<GetDocumentDownloadUrl> _logger;
 		private readonly string _auth0Domain = Environment.GetEnvironmentVariable("AUTH0_ISSUER_BASE_URL") ?? string.Empty;
 		private readonly string _auth0Audience = Environment.GetEnvironmentVariable("AUTH0_AUDIENCE") ?? string.Empty;
 		private static ConfigurationManager<OpenIdConnectConfiguration>? _configManager;
 		private static TokenValidationParameters? _validationParameters;
 		private readonly string _blobConnectionString = Environment.GetEnvironmentVariable("AzureBlobStorageConnectionString") ?? string.Empty;
-		private readonly string _blobContainerName = "animal-images"; // Your container name
+		private readonly string _blobContainerName = "animal-documents";
 
-		public GenerateBlobUploadUrl(AppDbContext dbContext, ILogger<GenerateBlobUploadUrl> logger)
+		public GetDocumentDownloadUrl(AppDbContext dbContext, ILogger<GetDocumentDownloadUrl> logger)
 		{
 			_dbContext = dbContext;
 			_logger = logger;
-			if (string.IsNullOrEmpty(_blobConnectionString))
-			{
-				_logger.LogError("AzureBlobStorageConnectionString is not configured.");
-			}
+			if (string.IsNullOrEmpty(_blobConnectionString)) { _logger.LogError("AzureBlobStorageConnectionString not configured."); }
+			if (string.IsNullOrEmpty(_auth0Domain) || string.IsNullOrEmpty(_auth0Audience)) { _logger.LogError("Auth0 Domain/Audience not configured."); }
 		}
 
-		[Function("GenerateBlobUploadUrl")]
+		[Function("GetDocumentDownloadUrl")]
 		public async Task<AzureFuncHttp.HttpResponseData> Run(
-			// TODO: Secure this endpoint (Admin/Staff/Volunteer roles)
-			[HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "generate-upload-url")]
-			AzureFuncHttp.HttpRequestData req)
+			// Secure: Define who can download/view documents
+			[HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "documents/{documentId:int}/download-url")] // Use documentId from route
+            AzureFuncHttp.HttpRequestData req,
+			int documentId) // Document ID from route
 		{
-			_logger.LogInformation("C# HTTP trigger function processed GenerateBlobUploadUrl request.");
+			_logger.LogInformation("C# HTTP trigger processing GetDocumentDownloadUrl request for Document ID: {DocumentId}.", documentId);
 
 			User? currentUser;
 			ClaimsPrincipal? principal;
 			string? auth0UserId = null;
 
-			// --- 1. Authentication & Authorization ---
+			// 1. Authentication & Authorization ---
 			try
 			{
-				// --- Token Validation ---
+				// Token Validation ---
 				principal = await ValidateTokenAndGetPrincipal(req);
 				if (principal == null)
 				{
@@ -106,49 +103,22 @@ namespace rescueApp
 				_logger.LogError(ex, "Error during authentication/authorization in CreateAnimal.");
 				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Authentication/Authorization error.");
 			}
-			// --- End Auth ---
 
-
-			// --- 2. Get Query Parameters ---
-			var queryParams = HttpUtility.ParseQueryString(req.Url.Query);
-			string? filename = queryParams["filename"];
-			string? contentType = queryParams["contentType"]; // e.g., image/jpeg, image/png
-
-			if (string.IsNullOrWhiteSpace(filename) || string.IsNullOrWhiteSpace(contentType))
-			{
-				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Missing required query parameters: 'filename' and 'contentType'.");
-			}
-
-			// Basic validation (add more as needed - size, allowed types)
-			if (!contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
-			{
-				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid contentType. Only image types are allowed.");
-			}
-
-			// --- 3. Generate SAS URL ---
+			// --- 2. Find Document Metadata ---
 			try
 			{
-				if (string.IsNullOrEmpty(_blobConnectionString))
+				var documentRecord = await _dbContext.AnimalDocuments.FindAsync(documentId);
+
+				if (documentRecord == null)
 				{
-					throw new InvalidOperationException("Storage connection string not configured.");
+					_logger.LogWarning("Document metadata not found for ID: {DocumentId}", documentId);
+					return await CreateErrorResponse(req, HttpStatusCode.NotFound, "Document record not found.");
 				}
 
-				var containerClient = new BlobContainerClient(_blobConnectionString, _blobContainerName);
-				// Ensure container exists (optional, depends on setup)
-				await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
-
-				// Create a unique blob name to prevent overwrites
-				string uniqueBlobName = $"{Guid.NewGuid()}-{filename}"; // Prepend GUID
-				var blobClient = containerClient.GetBlobClient(uniqueBlobName);
-
-				if (string.IsNullOrEmpty(_blobConnectionString))
-				{
-					_logger.LogError("AzureBlobStorageConnectionString is not configured.");
-					return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Storage configuration error [CS Missing].");
-				}
+				// --- 3. Generate READ-ONLY SAS URL ---
+				if (string.IsNullOrEmpty(_blobConnectionString)) throw new InvalidOperationException("Storage connection missing.");
 
 				// --- Get Account Name and Key from Connection String ---
-				// Note: Robust parsing might be needed for complex connection strings
 				string accountName = string.Empty;
 				string accountKey = string.Empty;
 				try
@@ -169,47 +139,43 @@ namespace rescueApp
 				}
 				// --- End Parsing ---
 
-				// Create SAS builder configuration
+				// Use the blob_name stored in the metadata record
+				string blobNameToAccess = documentRecord.blob_name;
+				if (string.IsNullOrEmpty(blobNameToAccess))
+				{
+					_logger.LogError("Document record {DocumentId} is missing the blob name.", documentId);
+					return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Document metadata incomplete.");
+				}
+
+				var containerClient = new BlobContainerClient(_blobConnectionString, _blobContainerName);
+				var blobClient = containerClient.GetBlobClient(blobNameToAccess);
+				var credential = new StorageSharedKeyCredential(accountName, accountKey);
+
 				var sasBuilder = new BlobSasBuilder()
 				{
 					BlobContainerName = _blobContainerName,
-					BlobName = uniqueBlobName,
+					BlobName = blobNameToAccess, // Specific blob
 					Resource = "b", // 'b' for blob
-					StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5), // Allow for clock skew
-					ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(15), // Short expiry time
+					StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
+					ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(10), // Short expiry for downloads
 				};
-				// Grant necessary permissions (Write for PUT upload)
-				sasBuilder.SetPermissions(BlobSasPermissions.Write);
+				// --- Grant ONLY READ permission ---
+				sasBuilder.SetPermissions(BlobSasPermissions.Read);
 
-				// --- Generate SAS Token using Account Key ---
-				var credential = new StorageSharedKeyCredential(accountName, accountKey);
 				string sasToken = sasBuilder.ToSasQueryParameters(credential).ToString();
-				// --- End Generate SAS Token ---
+				Uri sasUri = new UriBuilder(blobClient.Uri) { Query = sasToken }.Uri;
 
+				_logger.LogInformation("Generated READ SAS URI for blob: {BlobName}", blobNameToAccess);
 
-				// --- Construct Full SAS URI ---
-				UriBuilder sasUriBuilder = new UriBuilder(blobClient.Uri)
-				{
-					Query = sasToken // Append the generated SAS token query string
-				};
-				Uri sasUri = sasUriBuilder.Uri;
-				// --- End Construct URI ---
-
-				_logger.LogInformation("Generated SAS URI for blob: {BlobName}", uniqueBlobName);
-
-				// Return the SAS URI and the final blob URL
+				// --- 4. Return SAS URL ---
 				var response = req.CreateResponse(HttpStatusCode.OK);
-				await response.WriteAsJsonAsync(new
-				{
-					sasUrl = sasUri.ToString(),    // URL frontend uses for direct PUT upload
-					blobUrl = blobClient.Uri.ToString() // URL to save in your database (without SAS)
-				});
+				await response.WriteAsJsonAsync(new { downloadUrl = sasUri.ToString() });
 				return response;
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "Error generating SAS URL for file {FileName}", filename);
-				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Could not generate upload URL.");
+				_logger.LogError(ex, "Error generating download SAS URL for Document ID: {DocumentId}", documentId);
+				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Could not generate download URL.");
 			}
 		}
 
@@ -314,7 +280,7 @@ namespace rescueApp
 				error = new
 				{
 					code = statusCode.ToString(),
-					message
+					message = message
 				}
 			};
 

@@ -23,39 +23,39 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using rescueApp.Data;
 using rescueApp.Models;
+
 // Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
-	public class GenerateBlobUploadUrl
+	public class GenerateDocumentUploadUrl
 	{
-		private readonly AppDbContext _dbContext;
-		private readonly ILogger<GenerateBlobUploadUrl> _logger;
+		private readonly AppDbContext _dbContext; // Include if needed for User lookup/role check
+		private readonly ILogger<GenerateDocumentUploadUrl> _logger;
 		private readonly string _auth0Domain = Environment.GetEnvironmentVariable("AUTH0_ISSUER_BASE_URL") ?? string.Empty;
 		private readonly string _auth0Audience = Environment.GetEnvironmentVariable("AUTH0_AUDIENCE") ?? string.Empty;
 		private static ConfigurationManager<OpenIdConnectConfiguration>? _configManager;
 		private static TokenValidationParameters? _validationParameters;
 		private readonly string _blobConnectionString = Environment.GetEnvironmentVariable("AzureBlobStorageConnectionString") ?? string.Empty;
-		private readonly string _blobContainerName = "animal-images"; // Your container name
+		private readonly string _blobContainerName = "animal-documents";
 
-		public GenerateBlobUploadUrl(AppDbContext dbContext, ILogger<GenerateBlobUploadUrl> logger)
+		public GenerateDocumentUploadUrl(AppDbContext dbContext, ILogger<GenerateDocumentUploadUrl> logger)
 		{
-			_dbContext = dbContext;
+			_dbContext = dbContext; // Inject DbContext
 			_logger = logger;
-			if (string.IsNullOrEmpty(_blobConnectionString))
-			{
-				_logger.LogError("AzureBlobStorageConnectionString is not configured.");
-			}
+			if (string.IsNullOrEmpty(_blobConnectionString)) { _logger.LogError("AzureBlobStorageConnectionString not configured."); }
+			if (string.IsNullOrEmpty(_auth0Domain) || string.IsNullOrEmpty(_auth0Audience)) { _logger.LogError("Auth0 Domain/Audience not configured."); }
 		}
 
-		[Function("GenerateBlobUploadUrl")]
+		[Function("GenerateDocumentUploadUrl")]
 		public async Task<AzureFuncHttp.HttpResponseData> Run(
-			// TODO: Secure this endpoint (Admin/Staff/Volunteer roles)
-			[HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "generate-upload-url")]
-			AzureFuncHttp.HttpRequestData req)
+			// Secure: Only logged-in Admin/Staff/Volunteer should upload docs
+			[HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "animals/{animalId}/document-upload-url")] // Route includes animalId
+            AzureFuncHttp.HttpRequestData req,
+			int animalId) // Get animalId from route
 		{
-			_logger.LogInformation("C# HTTP trigger function processed GenerateBlobUploadUrl request.");
+			_logger.LogInformation("C# HTTP trigger processing GenerateDocumentUploadUrl request for Animal ID: {AnimalId}.", animalId);
 
 			User? currentUser;
 			ClaimsPrincipal? principal;
@@ -108,22 +108,19 @@ namespace rescueApp
 			}
 			// --- End Auth ---
 
-
-			// --- 2. Get Query Parameters ---
+			// --- 2. Get & Validate Query Parameters ---
 			var queryParams = HttpUtility.ParseQueryString(req.Url.Query);
 			string? filename = queryParams["filename"];
-			string? contentType = queryParams["contentType"]; // e.g., image/jpeg, image/png
+			string? contentType = queryParams["contentType"];
 
-			if (string.IsNullOrWhiteSpace(filename) || string.IsNullOrWhiteSpace(contentType))
+			if (string.IsNullOrWhiteSpace(filename) || string.IsNullOrWhiteSpace(contentType)) { /* return 400 */ }
+
+			var allowedContentTypes = new[] { "application/pdf", "image/jpeg", "image/png", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" };
+			if (contentType != null && !allowedContentTypes.Contains(contentType.ToLower()))
 			{
-				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Missing required query parameters: 'filename' and 'contentType'.");
+				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, $"Invalid contentType. Allowed types: {string.Join(", ", allowedContentTypes)}");
 			}
 
-			// Basic validation (add more as needed - size, allowed types)
-			if (!contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
-			{
-				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid contentType. Only image types are allowed.");
-			}
 
 			// --- 3. Generate SAS URL ---
 			try
@@ -148,7 +145,6 @@ namespace rescueApp
 				}
 
 				// --- Get Account Name and Key from Connection String ---
-				// Note: Robust parsing might be needed for complex connection strings
 				string accountName = string.Empty;
 				string accountKey = string.Empty;
 				try
@@ -179,7 +175,7 @@ namespace rescueApp
 					ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(15), // Short expiry time
 				};
 				// Grant necessary permissions (Write for PUT upload)
-				sasBuilder.SetPermissions(BlobSasPermissions.Write);
+				sasBuilder.SetPermissions(BlobSasPermissions.Write | BlobSasPermissions.Create);
 
 				// --- Generate SAS Token using Account Key ---
 				var credential = new StorageSharedKeyCredential(accountName, accountKey);
@@ -202,6 +198,7 @@ namespace rescueApp
 				await response.WriteAsJsonAsync(new
 				{
 					sasUrl = sasUri.ToString(),    // URL frontend uses for direct PUT upload
+					blobName = uniqueBlobName, // Name to save in DB metadata
 					blobUrl = blobClient.Uri.ToString() // URL to save in your database (without SAS)
 				});
 				return response;
