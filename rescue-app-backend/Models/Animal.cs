@@ -22,6 +22,7 @@ public class Animal
     public Guid? updated_by_user_id { get; set; }
 
     public virtual ICollection<AdoptionHistory>? AdoptionHistories { get; set; } // Animal has many histories
+    public virtual ICollection<AnimalDocument>? AnimalDocuments { get; set; }
 
     [ForeignKey("created_by_user_id")]
     public virtual User? CreatedByUser { get; set; }
