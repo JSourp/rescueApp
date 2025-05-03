@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+import { format } from 'date-fns'; // For formatting dates
 import { Container } from '@/components/Container';
 import AddAnimalForm from '@/components/admin/AddAnimalForm';
 import EditAnimalForm from '@/components/admin//EditAnimalForm';
@@ -13,7 +15,6 @@ import { Animal } from '@/types/animal';
 import { UserProfile } from '@/types/userProfile';
 import { useUser } from '@auth0/nextjs-auth0/client'; // To check login state & potentially role later
 import { getAuth0AccessToken } from '@/utils/auth'; // Import token helper
-import { format } from 'date-fns'; // For formatting dates
 import { adoptionStatuses } from '@/constants/adoptionStatuses'; // Import list of statuses
 
 // Define the type for the filters object passed to the fetch function
@@ -403,11 +404,8 @@ export default function AdminAnimalsPage() {
 				{!isLoadingData && !errorData && (
 					<div className="mb-2 text-sm text-right text-gray-600 dark:text-gray-400">
 						Displaying {animals.length} animal(s)
-						{/* TODO: Add logic here later if API provides total count */}
-						{/* e.g., {totalCount ? ` of ${totalCount}` : ''} */}
 					</div>
 				)}
-				{/* --- End Row Count --- */}
 
 				{/* Animals Table */}
 				{!isLoadingData && !errorData && (
@@ -443,7 +441,14 @@ export default function AdminAnimalsPage() {
 													<span className="text-gray-500 italic">No Image</span>
 												)}
 											</td>
-											<td className={tdClasses}>{animal.name ? `${animal.name}` : 'N/A'}</td>
+											<td className={tdClasses}>
+												<Link
+													href={`/admin/animal/${animal.id}`}
+													className="font-medium text-text-link hover:underline"
+													title={`View details for ${animal.name}`}>
+													{animal.name ?? 'N/A'} {/* Display name */}
+												</Link>
+											</td>
 											<td className={tdClasses}>{animal.animal_type ? `${animal.animal_type}` : 'N/A'}</td>
 											<td className={tdClasses}>{animal.breed ? `${animal.breed}` : 'N/A'}</td>
 											<td className={tdClasses}>{animal.adoption_status ? `${animal.adoption_status}` : 'N/A'}</td>
@@ -537,7 +542,8 @@ export default function AdminAnimalsPage() {
 				<Modal onClose={handleCloseDeleteConfirm}>
 					{/* Create ConfirmDeleteModal component below */}
 					<ConfirmDeleteModal
-						animalName={selectedAnimal.name ?? 'this animal'}
+						itemType='animal'
+						itemName={selectedAnimal.name ?? 'this animal'}
 						onClose={handleCloseDeleteConfirm}
 						onConfirmDelete={() => handleConfirmDelete(selectedAnimal.id)}
 						isDeleting={isDeleting} // Pass deletion state

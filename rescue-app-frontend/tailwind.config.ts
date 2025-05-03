@@ -178,8 +178,18 @@ const config: Config = {
         },
         // Optional: Define alternative accent if needed
         'accent-alt': { // Based on sc-trendy-pink
-          DEFAULT: '#a263a6', // sc-trendy-pink-600
-          // ... fill in other shades ...
+          DEFAULT: '#a263a6',
+          '50': '#fbf7fc',
+          '100': '#f6eff8',
+          '200': '#eedef0',
+          '300': '#e1c4e3',
+          '400': '#cea0d2',
+          '500': '#b679bc', // sc-trendy-pink-500
+          '600': '#a263a6', // Default
+          '700': '#804982',
+          '800': '#6a3d6b',
+          '900': '#593659',
+          '950': '#381a38',
         },
         text: { // Define text colors based on neutrals, sand, roast
           DEFAULT: '#292524', // Example: neutral-800 for base body text

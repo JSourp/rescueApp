@@ -2,20 +2,24 @@
 'use client';
 
 import React from 'react';
-import { TrashIcon, ExclamationTriangleIcon } from '@/components/Icons'; // Import icons
+import { LoadingSpinner, TrashIcon, ExclamationTriangleIcon } from '@/components/Icons'; // Import icons
 
 interface ConfirmDeleteModalProps {
-	animalName: string;
+	itemType: string; // e.g., 'animal', 'document'
+	itemName: string;
 	onClose: () => void;
 	onConfirmDelete: () => void; // No need to pass ID again, parent handler knows
 	isDeleting: boolean;
+	errorMessage?: string | null;
 }
 
 export default function ConfirmDeleteModal({
-	animalName,
+	itemType,
+	itemName,
 	onClose,
 	onConfirmDelete,
-	isDeleting
+	isDeleting,
+	errorMessage
 }: ConfirmDeleteModalProps) {
 
 	return (
@@ -26,11 +30,11 @@ export default function ConfirmDeleteModal({
 				</div>
 				<div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
 					<h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100" id="modal-title">
-						Delete {animalName}?
+						Delete {itemName}?
 					</h3>
 					<div className="mt-2">
 						<p className="text-sm text-gray-500 dark:text-gray-400">
-							Are you sure you want to delete this animal record? This should only be done for accidental entries. This action cannot be undone.
+							Are you sure you want to delete this {itemType}? This should only be done for accidental entries. This action cannot be undone.
 						</p>
 					</div>
 				</div>
@@ -42,7 +46,11 @@ export default function ConfirmDeleteModal({
 					className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:w-auto sm:text-sm disabled:opacity-50 dark:focus:ring-offset-gray-800"
 					onClick={onConfirmDelete}
 				>
-					{isDeleting ? 'Deleting...' : 'Yes, Delete'}
+					{isDeleting ? (
+						<> <LoadingSpinner className="w-5 h-5 mr-2" /> Deleting... </>
+					) : (
+						'Yes, Delete'
+					)}
 				</button>
 				<button
 					type="button"
