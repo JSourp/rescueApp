@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { format } from 'date-fns'; // For formatting dates
 import { Container } from '@/components/Container';
 import AddAnimalForm from '@/components/admin/AddAnimalForm';
@@ -433,7 +434,8 @@ export default function AdminAnimalsPage() {
 										<tr key={animal.id} className={index % 2 === 0 ? trEvenClasses : trOddClasses}>
 											<td className={tdClasses}>
 												{animal.image_url ? (
-													<img
+													<Image
+														alt={animal.name || ''}
 														src={animal.image_url || '/placeholder-image.png'}
 														className="w-10 h-10 object-cover rounded"
 													/>

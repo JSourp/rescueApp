@@ -89,12 +89,11 @@ export default function AdminAnimalDetailClientUI({
 	const handleCloseDeleteConfirm = () => { setIsDeleteConfirmOpen(false); setSelectedAnimal(null); };
 
 	const handleConfirmDelete = async (animalId: number) => {
-		const [errorData, setError] = useState<string | null>(null);
 		if (!animal || animalId !== animal.id) return;
 		setIsDeleting(true); setErrorData(null);
 		const token = await getAuth0AccessToken();
 		if (!token) {
-			setError("Authentication error. Cannot delete."); // Show error in main area
+			setErrorData("Authentication error. Cannot delete."); // Show error in main area
 			setIsDeleting(false);
 			return;
 		}
@@ -114,7 +113,7 @@ export default function AdminAnimalDetailClientUI({
 			setSelectedAnimal(null);
 		} catch (err) {
 			console.error("Delete error:", err);
-			setError(err instanceof Error ? err.message : 'Failed to delete animal');
+			setErrorData(err instanceof Error ? err.message : 'Failed to delete animal');
 			// Keep modal open to show error
 		} finally {
 			setIsDeleting(false);

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import Image from 'next/image';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { LoadingSpinner, SuccessCheckmarkIcon } from '@/components/Icons';
 import { getAuth0AccessToken } from '@/utils/auth';
@@ -306,7 +307,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 								{/* Optional: Show image preview */}
 								{selectedFile && (
 									<div className="mt-2">
-										<img src={URL.createObjectURL(selectedFile)} alt="Preview" className="h-20 w-20 object-cover rounded" />
+										<Image src={URL.createObjectURL(selectedFile)} alt="Preview" className="h-20 w-20 object-cover rounded" />
 										<button type="button" onClick={() => { setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }} className="text-xs text-red-600 hover:underline ml-2">Remove</button>
 									</div>
 								)}

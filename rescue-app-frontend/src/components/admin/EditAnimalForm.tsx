@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { LoadingSpinner, SuccessCheckmarkIcon } from '@/components/Icons';
 import { getAuth0AccessToken } from '@/utils/auth';
@@ -346,7 +347,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 								{/* Show current or new preview */}
 								{previewUrl && !removeCurrentImage && (
 									<div className="mt-2 mb-2">
-										<img src={previewUrl} alt="Current animal image" className="h-32 w-32 object-cover rounded shadow" />
+										<Image src={previewUrl} alt="Current animal image" className="h-32 w-32 object-cover rounded shadow" />
 									</div>
 								)}
 								{/* Show message if image marked for removal */}
