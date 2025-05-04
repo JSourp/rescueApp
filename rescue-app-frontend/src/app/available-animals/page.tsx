@@ -136,24 +136,12 @@ export default function AvailableAnimalsPage() {
     setGenderFilter(e.target.value);
   };
 
-  // --- ADDED HANDLERS FOR OTHER FILTERS (Example) ---
-  // Would need UI elements (like input fields or selects) for these
-  // const handleBreedFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   setBreedFilter(e.target.value);
-  // };
-  // const handleAgeGroupFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-  //   setAgeGroupFilter(e.target.value);
-  // };
-  // --- END OF ADDED HANDLERS ---
-
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSortBy(e.target.value);
   };
 
   // --- JSX (UI Code) ---
-  // (Keep existing JSX for Loading, Error, and the main return)
-  // Add UI elements (like <input> or <select>) if want users
-  // to actively filter by Breed or Age Group, using handlers like the examples above.
+  // Add UI elements (like <input> or <select>) so user can actively filter by Breed or Age Group
 
   if (loading) {
     return (
@@ -220,7 +208,7 @@ export default function AvailableAnimalsPage() {
                     </div>
                     <Image
                       src={animal.image_url || '/placeholder-image.png'}
-                      alt={animal.name || 'Animal image'}
+                      alt={animal.name ? `${animal.name}` : ''}
                       width={400}
                       height={300}
                       className="w-full h-64 object-cover" // Ensure consistent image size

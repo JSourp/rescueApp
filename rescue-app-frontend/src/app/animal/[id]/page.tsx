@@ -114,11 +114,15 @@ export default function AnimalDetailsPage() {
           {/*<p className="mb-2">Intake date: {intakeDate}</p>*/}
           <p className="mb-2">Time with us: {daysWithUs} {daysLabel}</p>
           <p className="mb-2">Adoption Status: {animal.adoption_status}</p>
-          <button
-            className="bg-primary hover:bg-primary-800 w-full sm:w-auto text-white font-bold rounded-md transition duration-300 py-2 px-4 mt-4"
-            onClick={() => setshowAdoptionForm(true)}>
-            Apply to Adopt {animal.name}
-          </button>
+
+          {/* View Apply to Adopt Button - Conditional */}
+          {['Available', 'Available - In Foster', 'Adoption Pending'].includes(animal.adoption_status ?? '') && (
+            <button
+              className="bg-primary hover:bg-primary-800 w-full sm:w-auto text-white font-bold rounded-md transition duration-300 py-2 px-4 mt-4"
+              onClick={() => setshowAdoptionForm(true)}>
+              Apply to Adopt {animal.name}
+            </button>
+          )}
         </div>
       </div>
 
