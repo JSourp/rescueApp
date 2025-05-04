@@ -437,6 +437,8 @@ export default function AdminAnimalsPage() {
 													<Image
 														alt={animal.name || ''}
 														src={animal.image_url || '/placeholder-image.png'}
+														width={32}
+														height={32}
 														className="w-10 h-10 object-cover rounded"
 													/>
 												) : (

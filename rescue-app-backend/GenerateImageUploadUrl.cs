@@ -28,18 +28,18 @@ using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
-	public class GenerateBlobUploadUrl
+	public class GenerateImageUploadUrl
 	{
 		private readonly AppDbContext _dbContext;
-		private readonly ILogger<GenerateBlobUploadUrl> _logger;
+		private readonly ILogger<GenerateImageUploadUrl> _logger;
 		private readonly string _auth0Domain = Environment.GetEnvironmentVariable("AUTH0_ISSUER_BASE_URL") ?? string.Empty;
 		private readonly string _auth0Audience = Environment.GetEnvironmentVariable("AUTH0_AUDIENCE") ?? string.Empty;
 		private static ConfigurationManager<OpenIdConnectConfiguration>? _configManager;
 		private static TokenValidationParameters? _validationParameters;
 		private readonly string _blobConnectionString = Environment.GetEnvironmentVariable("AzureBlobStorageConnectionString") ?? string.Empty;
-		private readonly string _blobContainerName = "animal-images"; // Your container name
+		private readonly string _blobContainerName = "animal-images"; // container name
 
-		public GenerateBlobUploadUrl(AppDbContext dbContext, ILogger<GenerateBlobUploadUrl> logger)
+		public GenerateImageUploadUrl(AppDbContext dbContext, ILogger<GenerateImageUploadUrl> logger)
 		{
 			_dbContext = dbContext;
 			_logger = logger;
@@ -49,13 +49,13 @@ namespace rescueApp
 			}
 		}
 
-		[Function("GenerateBlobUploadUrl")]
+		[Function("GenerateImageUploadUrl")]
 		public async Task<AzureFuncHttp.HttpResponseData> Run(
 			// TODO: Secure this endpoint (Admin/Staff/Volunteer roles)
-			[HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "generate-upload-url")]
+			[HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "image-upload-url")]
 			AzureFuncHttp.HttpRequestData req)
 		{
-			_logger.LogInformation("C# HTTP trigger function processed GenerateBlobUploadUrl request.");
+			_logger.LogInformation("C# HTTP trigger function processed GenerateImageUploadUrl request.");
 
 			User? currentUser;
 			ClaimsPrincipal? principal;
@@ -314,7 +314,7 @@ namespace rescueApp
 				error = new
 				{
 					code = statusCode.ToString(),
-					message
+					message = message
 				}
 			};
 

@@ -101,7 +101,12 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 				}
 				const filename = encodeURIComponent(selectedFile.name);
 				const contentType = encodeURIComponent(selectedFile.type);
-				const sasUrlResponse = await fetch(`${apiBaseUrl}/generate-upload-url?filename=${filename}&contentType=${contentType}`, { // <-- CORRECTED: Use apiBaseUrl
+
+				const urlToFetch = `${apiBaseUrl}/image-upload-url?filename=${filename}&contentType=${contentType}`;
+
+				console.log("Requesting SAS URL from:", urlToFetch); // Log the URL before fetching
+
+				const sasUrlResponse = await fetch(urlToFetch, { // Use the constructed URL
 					headers: { 'Authorization': `Bearer ${accessToken}` }
 				});
 
@@ -307,7 +312,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 								{/* Optional: Show image preview */}
 								{selectedFile && (
 									<div className="mt-2">
-										<Image src={URL.createObjectURL(selectedFile)} alt="Preview" className="h-20 w-20 object-cover rounded" />
+										<Image src={URL.createObjectURL(selectedFile)} alt="Preview" className="h-20 w-20 object-cover rounded" width={32} height={32} />
 										<button type="button" onClick={() => { setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }} className="text-xs text-red-600 hover:underline ml-2">Remove</button>
 									</div>
 								)}
@@ -358,15 +363,13 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 								type="button"
 								disabled={isSubmitting || isUploading} // Use RHF submitting state
 								onClick={onClose}
-								className="bg-neutral-200 hover:bg-neutral-300 text-neutral-800 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500 font-medium py-2 px-5 rounded-md transition duration-300"
-							>
+								className="bg-neutral-200 hover:bg-neutral-300 text-neutral-800 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500 font-medium py-2 px-5 rounded-md transition duration-300">
 								Cancel
 							</button>
 							<button
 								type="submit"
 								disabled={isSubmitting || isUploading} // Use RHF submitting state
-								className="bg-sc-asparagus-500 hover:bg-sc-asparagus-600 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50" // Use theme color
-							>
+								className="bg-sc-asparagus-500 hover:bg-sc-asparagus-600 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50">
 								{isSubmitting ? (
 									<LoadingSpinner className="text-center w-5 h-5 mx-auto" /> // Show spinner
 								) : (

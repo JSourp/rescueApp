@@ -14,7 +14,7 @@ async function fetchAnimalDetails(id: number, accessToken: string | undefined): 
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   if (!apiBaseUrl || !accessToken) return null; // Need base URL and token
-  const url = `${apiBaseUrl}/animals/${id}`; // Assuming GET /api/animals/{id} exists
+  const url = `${apiBaseUrl}/animals/${id}`;
   try {
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${accessToken}` },

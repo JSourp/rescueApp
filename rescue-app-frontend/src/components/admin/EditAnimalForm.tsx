@@ -140,9 +140,14 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 				}
 				const filename = encodeURIComponent(selectedFile.name);
 				const contentType = encodeURIComponent(selectedFile.type);
-				const sasUrlResponse = await fetch(`${apiBaseUrl}/generate-upload-url?filename=${filename}&contentType=${contentType}`, { // <-- CORRECTED: Use apiBaseUrl
+				const urlToFetch = `${apiBaseUrl}/image-upload-url?filename=${filename}&contentType=${contentType}`;
+
+				console.log("Requesting SAS URL from:", urlToFetch); // Log the URL before fetching
+
+				const sasUrlResponse = await fetch(urlToFetch, { // Use the constructed URL
 					headers: { 'Authorization': `Bearer ${accessToken}` }
 				});
+
 				if (!sasUrlResponse.ok) {
 					throw new Error(`Failed to get upload URL: ${sasUrlResponse.statusText}`);
 				}
@@ -347,7 +352,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 								{/* Show current or new preview */}
 								{previewUrl && !removeCurrentImage && (
 									<div className="mt-2 mb-2">
-										<Image src={previewUrl} alt="Current animal image" className="h-32 w-32 object-cover rounded shadow" />
+										<Image src={previewUrl} alt="Current animal image" className="h-32 w-32 object-cover rounded shadow" width={128} height={128} />
 									</div>
 								)}
 								{/* Show message if image marked for removal */}

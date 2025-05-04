@@ -6,6 +6,8 @@ using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
@@ -58,6 +60,8 @@ namespace rescueApp
         private readonly string _auth0Audience = Environment.GetEnvironmentVariable("AUTH0_AUDIENCE") ?? string.Empty;
         private static ConfigurationManager<OpenIdConnectConfiguration>? _configManager;
         private static TokenValidationParameters? _validationParameters;
+        private readonly string _blobConnectionString = Environment.GetEnvironmentVariable("AzureBlobStorageConnectionString") ?? string.Empty;
+        private readonly string _blobImageContainerName = "animal-images"; // Specific container for images
 
         public UpdateAnimal(AppDbContext dbContext, ILogger<UpdateAnimal> logger)
         {
@@ -164,6 +168,9 @@ namespace rescueApp
                     return req.CreateResponse(HttpStatusCode.NotFound);
                 }
 
+                string? originalImageUrl = existingAnimal.image_url;
+                string? newImageUrl = null; // Will hold the final URL state after update logic
+
                 // Update properties comparing model to DTO
                 if (existingAnimal.animal_type != updateData.animal_type) { existingAnimal.animal_type = updateData.animal_type; }
                 if (existingAnimal.name != updateData.name) { existingAnimal.name = updateData.name; }
@@ -176,10 +183,53 @@ namespace rescueApp
                 if (existingAnimal.story != updateData.story) { existingAnimal.story = updateData.story; }
                 if (existingAnimal.adoption_status != updateData.adoption_status) { existingAnimal.adoption_status = updateData.adoption_status; }
                 // Directly compare and assign the value sent from the frontend (which could be new URL, null, or original URL)
-                if (existingAnimal.image_url != updateData.image_url) { existingAnimal.image_url = updateData.image_url; }
+                if (existingAnimal.image_url != updateData.image_url)
+                {
+                    existingAnimal.image_url = updateData.image_url;
+                }
+
+                // Check if image_url was provided in the request (meaning change OR removal)
+                if (existingAnimal.image_url != updateData.image_url)
+                {
+                    existingAnimal.image_url = updateData.image_url; // Update to new value (which could be null)
+                    newImageUrl = updateData.image_url; // Track the new state
+                }
 
                 // Always set the user performing the update if any profile data changed
                 existingAnimal.updated_by_user_id = currentUser.id;
+
+                // --- Attempt to Delete OLD Blob IF URL changed AND old URL existed ---
+                bool imageWasChangedOrRemoved = !string.IsNullOrWhiteSpace(originalImageUrl) && (originalImageUrl != newImageUrl);
+
+                if (imageWasChangedOrRemoved)
+                {
+                    string? blobNameToDelete = null;
+                    try
+                    {
+                        Uri blobUri = new Uri(originalImageUrl!); // Use ! because original was not null/whitespace
+                        blobNameToDelete = blobUri.Segments.LastOrDefault();
+                    }
+                    catch (Exception parseEx) { _logger.LogWarning(parseEx, "Could not parse original image URL to extract blob name for deletion: {ImageUrl}", originalImageUrl); }
+
+                    if (!string.IsNullOrEmpty(blobNameToDelete))
+                    {
+                        _logger.LogInformation("Image URL changed/removed for Animal ID {AnimalId}. Deleting old blob: {Container}/{BlobName}", existingAnimal.id, _blobImageContainerName, blobNameToDelete);
+                        try
+                        {
+                            if (string.IsNullOrEmpty(_blobConnectionString)) throw new InvalidOperationException("Storage connection missing for blob delete.");
+                            var containerClient = new BlobContainerClient(_blobConnectionString, _blobImageContainerName);
+                            var blobClient = containerClient.GetBlobClient(blobNameToDelete);
+                            var deleteResponse = await blobClient.DeleteIfExistsAsync(); // Attempt deletion
+                            if (deleteResponse.Value) { _logger.LogInformation("Successfully deleted old blob '{BlobName}'.", blobNameToDelete); }
+                            else { _logger.LogWarning("Old blob '{BlobName}' not found during update.", blobNameToDelete); }
+                        }
+                        catch (Exception blobEx)
+                        {
+                            // Log error but allow DB update to proceed
+                            _logger.LogError(blobEx, "Error deleting old blob '{BlobName}' during update for Animal ID {AnimalId}.", blobNameToDelete, existingAnimal.id);
+                        }
+                    }
+                }
 
                 // ---- Save if ANY changes were detected by EF Core ----
                 // (This includes changes to updated_by_user_id or any other field)

@@ -80,10 +80,25 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 
 		try {
 			// 1. Get SAS URL
-			console.log("Requesting SAS URL for:", selectedFile.name);
-			const sasUrlResponse = await fetch(`/api/generate-upload-url?filename=${encodeURIComponent(selectedFile.name)}&contentType=${encodeURIComponent(selectedFile.type)}`, {
+			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+			if (!apiBaseUrl) {
+				throw new Error("API Base URL environment variable is not configured.");
+			}
+			// Ensure animalId is passed correctly as a prop to this component
+			if (!animalId) {
+				throw new Error("Animal ID is missing.");
+			}
+			const filename = encodeURIComponent(selectedFile!.name);
+			const contentType = encodeURIComponent(selectedFile!.type);
+
+			const urlToFetch = `${apiBaseUrl}/animals/${animalId}/document-upload-url?filename=${filename}&contentType=${contentType}`;
+
+			console.log("Requesting SAS URL from:", urlToFetch); // Log the URL before fetching
+
+			const sasUrlResponse = await fetch(urlToFetch, { // Use the constructed URL
 				headers: { 'Authorization': `Bearer ${accessToken}` }
 			});
+
 			if (!sasUrlResponse.ok) throw new Error(`Failed to get upload URL (${sasUrlResponse.status})`);
 			sasData = await sasUrlResponse.json();
 			if (!sasData || !sasData.sasUrl || !sasData.blobName || !sasData.blobUrl) throw new Error("Invalid SAS response from server.");
@@ -110,7 +125,6 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 			};
 
 			console.log("Saving document metadata:", metadataPayload);
-			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 			const metadataResponse = await fetch(`${apiBaseUrl}/animals/${animalId}/documents`, {
 				method: 'POST',
 				headers: {
@@ -205,9 +219,22 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 
 						{/* Form Actions */}
 						<div className="flex justify-end gap-3 pt-6 border-t border-gray-300 dark:border-gray-700 mt-6">
-							<button type="button" onClick={onClose} disabled={isUploading || isSubmitting} className="bg-neutral-200 ...">Cancel</button>
-							<button type="submit" disabled={!selectedFile || isUploading || isSubmitting} className="bg-blue-600 hover:bg-blue-700 ...">
-								{(isUploading || isSubmitting) ? <LoadingSpinner /> : 'Upload Document'}
+							<button
+								type="button"
+								disabled={isSubmitting || isUploading} // Use RHF submitting state
+								onClick={onClose}
+								className="bg-neutral-200 hover:bg-neutral-300 text-neutral-800 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500 font-medium py-2 px-5 rounded-md transition duration-300">
+								Cancel
+							</button>
+							<button
+								type="submit"
+								disabled={!selectedFile || isSubmitting || isUploading} // Use RHF submitting state
+								className="bg-sc-asparagus-500 hover:bg-sc-asparagus-600 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50">
+								{(isUploading || isSubmitting) ? (
+									<LoadingSpinner className="text-center w-5 h-5 mx-auto" />
+								) : (
+									'Upload Document'
+								)}
 							</button>
 						</div>
 

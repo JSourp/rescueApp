@@ -34,7 +34,10 @@ export default function ConfirmDeleteModal({
 					</h3>
 					<div className="mt-2">
 						<p className="text-sm text-gray-500 dark:text-gray-400">
-							Are you sure you want to delete this {itemType}? This should only be done for accidental entries. This action cannot be undone.
+							Are you sure you want to delete this {itemType}?
+						</p>
+						<p className="text-sm text-gray-500 dark:text-gray-400">
+							This action cannot be undone.
 						</p>
 					</div>
 				</div>
@@ -43,7 +46,7 @@ export default function ConfirmDeleteModal({
 				<button
 					type="button"
 					disabled={isDeleting}
-					className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:w-auto sm:text-sm disabled:opacity-50 dark:focus:ring-offset-gray-800"
+					className="inline-flex justify-center w-full border border-transparent text-text-on-accent bg-accent-700 hover:bg-accent-900 transition duration-300 rounded-md shadow px-4 py-2 font-medium sm:w-auto sm:text-sm disabled:opacity-50 dark:focus:ring-offset-gray-800"
 					onClick={onConfirmDelete}
 				>
 					{isDeleting ? (

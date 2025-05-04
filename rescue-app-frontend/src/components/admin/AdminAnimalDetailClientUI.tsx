@@ -21,7 +21,6 @@ import FinalizeAdoptionForm from '@/components/admin/FinalizeAdoptionForm';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import DocumentUploadForm from '@/components/admin/DocumentUploadForm';
 import Modal from '@/components/Modal';
-import router from 'next/router';
 
 // Define props received from the Server Component page
 interface AdminAnimalDetailClientUIProps {
@@ -72,9 +71,15 @@ export default function AdminAnimalDetailClientUI({
 
 	// --- Data Refresh Function ---
 	const router = useRouter(); // Initialize router for refresh
+
+	// Sync local 'documents' state when 'initialDocuments' prop changes after refresh
+	useEffect(() => {
+		console.log("InitialDocuments prop updated, setting local state.");
+		setDocuments(initialDocuments);
+	}, [initialDocuments]);
+
 	const handleDataRefresh = () => {
 		console.log("Refreshing animal data and documents...");
-		// Re-runs the Server Component's data fetching
 		router.refresh();
 	};
 
@@ -188,7 +193,7 @@ export default function AdminAnimalDetailClientUI({
 
 		try {
 			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-			const url = `${apiBaseUrl}/documents/${selectedDocument.id}`; // Use DELETE /api/documents/{id} route
+			const url = `${apiBaseUrl}/documents/${selectedDocument.id}`;
 			console.log(`Attempting to DELETE: ${url}`);
 
 			const response = await fetch(url, {
@@ -358,14 +363,18 @@ export default function AdminAnimalDetailClientUI({
 										{documents.map(doc => (
 											<li key={doc.id} className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800/50">
 												<div>
-													<p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title={doc.file_name}>
-														{doc.file_name}
+													<p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title={doc.fileName}>
+														{doc.fileName}
 													</p>
 													<p className="text-xs text-gray-500 dark:text-gray-400">
-														Type: {doc.document_type} | Uploaded: {format(new Date(doc.date_uploaded), 'P')}
-														{/* TODO: Display uploader name if available */}
+														Type: {doc.documentType}
 													</p>
-													{doc.description && <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 italic">Notes: {doc.description}</p>}
+													<p className="text-xs text-gray-500 dark:text-gray-400">
+														Uploaded: {doc.dateUploaded && typeof doc.dateUploaded === 'string'
+															? format(new Date(doc.dateUploaded), 'PPP') // Format only if valid string
+															: 'Invalid Date' // Fallback for null/undefined/invalid
+														}
+													</p>
 												</div>
 												<div className='flex items-center space-x-2 flex-shrink-0 ml-4'>
 													<button
@@ -467,7 +476,7 @@ export default function AdminAnimalDetailClientUI({
 				<Modal onClose={handleCloseDocDeleteConfirm}>
 					<ConfirmDeleteModal
 						itemType='document'
-						itemName={selectedDocument.file_name ?? 'this document'} // Use filename
+						itemName={selectedDocument.fileName ?? 'this document'} // Use filename
 						onClose={handleCloseDocDeleteConfirm}
 						onConfirmDelete={handleConfirmDocDelete} // Call the new handler
 						isDeleting={isDeletingDoc} // Pass the specific deleting state

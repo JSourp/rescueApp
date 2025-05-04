@@ -87,6 +87,8 @@ export function Navbar() {
                     <Image
                       src={user.picture}
                       alt={user.name || user.email || 'User'}
+                      width={32}
+                      height={32}
                       className="w-6 h-6 rounded-full"
                     />
                   )}
