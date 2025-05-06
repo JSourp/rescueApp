@@ -2,13 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { Animal } from '@/types/animal'; // Adjust import path
+import { Animal } from '@/types/animal';
+import { AnimalImage as AnimalImageType } from '@/types/animalImage';
 import Image from 'next/image';
 import { calculateAge } from "@/components/data";
 import { PopupWidget } from "@/components/PopupWidget";
 import Modal from '@/components/Modal';
 import AdoptionForm from '@/components/AdoptionForm';
 import { format, differenceInDays } from "date-fns";
+import Slider from "react-slick";
 
 async function fetchAnimal(id: string): Promise<Animal | null> {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL; // Adjust URL if needed
@@ -65,6 +67,20 @@ export default function AnimalDetailsPage() {
     loadAnimal();
   }, [animal_id]); // Re-fetch data if the animal_id changes
 
+  // --- Slider Settings ---
+  const sliderSettings = {
+    dots: true, // Show dot indicators
+    infinite: true, // Loop slides
+    speed: 500, // Transition speed
+    slidesToShow: 1, // Show one image at a time
+    slidesToScroll: 1,
+    autoplay: true, // Auto-play slides
+    autoplaySpeed: 5000, // Delay between slides (5 seconds)
+    pauseOnHover: true,
+    adaptiveHeight: true, // Adjust slider height to current image
+    // Add custom arrows if desired
+  };
+
   if (loading) {
     return (
       <div className="text-center py-10 text-gray-500 dark:text-gray-400">
@@ -90,19 +106,50 @@ export default function AnimalDetailsPage() {
   // Determine the correct label for "day" or "days"
   const daysLabel = daysWithUs === 1 ? "day" : "days";
 
+  // Ensure animalImages exists and has items before rendering slider
+  const images = animal.animalImages?.filter(img => img.blobUrl) ?? []; // Use optional chaining and filter potentially null URLs
+
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-4xl font-bold mb-6">{animal.name}</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          <Image
-            src={animal.image_url || '/placeholder-image.png'}
-            alt={animal.name || 'Animal image'}
-            width={600}
-            height={450}
-            className="w-full h-auto rounded-lg object-cover"
-            priority // Prioritize image on details page
-          />
+          {/* --- Image Carousel --- */}
+          {images.length > 0 ? (
+            <div className="mb-4 slick-container"> {/* Add wrapper for styling if needed */}
+              <Slider {...sliderSettings}>
+                {images
+                  // Optionally sort images here if not sorted by API
+                  // .sort((a, b) => (a.displayOrder ?? 99) - (b.displayOrder ?? 99))
+                  .map((image, index) => (
+                    <div key={image.id || index}> {/* Use image ID if available */}
+                      <div className="aspect-w-4 aspect-h-3"> {/* Maintain aspect ratio */}
+                        <Image
+                          src={image.blobUrl || '/placeholder-image.png'}
+                          alt={`${animal.name || 'Animal'} picture ${index + 1} ${image.caption ? `- ${image.caption}` : ''}`}
+                          fill // Use fill layout
+                          className="object-cover rounded-lg"
+                          priority={index === 0} // Prioritize first image
+                        />
+                      </div>
+                      {image.caption && <p className="text-center text-xs italic text-gray-500 mt-1">{image.caption}</p>}
+                    </div>
+                  ))
+                }
+              </Slider>
+            </div>
+          ) : (
+            // Fallback if animalImages array is empty or missing
+            <div className="aspect-w-4 aspect-h-3 mb-4">
+                <Image
+                  src={'/placeholder-image.png'}
+                  alt={animal.name || ''}
+                  fill
+                  className="object-cover rounded-lg"
+                  priority
+                />
+            </div>
+          )}
         </div>
         <div className="text-base">
           <p className="mb-4">{animal.story}</p>

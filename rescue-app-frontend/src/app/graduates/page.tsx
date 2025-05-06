@@ -13,7 +13,6 @@ import { format } from 'date-fns';
 interface Graduate extends Animal {
 	id: number;
 	name: string | null;
-	image_url: string | null;
 	animal_type: string | null;
 	breed: string | null;
 	gender: string | null;
@@ -230,7 +229,7 @@ export default function GraduatesPage() {
 												</h2>
 											</div>
 											<Image
-												src={graduate.image_url || '/placeholder-image.png'}
+												src={graduate.primaryImageUrl || '/placeholder-image.png'}
 												alt={graduate.name ? `${graduate.name}` : ''}
 												width={400}
 												height={300}

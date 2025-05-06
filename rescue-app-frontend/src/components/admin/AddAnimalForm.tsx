@@ -60,6 +60,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 	});
 
 	const [isSuccess, setIsSuccess] = useState(false);
+	const [isProcessing, setIsProcessing] = useState(false);
 	const [submitMessage, setSubmitMessage] = useState("");
 
 	// Handler for file input change
@@ -74,6 +75,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 
 	const handleCreateAnimal: SubmitHandler<AddAnimalFormData> = async (formData) => {
 		setApiError(null);
+		setIsProcessing(true);
 		setIsSuccess(false);
 		setSubmitMessage("");
 
@@ -85,7 +87,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 		}
 		// --- Got Token ---
 
-		let image_url: string | null = null; // URL to save in the DB
+		let uploadedImageData: { blobUrl: string; blobName: string; fileName: string } | null = null;
 
 		// --- Step 1: Upload Image if selected ---
 		if (selectedFile) {
@@ -110,21 +112,14 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 					headers: { 'Authorization': `Bearer ${accessToken}` }
 				});
 
-				if (!sasUrlResponse.ok) {
-					throw new Error(`Failed to get upload URL: ${sasUrlResponse.statusText}`);
-				}
+				if (!sasUrlResponse.ok) { throw new Error(`Failed to get upload URL: ${sasUrlResponse.statusText}`); }
 				const sasData = await sasUrlResponse.json();
-				const { sasUrl, blobUrl } = sasData;
+				if (!sasData || !sasData.sasUrl || !sasData.blobName || !sasData.blobUrl) throw new Error("Invalid SAS response.");
 
-				if (!sasUrl || !blobUrl) {
-					throw new Error("Backend did not return valid SAS/Blob URL.");
-				}
 				console.log("Got SAS URL, attempting direct upload to Azure...");
 
 				// 1b. Upload file directly to Azure Blob Storage using SAS URL
-				// NOTE: Fetch API upload progress isn't easily tracked.
-				// For progress, use XMLHttpRequest or a library like Axios.
-				const uploadResponse = await fetch(sasUrl, {
+				const uploadResponse = await fetch(sasData.sasUrl, {
 					method: 'PUT',
 					headers: {
 						'x-ms-blob-type': 'BlockBlob',
@@ -140,50 +135,43 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 					throw new Error(`Failed to upload image to Azure: ${uploadResponse.statusText}`);
 				}
 
-				console.log("Image uploaded successfully to:", blobUrl);
-				image_url = blobUrl; // Set the URL to save with animal data
+				console.log("Image uploaded successfully:", sasData.blobUrl);
+				uploadedImageData = { // Store details needed for metadata POST
+					blobUrl: sasData.blobUrl,
+					blobName: sasData.blobName,
+					fileName: selectedFile.name // Store original filename
+				};
 
 			} catch (uploadError: any) {
 				console.error("Image upload process failed:", uploadError);
 				setApiError(`Image upload failed: ${uploadError.message}`);
 				setIsUploading(false);
-				// Stop the whole process if image upload fails? Or allow saving without image?
 				return; // Stop here if upload fails
 			} finally {
 				setIsUploading(false); // Indicate image upload finished
 			}
 		}
-		// --- End Image Upload ---
 
-		// Convert weight to number if it's a non-empty string
-		let submissionData: any = { ...formData };
-		if (submissionData.weight && typeof submissionData.weight === 'string') {
-			submissionData.weight = parseFloat(submissionData.weight);
-			if (isNaN(submissionData.weight)) {
-				// Handle parsing error if needed, though type="number" helps
-				submissionData.weight = null;
-			}
-		} else if (submissionData.weight === '') {
-			submissionData.weight = null; // Treat empty string as null
-		}
-		// Clear date if empty string was somehow submitted
-		if (submissionData.date_of_birth === '') {
-			submissionData.date_of_birth = null;
-		}
-
-		submissionData.image_url = image_url; // Add the uploaded image URL
-
-		console.log('Submitting new animal data:', submissionData);
-
+		// --- Step 2: Submit CORE Animal Data ---
+		let newAnimalId: number | null = null;
 		try {
 			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+			const animalPayload = {
+				animal_type: formData.animal_type,
+				name: formData.name,
+				breed: formData.breed,
+				date_of_birth: formData.date_of_birth || null,
+				gender: formData.gender,
+				weight: formData.weight || null,
+				story: formData.story || null,
+				adoption_status: formData.adoption_status,
+			};
+			console.log('Submitting core animal data:', animalPayload);
+
 			const response = await fetch(`${apiBaseUrl}/animals`, {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${accessToken}`,
-				},
-				body: JSON.stringify(submissionData),
+				headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+				body: JSON.stringify(animalPayload),
 			});
 
 			if (!response.ok) {
@@ -198,16 +186,9 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 				throw new Error(errorMsg);
 			}
 
-			// If response IS ok (e.g., 201 Created)
-			const result = await response.json(); // Now parse the successful response (the created animal)
-			console.log(`${result.name} added successfully!`, result);
-
-			// Set state for success UI
-			setIsSuccess(true);
-			setSubmitMessage(`${result.name} added successfully!`);
-
-			// Call parent AFTER success and state is set
-			onAnimalAdded(); // Notify parent list needs refresh
+			const createdAnimal = await response.json(); // Get created animal back (includes ID)
+			newAnimalId = createdAnimal.id; // Store the new ID
+			setSubmitMessage(`${createdAnimal.name} added successfully!`);
 
 			// Delay the form closure to let the user see the success message
 			setTimeout(() => {
@@ -217,16 +198,26 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 			}, 5000); // Adjust the delay time (e.g., 5000ms = 5 seconds)
 
 		} catch (error: any) {
-			setIsSuccess(false); // Ensure success is false on error
+			console.error("Create animal API error:", error);
+			setIsSuccess(false); // Ensure success is false on
 			setSubmitMessage(error.message || "An unexpected error occurred."); // Use error state instead
-			setApiError(error.message || "An unexpected error occurred."); // Set API error state too
-			console.error("Add animal error:", error);
+			setApiError(error.message || "Failed to create animal record.");
+			setIsProcessing(false);
+			return; // Stop if animal creation fails
 		}
+
+		// --- Final Success ---
+		// If we reach here, everything succeeded
+		reset(); // Clear the form
+		if (fileInputRef.current) fileInputRef.current.value = ''; // Clear file input
+		setSelectedFile(null); // Clear file state
+		onAnimalAdded(); // Call parent handler (close modal, refresh list)
+		setIsProcessing(false); // Ensure processing is false
 	};
 
 
 	// --- Base styling classes (using Asparagus Green theme) ---
-	const inputBaseClasses = "w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-sc-asparagus-100 dark:focus:ring-sc-asparagus-900 focus:border-sc-asparagus-500 dark:focus:border-sc-asparagus-500";
+	const inputBaseClasses = "w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-primary-100 dark:focus:ring-primary-900 focus:border-primary-500 dark:focus:border-primary-500";
 	const inputBorderClasses = (hasError: boolean) => hasError ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600';
 	const errorTextClasses = "text-red-500 dark:text-red-400 text-xs mt-1";
 	const labelBaseClasses = "block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300";
@@ -236,7 +227,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 	return (
 		<div className="flex flex-col max-h-[85vh]"> {/* Limit height */}
 			{/* Header */}
-			<div className="flex-shrink-0 p-5 bg-sc-asparagus-600"> {/* Use theme color */}
+			<div className="flex-shrink-0 p-5 bg-primary-600"> {/* Use theme color */}
 				<h3 className="text-lg text-white text-center font-semibold">Add New Animal</h3>
 			</div>
 
@@ -305,9 +296,9 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
                                 file:mr-4 file:py-2 file:px-4
                                 file:rounded-full file:border-0
                                 file:text-sm file:font-semibold
-                                file:bg-sc-asparagus-50 dark:file:bg-sc-asparagus-900/30
-                                file:text-sc-asparagus-700 dark:file:text-sc-asparagus-200
-                                hover:file:bg-sc-asparagus-100 dark:hover:file:bg-sc-asparagus-900/50`}
+                                file:bg-primary-50 dark:file:bg-primary-900/30
+                                file:text-primary-700 dark:file:text-primary-200
+                                hover:file:bg-primary-100 dark:hover:file:bg-primary-900/50`}
 								/>
 								{/* Optional: Show image preview */}
 								{selectedFile && (
@@ -369,7 +360,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 							<button
 								type="submit"
 								disabled={isSubmitting || isUploading} // Use RHF submitting state
-								className="bg-sc-asparagus-500 hover:bg-sc-asparagus-600 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50">
+								className="bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50">
 								{isSubmitting ? (
 									<LoadingSpinner className="text-center w-5 h-5 mx-auto" /> // Show spinner
 								) : (
@@ -384,7 +375,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 							<SuccessCheckmarkIcon />
 							<h3 className="py-5 text-xl text-green-600 dark:text-green-400">Animal Added Successfully!</h3>
 							<p className="text-gray-700 dark:text-gray-300 md:px-3">{submitMessage}</p>
-							<button type="button" className="mt-6 text-sc-asparagus-600 dark:text-sc-asparagus-400 hover:underline focus:outline-none" onClick={() => {
+							<button type="button" className="mt-6 text-primary-600 dark:text-primary-400 hover:underline focus:outline-none" onClick={() => {
 								reset(); // Reset form state
 								setIsSuccess(false); // Go back to form view
 								setSubmitMessage("");

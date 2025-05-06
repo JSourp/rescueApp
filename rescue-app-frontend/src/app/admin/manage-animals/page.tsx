@@ -339,7 +339,7 @@ export default function AdminAnimalsPage() {
 						<button
 							onClick={handleAddAnimalClick}
 							// Re-apply button styling (using Asparagus theme from AddAnimalForm)
-							className="inline-flex items-center gap-2 px-4 py-2 bg-sc-asparagus-500 hover:bg-sc-asparagus-600 text-white font-medium rounded-md shadow transition duration-300"
+							className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-md shadow transition duration-300"
 						>
 							<PlusIcon className="w-5 h-5" />
 							<span>Add New Animal</span> {/* Explicit span for text */}
@@ -433,16 +433,16 @@ export default function AdminAnimalsPage() {
 									animals.map((animal, index) => (
 										<tr key={animal.id} className={index % 2 === 0 ? trEvenClasses : trOddClasses}>
 											<td className={tdClasses}>
-												{animal.image_url ? (
-													<Image
-														alt={animal.name || ''}
-														src={animal.image_url || '/placeholder-image.png'}
-														width={32}
-														height={32}
+												{animal.primaryImageUrl ? (
+													<img
+														// Use primaryImageUrl, fallback to placeholder
+														src={animal.primaryImageUrl || '/placeholder-image.png'}
+														alt={animal.name || 'Animal'} // Use snake_case name property
 														className="w-10 h-10 object-cover rounded"
+														loading="lazy" // Good idea for list images
 													/>
 												) : (
-													<span className="text-gray-500 italic">No Image</span>
+														<span className="text-gray-500 italic text-xs">No Image</span>
 												)}
 											</td>
 											<td className={tdClasses}>

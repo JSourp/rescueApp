@@ -1,5 +1,3 @@
-// rescue-app-backend/GetGraduates.cs
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,6 +51,7 @@ namespace rescueApp
 
 				IQueryable<AdoptionHistory> historyQuery = _dbContext.AdoptionHistories
 					.Include(ah => ah.Animal) // Include animal data
+						.ThenInclude(a => a!.AnimalImages) // <-- THEN INCLUDE the related images for the animal
 					.Where(ah => ah.return_date == null && ah.Animal != null && ah.Animal.adoption_status == "Adopted"); // Only active adoptions for animals marked Adopted
 
 				// Apply filters based on the JOINED Animal properties
@@ -98,7 +97,12 @@ namespace rescueApp
 						// Select needed properties from ah.Animal (using snake_case)
 						ah.Animal!.id,
 						ah.Animal.name,
-						ah.Animal.image_url,
+						// Find the image marked as primary, or the first by display order, or null
+						ImageUrl = ah.Animal.AnimalImages! // Use ! since Animal should be included
+									 .OrderBy(img => img.is_primary ? 0 : 1) // Prioritize primary=true
+									 .ThenBy(img => img.display_order) // Then by explicit order
+									 .Select(img => img.image_url)      // Select the URL string
+									 .FirstOrDefault(),                 // Get the best match or null
 						ah.Animal.animal_type,
 						ah.Animal.breed,
 						ah.Animal.gender,

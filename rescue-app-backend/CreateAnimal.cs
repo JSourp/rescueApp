@@ -51,8 +51,6 @@ namespace rescueApp
         [Required(AllowEmptyStrings = false)]
         [MaxLength(50)] // Match DB size if needed
         public string? adoption_status { get; set; } // e.g., "Available", "Not Yet Available"
-
-        public string? image_url { get; set; }
     }
 
     public class CreateAnimal
@@ -127,7 +125,6 @@ namespace rescueApp
                 _logger.LogError(ex, "Error during authentication/authorization in CreateAnimal.");
                 return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Authentication/Authorization error.");
             }
-            // --- End Auth ---
 
 
             // --- 2. Deserialize & Validate Request Body ---
@@ -180,7 +177,6 @@ namespace rescueApp
                     weight = createData.Weight, // Nullable decimal?
                     story = createData.Story, // Nullable string
                     adoption_status = createData.adoption_status!, // Use status from request
-                    image_url = createData.image_url, // Image handling comes later
                     created_by_user_id = currentUser.id,
                     updated_by_user_id = currentUser.id
                 };
@@ -191,13 +187,11 @@ namespace rescueApp
                 _logger.LogInformation("Successfully created new Animal with ID: {animal_id} by User ID: {UserId}", newAnimal.id, currentUser!.id); // Use currentUser safely
 
                 // --- 4. Return Response ---
-                var response = req.CreateResponse(HttpStatusCode.Created); // 201 Created status code
-                                                                           // Return the created animal object (serialized with camelCase by default if using ASP.NET Core integration, or explicitly)
-                                                                           // Using System.Text.Json directly with options for clarity:
+                var response = req.CreateResponse(HttpStatusCode.Created);
                 var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
                 var jsonPayload = JsonSerializer.Serialize(newAnimal, jsonOptions);
                 response.Headers.Add("Content-Type", "application/json; charset=utf-8");
-                response.Headers.Add("Location", $"/api/animals/{newAnimal.id}"); // Location header for new resource
+                response.Headers.Add("Location", $"/api/animals/{newAnimal.id}");
                 await response.WriteStringAsync(jsonPayload);
                 return response;
             }

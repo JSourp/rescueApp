@@ -30,8 +30,6 @@ namespace rescueApp
         private readonly string _auth0Audience = Environment.GetEnvironmentVariable("AUTH0_AUDIENCE") ?? string.Empty;
         private static ConfigurationManager<OpenIdConnectConfiguration>? _configManager;
         private static TokenValidationParameters? _validationParameters;
-        private readonly string _blobConnectionString = Environment.GetEnvironmentVariable("AzureBlobStorageConnectionString") ?? string.Empty;
-        private readonly string _blobImageContainerName = "animal-images"; // Specific container for images
 
         public DeleteAnimal(AppDbContext dbContext, ILogger<DeleteAnimal> logger)
         {
@@ -107,48 +105,6 @@ namespace rescueApp
                 {
                     _logger.LogWarning("Animal not found for deletion. Animal ID: {animal_id}", id);
                     return req.CreateResponse(HttpStatusCode.NotFound);
-                }
-
-                string? imageUrlToDelete = animalToDelete.image_url;
-                string? blobNameToDelete = null;
-
-                if (!string.IsNullOrWhiteSpace(imageUrlToDelete))
-                {
-                    try
-                    {
-                        // Attempt to parse the URL and get the last segment (blob name)
-                        Uri blobUri = new Uri(imageUrlToDelete);
-                        blobNameToDelete = blobUri.Segments.LastOrDefault(); // Gets "GUID-name.jpg"
-
-                        if (!string.IsNullOrEmpty(blobNameToDelete))
-                        {
-                            _logger.LogInformation("Attempting to delete blob: {Container}/{BlobName}", _blobImageContainerName, blobNameToDelete);
-                            if (string.IsNullOrEmpty(_blobConnectionString)) throw new InvalidOperationException("Storage connection missing for blob delete.");
-
-                            var containerClient = new BlobContainerClient(_blobConnectionString, _blobImageContainerName);
-                            var blobClient = containerClient.GetBlobClient(blobNameToDelete);
-
-                            var deleteResponse = await blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
-
-                            if (deleteResponse.Value)
-                            {
-                                _logger.LogInformation("Successfully deleted blob '{BlobName}' from container '{Container}'.", blobNameToDelete, _blobImageContainerName);
-                            }
-                            else
-                            {
-                                _logger.LogWarning("Blob '{BlobName}' not found in container '{Container}' during delete attempt.", blobNameToDelete, _blobImageContainerName);
-                            }
-                        }
-                        else
-                        {
-                            _logger.LogWarning("Could not parse blob name from image URL: {ImageUrl}", imageUrlToDelete);
-                        }
-                    }
-                    catch (Exception blobEx)
-                    {
-                        // Log the error but proceed with DB deletion, so the animal record is still deleted.
-                        _logger.LogError(blobEx, "Error occurred while trying to delete blob '{BlobName}' for Animal ID {AnimalId}. Database record will still be deleted.", blobNameToDelete ?? "Unknown", id);
-                    }
                 }
 
                 _dbContext.Animals.Remove(animalToDelete);
@@ -275,7 +231,7 @@ namespace rescueApp
                 error = new
                 {
                     code = statusCode.ToString(),
-                    message = message
+                    message
                 }
             };
 

@@ -207,7 +207,7 @@ export default function AvailableAnimalsPage() {
                       </h2>
                     </div>
                     <Image
-                      src={animal.image_url || '/placeholder-image.png'}
+                      src={animal.primaryImageUrl || '/placeholder-image.png'}
                       alt={animal.name ? `${animal.name}` : ''}
                       width={400}
                       height={300}

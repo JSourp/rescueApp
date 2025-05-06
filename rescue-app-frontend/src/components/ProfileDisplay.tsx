@@ -137,7 +137,7 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
           <div className="pt-6 text-right">
             <button
               onClick={() => { setApiError(null); setIsEditing(true); }}
-              className="bg-sc-asparagus-500 hover:bg-sc-asparagus-600 text-white font-medium py-2 px-5 rounded-md transition duration-300"
+              className="bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-5 rounded-md transition duration-300"
             >
               Edit Profile
             </button>

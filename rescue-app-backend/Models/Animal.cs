@@ -15,7 +15,6 @@ public class Animal
     public decimal? weight { get; set; }
     public string? story { get; set; }
     public string? adoption_status { get; set; }
-    public string? image_url { get; set; }
     public DateTime date_created { get; set; } // Renamed from date_added
     public DateTime date_updated { get; set; }
     public Guid? created_by_user_id { get; set; }
@@ -23,6 +22,7 @@ public class Animal
 
     public virtual ICollection<AdoptionHistory>? AdoptionHistories { get; set; } // Animal has many histories
     public virtual ICollection<AnimalDocument>? AnimalDocuments { get; set; }
+    public virtual ICollection<AnimalImage> AnimalImages { get; set; }
 
     [ForeignKey("created_by_user_id")]
     public virtual User? CreatedByUser { get; set; }
@@ -33,5 +33,6 @@ public class Animal
     public Animal()
     {
         AdoptionHistories = new HashSet<AdoptionHistory>();
+        AnimalImages = new HashSet<AnimalImage>();
     }
 }

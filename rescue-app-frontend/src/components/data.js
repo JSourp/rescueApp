@@ -67,7 +67,7 @@ export const fetchSpotlights = async () => {
         name: animal.name,
         title: `Meet ${animal.name}`, // Title for display
         desc: animal.story,          // Use story for description
-        image: animal.image_url || '/placeholder-image.png', // Provide fallback
+        image: animal.primaryImageUrl || '/placeholder-image.png', // Provide fallback
         bullets: [
           {
             title: "Breed:",

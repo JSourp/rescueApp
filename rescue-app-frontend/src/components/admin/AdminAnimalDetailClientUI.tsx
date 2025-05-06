@@ -260,7 +260,7 @@ export default function AdminAnimalDetailClientUI({
 					<div className="md:col-span-1 space-y-4">
 						<div className="aspect-square relative">
 							<Image
-								src={animal.image_url || '/placeholder-image.png'}
+								src={animal.primaryImageUrl || '/placeholder-image.png'}
 								alt={animal.name || 'Animal Image'}
 								fill // Use fill for aspect ratio container
 								className="object-cover rounded-lg shadow-md border dark:border-gray-700"

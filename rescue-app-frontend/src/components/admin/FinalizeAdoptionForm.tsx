@@ -311,7 +311,7 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 								Cancel
 							</button>
 							<button type="submit" disabled={isSubmitting || isProcessing}
-								className="bg-sc-asparagus-500 hover:bg-sc-asparagus-600 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50">
+								className="bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50">
 								{isSubmitting || isProcessing ? 'Processing...' : 'Confirm Adoption'}
 							</button>
 						</div>
