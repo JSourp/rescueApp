@@ -2,7 +2,7 @@ import React from 'react';
 import { getSession } from '@auth0/nextjs-auth0';
 import { redirect } from 'next/navigation';
 import { Container } from '@/components/Container';
-import { Animal } from '@/types/animalListItem';
+import { Animal } from '@/types/animal';
 import { UserProfile } from '@/types/userProfile';
 import { AnimalDocument } from '@/types/animalDocument';
 import Link from 'next/link';

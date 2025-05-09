@@ -1,20 +1,16 @@
-'use client'; // For using useParams
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Animal } from '@/types/animal';
-import { AnimalImage as AnimalImageType } from '@/types/animalImage';
 import Image from 'next/image';
 import { calculateAge } from "@/components/data";
-import { PopupWidget } from "@/components/PopupWidget";
-import { Container } from '@/components/Container';
-import { LoadingSpinner } from "@/components/Icons";
 import Modal from '@/components/Modal';
 import AdoptionForm from '@/components/AdoptionForm';
 import { format, differenceInDays } from "date-fns";
 import Slider from "react-slick";
 
-async function fetchAnimal(id: string): Promise<Animal | null> {
+async function fetchAnimalDetails(id: string): Promise<Animal | null> {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL; // Adjust URL if needed
 
   try {
@@ -50,7 +46,7 @@ export default function AnimalDetailsPage() {
 
       try {
         if (animal_id) {
-          const fetchedAnimal = await fetchAnimal(animal_id);
+          const fetchedAnimal = await fetchAnimalDetails(animal_id);
           setAnimal(fetchedAnimal);
         } else {
           setError('Animal ID is missing.');
