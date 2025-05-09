@@ -26,6 +26,8 @@ namespace rescueApp
     {
         private readonly AppDbContext _dbContext;
         private readonly ILogger<DeleteAnimal> _logger;
+        private readonly string _blobConnectionString = Environment.GetEnvironmentVariable("AzureBlobStorageConnectionString") ?? string.Empty;
+        private readonly string _blobImageContainerName = "animal-images";
         private readonly string _auth0Domain = Environment.GetEnvironmentVariable("AUTH0_ISSUER_BASE_URL") ?? string.Empty;
         private readonly string _auth0Audience = Environment.GetEnvironmentVariable("AUTH0_AUDIENCE") ?? string.Empty;
         private static ConfigurationManager<OpenIdConnectConfiguration>? _configManager;
@@ -57,35 +59,35 @@ namespace rescueApp
                 principal = await ValidateTokenAndGetPrincipal(req);
                 if (principal == null)
                 {
-                    _logger.LogWarning("UpdateUserProfile: Token validation failed.");
+                    _logger.LogWarning("DeleteAnimal: Token validation failed.");
                     return await CreateErrorResponse(req, HttpStatusCode.Unauthorized, "Invalid or missing token.");
                 }
 
                 auth0UserId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(auth0UserId))
                 {
-                    _logger.LogError("UpdateUserProfile: 'sub' (NameIdentifier) claim missing from token.");
+                    _logger.LogError("DeleteAnimal: 'sub' (NameIdentifier) claim missing from token.");
                     return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User identifier missing from token.");
                 }
 
                 _logger.LogInformation("Token validation successful for user ID (sub): {Auth0UserId}", auth0UserId);
 
                 // Fetch user from DB based on validated Auth0 ID
-                currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.external_provider_id == auth0UserId);
+                currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.ExternalProviderId == auth0UserId);
 
-                if (currentUser == null || !currentUser.is_active)
+                if (currentUser == null || !currentUser.IsActive)
                 {
                     _logger.LogWarning("DeleteAnimal: User not authorized or inactive. ExternalId: {ExternalId}", auth0UserId);
                     return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User not authorized or inactive.");
                 }
 
                 // --- Role Check: ONLY Admin can delete ---
-                if (currentUser.role != "Admin")
+                if (currentUser.Role != "Admin")
                 {
-                    _logger.LogWarning("User Role '{UserRole}' not authorized to delete animal. UserID: {UserId}", currentUser.role, currentUser.id);
+                    _logger.LogWarning("User Role '{UserRole}' not authorized to delete animal. UserID: {UserId}", currentUser.Role, currentUser.Id);
                     return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "Permission denied to delete animal.");
                 }
-                _logger.LogInformation("User {UserId} with role {UserRole} authorized to delete animal.", currentUser.id, currentUser.role);
+                _logger.LogInformation("User {UserId} with role {UserRole} authorized to delete animal.", currentUser.Id, currentUser.Role);
 
             }
             catch (Exception ex) // Catch potential exceptions during auth/authz
@@ -93,13 +95,14 @@ namespace rescueApp
                 _logger.LogError(ex, "Error during authentication/authorization in DeleteAnimal.");
                 return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Authentication/Authorization error.");
             }
-            // --- End Auth ---
 
 
             // --- 2. Find and Delete Animal ---
             try
             {
-                var animalToDelete = await _dbContext.Animals.FindAsync(id);
+                var animalToDelete = await _dbContext.Animals
+                    .Include(a => a.AnimalImages) // Eager load related images
+                    .FirstOrDefaultAsync(a => a.Id == id); // Use PascalCase for C# model property
 
                 if (animalToDelete == null)
                 {
@@ -107,12 +110,55 @@ namespace rescueApp
                     return req.CreateResponse(HttpStatusCode.NotFound);
                 }
 
+                // --- 3. Delete Associated Blobs from Azure Storage ---
+                if (animalToDelete.AnimalImages != null && animalToDelete.AnimalImages.Any())
+                {
+                    if (string.IsNullOrEmpty(_blobConnectionString))
+                    {
+                        _logger.LogError("Blob connection string is missing. Cannot delete images from storage for Animal ID {AnimalId}.", id);
+                    }
+                    else
+                    {
+                        var containerClient = new BlobContainerClient(_blobConnectionString, _blobImageContainerName);
+                        foreach (var image in animalToDelete.AnimalImages) // Iterate through AnimalImages
+                        {
+                            if (!string.IsNullOrWhiteSpace(image.BlobName))
+                            {
+                                _logger.LogInformation("Attempting to delete blob: {Container}/{BlobName} for Animal ID {AnimalId}",
+                                    _blobImageContainerName, image.BlobName, id);
+                                try
+                                {
+                                    var blobClient = containerClient.GetBlobClient(image.BlobName);
+                                    var deleteResponse = await blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
+                                    if (deleteResponse.Value)
+                                    {
+                                        _logger.LogInformation("Successfully deleted blob '{BlobName}'.", image.BlobName);
+                                    }
+                                    else
+                                    {
+                                        _logger.LogWarning("Blob '{BlobName}' not found in container during delete for Animal ID {AnimalId}.", image.BlobName, id);
+                                    }
+                                }
+                                catch (Exception blobEx)
+                                {
+                                    // Log error but continue, to ensure DB record can still be deleted.
+                                    _logger.LogError(blobEx, "Error deleting blob '{BlobName}' for Animal ID {AnimalId}.", image.BlobName, id);
+                                }
+                            }
+                            else
+                            {
+                                _logger.LogWarning("AnimalImage record ID {ImageId} for Animal ID {AnimalId} has a missing or empty BlobName.", image.Id, id);
+                            }
+                        }
+                    }
+                }
+
                 _dbContext.Animals.Remove(animalToDelete);
                 await _dbContext.SaveChangesAsync();
 
-                _logger.LogInformation("Successfully deleted Animal ID: {animal_id} by User ID: {UserId}", id, currentUser.id);
+                _logger.LogInformation("Successfully deleted Animal ID: {animal_id} by User ID: {UserId}", id, currentUser.Id);
 
-                // --- 3. Return Success Response ---
+                // --- 4. Return Success Response ---
                 // 204 No Content is standard for successful DELETE
                 var response = req.CreateResponse(HttpStatusCode.NoContent);
                 return response;

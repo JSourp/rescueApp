@@ -193,7 +193,7 @@ namespace rescueApp
 			try
 			{
 				var user = await _dbContext.Users
-									 .FirstOrDefaultAsync(u => u.external_provider_id == auth0UserId);
+									 .FirstOrDefaultAsync(u => u.ExternalProviderId == auth0UserId);
 
 				if (user == null)
 				{
@@ -204,14 +204,14 @@ namespace rescueApp
 				// Map to DTO
 				var userProfile = new UserProfileDto
 				{
-					Id = user.id,
-					ExternalProviderId = user.external_provider_id,
-					FirstName = user.first_name,
-					LastName = user.last_name,
-					Email = user.email,
-					Role = user.role,
-					IsActive = user.is_active,
-					DateCreated = user.date_created
+					Id = user.Id,
+					ExternalProviderId = user.ExternalProviderId,
+					FirstName = user.FirstName,
+					LastName = user.LastName,
+					Email = user.Email,
+					Role = user.Role,
+					IsActive = user.IsActive,
+					DateCreated = user.DateCreated
 				};
 
 				var response = req.CreateResponse(HttpStatusCode.OK);

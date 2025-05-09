@@ -47,7 +47,7 @@ namespace rescueApp.Data
             }
 
             var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-            optionsBuilder.UseNpgsql(connectionString);
+            optionsBuilder.UseNpgsql(connectionString).UseSnakeCaseNamingConvention();
 
             Console.WriteLine("---> DesignTimeDbContextFactory: Returning configured AppDbContext instance."); // Add log before returning
             return new AppDbContext(optionsBuilder.Options);

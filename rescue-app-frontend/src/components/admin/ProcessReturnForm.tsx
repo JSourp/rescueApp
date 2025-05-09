@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { LoadingSpinner, ExclamationTriangleIcon } from '@/components/Icons';
 import { getAuth0AccessToken } from '@/utils/auth'; // Shared helper
-import { Animal } from '@/types/animal'; // Import your Animal type
+import { Animal } from '@/types/animalListItem'; // Import your Animal type
 import { format } from 'date-fns'; // For default date
 import { adoptionStatuses } from '@/constants/adoptionStatuses'; // Import list of statuses
 

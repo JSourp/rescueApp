@@ -116,7 +116,7 @@ namespace rescueApp
 			try
 			{
 				var userToUpdate = await _dbContext.Users
-										.FirstOrDefaultAsync(u => u.external_provider_id == auth0UserId);
+										.FirstOrDefaultAsync(u => u.ExternalProviderId == auth0UserId);
 
 				if (userToUpdate == null)
 				{
@@ -126,26 +126,26 @@ namespace rescueApp
 
 				// Apply changes only for fields present in the request DTO
 				bool changed = false;
-				if (updateData.FirstName != null && userToUpdate.first_name != updateData.FirstName)
+				if (updateData.FirstName != null && userToUpdate.FirstName != updateData.FirstName)
 				{
-					userToUpdate.first_name = updateData.FirstName;
+					userToUpdate.FirstName = updateData.FirstName;
 					changed = true;
 				}
-				if (updateData.LastName != null && userToUpdate.last_name != updateData.LastName)
+				if (updateData.LastName != null && userToUpdate.LastName != updateData.LastName)
 				{
-					userToUpdate.last_name = updateData.LastName;
+					userToUpdate.LastName = updateData.LastName;
 					changed = true;
 				}
 				// Add other editable fields like phone if needed
 
 				if (changed)
 				{
-					_logger.LogInformation("Updating profile for User ID: {UserId}", userToUpdate.id);
+					_logger.LogInformation("Updating profile for User ID: {UserId}", userToUpdate.Id);
 					await _dbContext.SaveChangesAsync();
 				}
 				else
 				{
-					_logger.LogInformation("No changes detected for User ID: {UserId}", userToUpdate.id);
+					_logger.LogInformation("No changes detected for User ID: {UserId}", userToUpdate.Id);
 				}
 
 				// Return success - 204 No Content is suitable for PUT if not returning data

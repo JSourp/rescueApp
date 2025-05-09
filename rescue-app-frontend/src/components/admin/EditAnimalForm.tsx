@@ -6,7 +6,8 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { LoadingSpinner, TrashIcon, ArrowUturnLeftIcon, SuccessCheckmarkIcon, ExclamationTriangleIcon } from '@/components/Icons';
 import { getAuth0AccessToken } from '@/utils/auth';
 import { Animal } from '@/types/animal';
-import { AnimalImage } from '@/types/animalImage'; // Import this type
+import { AnimalImage } from '@/types/animalImage';
+import { AnimalListItem } from '@/types/animalListItem';
 import Image from 'next/image'; // Use Next.js Image for previews
 import { adoptionStatuses } from '@/constants/adoptionStatuses';
 
@@ -43,6 +44,8 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 	const [isProcessing, setIsProcessing] = useState<boolean>(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
+	// Initialize currentImages from the prop
+
 	const {
 		register,
 		handleSubmit,
@@ -51,15 +54,15 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 	} = useForm<EditAnimalFormData>({
 		mode: 'onTouched',
 		defaultValues: { // Pre-fill form with existing animal data
-			animal_type: animal.animal_type || '',
+			animal_type: animal.animalType || '',
 			name: animal.name || '',
 			breed: animal.breed || '',
 			// Format date for input type="date" (YYYY-MM-DD)
-			date_of_birth: animal.date_of_birth ? format(new Date(animal.date_of_birth), 'yyyy-MM-dd') : '',
+			date_of_birth: animal.dateOfBirth ? format(new Date(animal.dateOfBirth), 'yyyy-MM-dd') : '',
 			gender: animal.gender || '',
 			weight: animal.weight ?? '', // Handle null weight
 			story: animal.story || '',
-			adoption_status: animal.adoption_status || '',
+			adoption_status: animal.adoptionStatus || '',
 		}
 	});
 
@@ -67,15 +70,16 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 	useEffect(() => {
 		if (animal) {
 			reset({
-				animal_type: animal.animal_type || '',
+				animal_type: animal.animalType || '',
 				name: animal.name || '',
 				breed: animal.breed || '',
-				date_of_birth: animal.date_of_birth ? format(new Date(animal.date_of_birth), 'yyyy-MM-dd') : '',
+				date_of_birth: animal.dateOfBirth ? format(new Date(animal.dateOfBirth), 'yyyy-MM-dd') : '',
 				gender: animal.gender || '',
 				weight: animal.weight ?? '',
 				story: animal.story || '',
-				adoption_status: animal.adoption_status || '',
+				adoption_status: animal.adoptionStatus || '',
 			});
+
 			// Reset image management state
 			setCurrentImages(animal.animalImages || []);
 			setNewFiles([]);
@@ -137,6 +141,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 
 		// --- Get Access Token INSIDE the handler ---
 		const accessToken = await getAuth0AccessToken(); // Use imported helper
+		console.log("Frontend Vercel - Access Token being sent:", accessToken);
 		if (!accessToken) {
 			setApiError("Authentication error. Could not get token.");
 			return; // Stop submission if token fails
@@ -173,35 +178,60 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 			const uploadedImageMetadata = []; // To store successful metadata results
 			if (newFiles.length > 0) {
 				console.log("Uploading new files:", newFiles.map(f => f.name));
-				const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 				for (const file of newFiles) {
-					let sasData: { sasUrl: string; blobName: string; blobUrl: string } | null = null;
+					let sasData: { sasUrl: string; blob_url: string; blob_name: string } | null = null;
 					let uploadSuccessful = false;
 					try {
 						// 2a: Get SAS URL
-						const filename = encodeURIComponent(file.name);
+						const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+						const filename = encodeURIComponent(file.name); // Renamed from 'file_name'
 						const contentType = encodeURIComponent(file.type);
-						const sasUrlResponse = await fetch(`${apiBaseUrl}/image-upload-url?filename=${filename}&contentType=${contentType}`, { /* ... headers ... */ });
+
+						const urlToFetch = `${apiBaseUrl}/image-upload-url?filename=${filename}&contentType=${contentType}`;
+
+						console.log("Requesting SAS URL from:", urlToFetch);
+						const fetchHeaders = { 'Authorization': `Bearer ${accessToken}` }; // Header construction
+						console.log("Headers for SAS URL request:", fetchHeaders); // Your log
+
+						const sasUrlResponse = await fetch(urlToFetch, { // Call to GenerateImageUploadUrl
+							headers: fetchHeaders
+						});
+
 						if (!sasUrlResponse.ok) throw new Error(`SAS URL Error (${sasUrlResponse.status})`);
 						sasData = await sasUrlResponse.json();
 						if (!sasData?.sasUrl) throw new Error("Invalid SAS response.");
 
 						// 2b: Upload to Azure
-						const uploadResponse = await fetch(sasData.sasUrl, { method: 'PUT', headers: { /*...*/ }, body: file });
+						const uploadResponse = await fetch(sasData.sasUrl, {
+							method: 'PUT',
+							headers: {
+								'x-ms-blob-type': 'BlockBlob', // Specify blob type
+								'Content-Type': file.type // Send the file's actual MIME type
+							},
+							body: file
+						});
 						if (!uploadResponse.ok) throw new Error(`Upload Error (${uploadResponse.status})`);
 						uploadSuccessful = true;
 
 						// 2c: Save Metadata
 						const metadataPayload = {
-							document_type: "Animal Photo", // Fixed type for animal images
-							file_name: file.name,
-							blob_name: sasData.blobName,
-							blob_url: sasData.blobUrl,
+							documentType: "Animal Photo", // Fixed type for animal images
+							fileName: file.name,
+							blobName: sasData.blob_name,
+							blobUrl: sasData.blob_url,
 							caption: null, // Get caption from form if you add it
-							is_primary: false, // Need logic to set primary (maybe first uploaded?)
-							display_order: 0 // Need logic for ordering
+							isPrimary: false, // Need logic to set primary (maybe first uploaded?)
+							displayOrder: 0 // Need logic for ordering
 						};
-						const metadataResponse = await fetch(`${apiBaseUrl}/animals/${animal.id}/images`, { method: 'POST', headers: { /*...*/ }, body: JSON.stringify(metadataPayload) });
+						const metadataResponse = await fetch(`${apiBaseUrl}/animals/${animal.id}/images`, {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',
+								'Authorization': `Bearer ${accessToken}`
+							},
+							body: JSON.stringify(metadataPayload)
+						});
+
 						if (!metadataResponse.ok) throw new Error(`Metadata Save Error (${metadataResponse.status})`);
 						const savedMeta = await metadataResponse.json();
 						uploadedImageMetadata.push(savedMeta); // Store for potential UI update
@@ -257,7 +287,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 				if (!updateResponse.ok) {
 					let errorMsg = `Error ${updateResponse.status}: Failed to update animal details.`;
 					try {
-				// Try to parse error from backend if response has body
+						// Try to parse error from backend if response has body
 						const errorBody = await updateResponse.json();
 						errorMsg = errorBody.message || errorMsg;
 					} catch (_) {
@@ -390,7 +420,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 								{errors.adoption_status && <p className={errorTextClasses}>{errors.adoption_status.message}</p>}
 							</div>
 
-							{/* --- NEW Image Management Section --- */}
+							{/* --- Image Management Section --- */}
 							<hr className="my-6 border-gray-300 dark:border-gray-600" />
 							<h4 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">Manage Images</h4>
 

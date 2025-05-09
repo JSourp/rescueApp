@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Container } from '@/components/Container';
 import { format, differenceInDays } from 'date-fns';
-import { Animal } from '@/types/animal';
+import { Animal } from '@/types/animalListItem';
 import { UserProfile } from '@/types/userProfile';
 import { AnimalDocument } from '@/types/animalDocument';
 import { getAuth0AccessToken } from '@/utils/auth';
@@ -363,15 +363,15 @@ export default function AdminAnimalDetailClientUI({
 										{documents.map(doc => (
 											<li key={doc.id} className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800/50">
 												<div>
-													<p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title={doc.fileName}>
-														{doc.fileName}
+													<p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title={doc.file_name}>
+														{doc.file_name}
 													</p>
 													<p className="text-xs text-gray-500 dark:text-gray-400">
-														Type: {doc.documentType}
+														Type: {doc.document_type}
 													</p>
 													<p className="text-xs text-gray-500 dark:text-gray-400">
-														Uploaded: {doc.dateUploaded && typeof doc.dateUploaded === 'string'
-															? format(new Date(doc.dateUploaded), 'PPP') // Format only if valid string
+														Uploaded: {doc.date_uploaded && typeof doc.date_uploaded === 'string'
+															? format(new Date(doc.date_uploaded), 'PPP') // Format only if valid string
 															: 'Invalid Date' // Fallback for null/undefined/invalid
 														}
 													</p>
@@ -476,7 +476,7 @@ export default function AdminAnimalDetailClientUI({
 				<Modal onClose={handleCloseDocDeleteConfirm}>
 					<ConfirmDeleteModal
 						itemType='document'
-						itemName={selectedDocument.fileName ?? 'this document'} // Use filename
+						itemName={selectedDocument.file_name ?? 'this document'} // Use file_name
 						onClose={handleCloseDocDeleteConfirm}
 						onConfirmDelete={handleConfirmDocDelete} // Call the new handler
 						isDeleting={isDeletingDoc} // Pass the specific deleting state

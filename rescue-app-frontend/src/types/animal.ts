@@ -1,19 +1,20 @@
-import { AnimalImage } from './animalImage';
+import { AnimalImage } from './animalImage'; // Import the image type
 
 export interface Animal {
 	id: number;
-	animal_type?: string | null;
+	animalType?: string | null;
 	name?: string | null;
 	breed?: string | null;
-	date_of_birth?: string | null;
+	dateOfBirth?: string | null;
 	gender?: string | null;
 	weight?: number | null;
 	story?: string | null;
-	adoption_status?: string | null;
-	date_created: string;
-	date_updated: string;
-	created_by_user_id: string;
-	updated_by_user_id: string;
-	primaryImageUrl?: string | null;
+	adoptionStatus?: string | null;
+	dateCreated: string;             // (ISO Date String)
+	dateUpdated: string;             // (ISO Date String)
+	createdByUserId?: string | null; // (UUID as string)
+	updatedByUserId?: string | null; // (UUID as string)
+
+	// Collection of associated images - should be present for detail views
 	animalImages?: AnimalImage[] | null;
 }

@@ -7,7 +7,7 @@ import { LoadingSpinner, SuccessCheckmarkIcon, ExclamationTriangleIcon, Document
 import { getAuth0AccessToken } from '@/utils/auth';
 
 // Define the types of documents users can upload
-const documentTypes = [
+const document_types = [
 	'Vaccination Record',
 	'Spay/Neuter Certificate',
 	'Microchip Record',
@@ -20,7 +20,7 @@ const documentTypes = [
 
 // Form data includes metadata fields (file handled separately)
 interface DocumentFormData {
-	documentType: string;
+	document_type: string;
 	description?: string;
 }
 
@@ -45,7 +45,7 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 		formState: { errors, isSubmitting }, // isSubmitting from RHF for metadata submit part
 	} = useForm<DocumentFormData>({
 		mode: 'onTouched',
-		defaultValues: { documentType: '', description: '' },
+		defaultValues: { document_type: '', description: '' },
 	});
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,7 +75,7 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 			return;
 		}
 
-		let sasData: { sasUrl: string; blobName: string; blobUrl: string } | null = null;
+		let sasData: { sasUrl: string; blob_name: string; blob_url: string } | null = null;
 		let uploadSuccessful = false;
 
 		try {
@@ -88,10 +88,10 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 			if (!animalId) {
 				throw new Error("Animal ID is missing.");
 			}
-			const filename = encodeURIComponent(selectedFile!.name);
+			const file_name = encodeURIComponent(selectedFile!.name);
 			const contentType = encodeURIComponent(selectedFile!.type);
 
-			const urlToFetch = `${apiBaseUrl}/animals/${animalId}/document-upload-url?filename=${filename}&contentType=${contentType}`;
+			const urlToFetch = `${apiBaseUrl}/animals/${animalId}/document-upload-url?file_name=${file_name}&contentType=${contentType}`;
 
 			console.log("Requesting SAS URL from:", urlToFetch); // Log the URL before fetching
 
@@ -101,7 +101,7 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 
 			if (!sasUrlResponse.ok) throw new Error(`Failed to get upload URL (${sasUrlResponse.status})`);
 			sasData = await sasUrlResponse.json();
-			if (!sasData || !sasData.sasUrl || !sasData.blobName || !sasData.blobUrl) throw new Error("Invalid SAS response from server.");
+			if (!sasData || !sasData.sasUrl || !sasData.blob_name || !sasData.blob_url) throw new Error("Invalid SAS response from server.");
 
 			// 2. Upload file to Azure Blob Storage
 			console.log("Uploading to Azure Blob Storage...");
@@ -112,16 +112,16 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 			});
 			if (!uploadResponse.ok) throw new Error(`Failed to upload file to Azure (${uploadResponse.status})`);
 			uploadSuccessful = true;
-			console.log("File upload successful. Blob Name:", sasData.blobName);
+			console.log("File upload successful. Blob Name:", sasData.blob_name);
 
 			// 3. Save Metadata to your backend API
 			const metadataPayload = {
 				// Match the backend DTO (CreateDocumentMetadataRequest) - needs PascalCase
-				DocumentType: metadataFormData.documentType,
-				FileName: selectedFile.name, // Use original filename
-				BlobName: sasData.blobName, // Use unique name from SAS response
-				BlobUrl: sasData.blobUrl, // Use base blob URL from SAS response
-				Description: metadataFormData.description || null
+				document_type: metadataFormData.document_type,
+				file_name: selectedFile.name, // Use original file_name
+				blob_name: sasData.blob_name, // Use unique name from SAS response
+				blob_url: sasData.blob_url, // Use base blob URL from SAS response
+				description: metadataFormData.description || null
 			};
 
 			console.log("Saving document metadata:", metadataPayload);
@@ -138,7 +138,7 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 				let errorMsg = `Error ${metadataResponse.status}: Failed to save document metadata.`;
 				try { const errBody = await metadataResponse.json(); errorMsg = errBody.message || errorMsg; } catch (_) { }
 				// Attempt to clean up orphaned blob if metadata save fails? Optional.
-				console.error("Metadata save failed, potentially leaving orphaned blob:", sasData.blobName);
+				console.error("Metadata save failed, potentially leaving orphaned blob:", sasData.blob_name);
 				throw new Error(errorMsg);
 			}
 
@@ -193,21 +193,21 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 									onChange={handleFileChange}
 									className={`block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 dark:file:bg-blue-900/30 file:text-blue-700 dark:file:text-blue-200 hover:file:bg-blue-100 dark:hover:file:bg-blue-900/50`}
 								/>
-								{/* Show selected filename */}
+								{/* Show selected file_name */}
 								{selectedFile && <p className="text-xs text-gray-500 mt-1">Selected: {selectedFile.name}</p>}
 								{/* RHF doesn't easily validate file inputs, rely on isRequired + selectedFile check */}
 							</div>
 
 							{/* Document Type */}
 							<div>
-								<label htmlFor="documentType" className={labelBaseClasses}>Document Type *</label>
-								<select id="documentType" {...register("documentType", { required: "Document type is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.documentType)}`}>
+								<label htmlFor="document_type" className={labelBaseClasses}>Document Type *</label>
+								<select id="document_type" {...register("document_type", { required: "Document type is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.document_type)}`}>
 									<option value="">Select Type...</option>
-									{documentTypes.map(type => (
+									{document_types.map(type => (
 										<option key={type} value={type}>{type}</option>
 									))}
 								</select>
-								{errors.documentType && <p className={errorTextClasses}>{errors.documentType.message}</p>}
+								{errors.document_type && <p className={errorTextClasses}>{errors.document_type.message}</p>}
 							</div>
 
 							{/* Description */}

@@ -68,23 +68,23 @@ namespace rescueApp
 				principal = await ValidateTokenAndGetPrincipal(req);
 				if (principal == null)
 				{
-					_logger.LogWarning("UpdateUserProfile: Token validation failed.");
+					_logger.LogWarning("GenerateDocumentUploadUrl: Token validation failed.");
 					return await CreateErrorResponse(req, HttpStatusCode.Unauthorized, "Invalid or missing token.");
 				}
 
 				auth0UserId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 				if (string.IsNullOrEmpty(auth0UserId))
 				{
-					_logger.LogError("UpdateUserProfile: 'sub' (NameIdentifier) claim missing from token.");
+					_logger.LogError("GenerateDocumentUploadUrl: 'sub' (NameIdentifier) claim missing from token.");
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User identifier missing from token.");
 				}
 
 				_logger.LogInformation("Token validation successful for user ID (sub): {Auth0UserId}", auth0UserId);
 
 				// Fetch user from DB based on validated Auth0 ID
-				currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.external_provider_id == auth0UserId);
+				currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.ExternalProviderId == auth0UserId);
 
-				if (currentUser == null || !currentUser.is_active)
+				if (currentUser == null || !currentUser.IsActive)
 				{
 					_logger.LogWarning("User not found in DB or inactive for external ID: {ExternalId}", auth0UserId);
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User not authorized or inactive.");
@@ -92,13 +92,13 @@ namespace rescueApp
 
 				// Check Role - Admins or Staff
 				var allowedRoles = new[] { "Admin", "Staff" }; // Case-sensitive match with DB role
-				if (!allowedRoles.Contains(currentUser.role))
+				if (!allowedRoles.Contains(currentUser.Role))
 				{
-					_logger.LogWarning("User Role '{UserRole}' not authorized. UserID: {UserId}", currentUser.role, currentUser.id);
+					_logger.LogWarning("User Role '{UserRole}' not authorized. UserID: {UserId}", currentUser.Role, currentUser.Id);
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "Permission denied.");
 				}
 
-				_logger.LogInformation("User {UserId} with role {UserRole} authorized.", currentUser.id, currentUser.role);
+				_logger.LogInformation("User {UserId} with role {UserRole} authorized.", currentUser.Id, currentUser.Role);
 
 			}
 			catch (Exception ex) // Catch potential exceptions during auth/authz
@@ -111,12 +111,12 @@ namespace rescueApp
 
 			// --- 2. Get Query Parameters ---
 			var queryParams = HttpUtility.ParseQueryString(req.Url.Query);
-			string? filename = queryParams["filename"];
+			string? file_name = queryParams["file_name"];
 			string? contentType = queryParams["contentType"]; // e.g., image/jpeg, image/png
 
-			if (string.IsNullOrWhiteSpace(filename) || string.IsNullOrWhiteSpace(contentType))
+			if (string.IsNullOrWhiteSpace(file_name) || string.IsNullOrWhiteSpace(contentType))
 			{
-				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Missing required query parameters: 'filename' and 'contentType'.");
+				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Missing required query parameters: 'file_name' and 'contentType'.");
 			}
 
 			// Validation for Allowed Document Types ---
@@ -134,11 +134,11 @@ namespace rescueApp
 
 			if (!allowedContentTypes.Contains(contentType)) // Check if the received type is in our allowed set
 			{
-				_logger.LogWarning("Invalid contentType '{ContentType}' received for file '{FileName}'.", contentType, filename);
+				_logger.LogWarning("Invalid contentType '{ContentType}' received for file '{file_name}'.", contentType, file_name);
 				// Provide a more helpful error message listing allowed types
 				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, $"Invalid contentType. Allowed types are: {string.Join(", ", allowedContentTypes)}");
 			}
-			_logger.LogInformation("Validated contentType '{ContentType}' for file '{FileName}'.", contentType, filename);
+			_logger.LogInformation("Validated contentType '{ContentType}' for file '{file_name}'.", contentType, file_name);
 
 			// --- 3. Generate SAS URL ---
 			try
@@ -153,7 +153,7 @@ namespace rescueApp
 				await containerClient.CreateIfNotExistsAsync(PublicAccessType.Blob);
 
 				// Create a unique blob name to prevent overwrites
-				string uniqueBlobName = $"{Guid.NewGuid()}-{filename}"; // Prepend GUID
+				string uniqueBlobName = $"{Guid.NewGuid()}-{file_name}"; // Prepend GUID
 				var blobClient = containerClient.GetBlobClient(uniqueBlobName);
 
 				if (string.IsNullOrEmpty(_blobConnectionString))
@@ -217,14 +217,14 @@ namespace rescueApp
 				await response.WriteAsJsonAsync(new
 				{
 					sasUrl = sasUri.ToString(),    // URL frontend uses for direct PUT upload
-					blobUrl = blobClient.Uri.ToString(), // URL to save in your database (without SAS)
-					blobName = uniqueBlobName
+					blob_url = blobClient.Uri.ToString(), // URL to save in your database (without SAS)
+					blob_name = uniqueBlobName
 				});
 				return response;
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "Error generating SAS URL for file {FileName}", filename);
+				_logger.LogError(ex, "Error generating SAS URL for file {file_name}", file_name);
 				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Could not generate upload URL.");
 			}
 		}

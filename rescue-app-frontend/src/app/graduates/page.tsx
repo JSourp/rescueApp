@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Container } from '@/components/Container';
-import { Animal } from '@/types/animal'; // Assuming you have this type definition
+import { AnimalListItem } from '@/types/animalListItem'; // Assuming you have this type definition
 import Image from 'next/image';
 import Link from 'next/link';
 import { InformationCircleIcon, GraduationCapIcon } from "@/components/Icons";
@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 
 // Define interface for the data returned by the /api/graduates endpoint
 // It includes base Animal fields plus the adoption_date
-interface Graduate extends Animal {
+interface Graduate extends AnimalListItem {
 	id: number;
 	name: string | null;
 	animal_type: string | null;

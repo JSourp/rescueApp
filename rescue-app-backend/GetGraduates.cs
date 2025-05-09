@@ -52,20 +52,20 @@ namespace rescueApp
 				IQueryable<AdoptionHistory> historyQuery = _dbContext.AdoptionHistories
 					.Include(ah => ah.Animal) // Include animal data
 						.ThenInclude(a => a!.AnimalImages) // <-- THEN INCLUDE the related images for the animal
-					.Where(ah => ah.return_date == null && ah.Animal != null && ah.Animal.adoption_status == "Adopted"); // Only active adoptions for animals marked Adopted
+					.Where(ah => ah.ReturnDate == null && ah.Animal != null && ah.Animal.AdoptionStatus == "Adopted"); // Only active adoptions for animals marked Adopted
 
 				// Apply filters based on the JOINED Animal properties
 				if (!string.IsNullOrEmpty(animal_type))
 				{
-					historyQuery = historyQuery.Where(ah => ah.Animal!.animal_type != null && ah.Animal.animal_type.ToLower() == animal_type.ToLower());
+					historyQuery = historyQuery.Where(ah => ah.Animal!.AnimalType != null && ah.Animal.AnimalType.ToLower() == animal_type.ToLower());
 				}
 				if (!string.IsNullOrEmpty(gender))
 				{
-					historyQuery = historyQuery.Where(ah => ah.Animal!.gender != null && ah.Animal.gender.ToLower() == gender.ToLower());
+					historyQuery = historyQuery.Where(ah => ah.Animal!.Gender != null && ah.Animal.Gender.ToLower() == gender.ToLower());
 				}
 				if (!string.IsNullOrEmpty(breed))
 				{
-					historyQuery = historyQuery.Where(ah => ah.Animal!.breed != null && ah.Animal.breed.ToLower().Contains(breed.ToLower())); // Contains for breed? Or exact match?
+					historyQuery = historyQuery.Where(ah => ah.Animal!.Breed != null && ah.Animal.Breed.ToLower().Contains(breed.ToLower())); // Contains for breed? Or exact match?
 				}
 
 
@@ -79,14 +79,14 @@ namespace rescueApp
 				{
 					case "name":
 						historyQuery = descending
-							? historyQuery.OrderByDescending(ah => ah.Animal!.name).ThenByDescending(ah => ah.adoption_date)
-							: historyQuery.OrderBy(ah => ah.Animal!.name).ThenBy(ah => ah.adoption_date);
+							? historyQuery.OrderByDescending(ah => ah.Animal!.Name).ThenByDescending(ah => ah.AdoptionDate)
+							: historyQuery.OrderBy(ah => ah.Animal!.Name).ThenBy(ah => ah.AdoptionDate);
 						break;
 					case "adoption_date":
 					default: // Default sort by adoption date
 						historyQuery = descending
-						   ? historyQuery.OrderByDescending(ah => ah.adoption_date)
-						   : historyQuery.OrderBy(ah => ah.adoption_date);
+						   ? historyQuery.OrderByDescending(ah => ah.AdoptionDate)
+						   : historyQuery.OrderBy(ah => ah.AdoptionDate);
 						break;
 				}
 
@@ -95,19 +95,19 @@ namespace rescueApp
 					.Select(ah => new // Create a DTO or anonymous type matching frontend Graduate interface
 					{
 						// Select needed properties from ah.Animal (using snake_case)
-						ah.Animal!.id,
-						ah.Animal.name,
+						ah.Animal!.Id,
+						ah.Animal.Name,
 						// Find the image marked as primary, or the first by display order, or null
 						ImageUrl = ah.Animal.AnimalImages! // Use ! since Animal should be included
-									 .OrderBy(img => img.is_primary ? 0 : 1) // Prioritize primary=true
-									 .ThenBy(img => img.display_order) // Then by explicit order
-									 .Select(img => img.image_url)      // Select the URL string
+									 .OrderBy(img => img.IsPrimary ? 0 : 1) // Prioritize primary=true
+									 .ThenBy(img => img.DisplayOrder) // Then by explicit order
+									 .Select(img => img.ImageUrl)      // Select the URL string
 									 .FirstOrDefault(),                 // Get the best match or null
-						ah.Animal.animal_type,
-						ah.Animal.breed,
-						ah.Animal.gender,
+						ah.Animal.AnimalType,
+						ah.Animal.Breed,
+						ah.Animal.Gender,
 						// Select the adoption_date from AdoptionHistory
-						ah.adoption_date
+						ah.AdoptionDate
 						// Add any other needed Animal fields
 					})
 					.ToListAsync(); // Execute query

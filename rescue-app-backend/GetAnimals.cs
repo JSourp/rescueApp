@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Azure.Functions.Worker;
@@ -14,6 +15,21 @@ using rescueApp.Models;
 
 namespace rescueApp
 {
+    public class AnimalListItemDto
+    {
+        public int Id { get; set; }
+        public string? Name { get; set; }
+        public string? AnimalType { get; set; }
+        public string? Breed { get; set; }
+        public string? Gender { get; set; }
+        public string? AdoptionStatus { get; set; }
+        public DateTime DateCreated { get; set; }
+        public DateTime DateUpdated { get; set; }
+        public DateTime? DateOfBirth { get; set; }
+        public decimal? Weight { get; set; }
+        public string? PrimaryImageUrl { get; set; } // URL of the main image
+    }
+
     public class GetAnimals
     {
         private readonly AppDbContext _dbContext;
@@ -43,7 +59,8 @@ namespace rescueApp
                 string? sortBy = queryParams["sortBy"];
                 string? limitParam = queryParams["limit"];
 
-                IQueryable<Animal> query = _dbContext.Animals.AsQueryable();
+                IQueryable<Animal> query = _dbContext.Animals
+                                          .Include(a => a.AnimalImages);
 
                 // --- Apply Filtering ---
                 if (!string.IsNullOrEmpty(adoption_statusParam))
@@ -55,7 +72,7 @@ namespace rescueApp
                     if (desiredStatuses.Any())
                     {
                         logger.LogInformation("Filtering by adoption statuses: {Statuses}", string.Join(", ", desiredStatuses));
-                        query = query.Where(a => a.adoption_status != null && desiredStatuses.Contains(a.adoption_status.ToLower())); // Use ToLower() if that worked
+                        query = query.Where(a => a.AdoptionStatus != null && desiredStatuses.Contains(a.AdoptionStatus.ToLower())); // Use ToLower() if that worked
                     }
                 }
                 if (!string.IsNullOrEmpty(breed))
@@ -67,7 +84,7 @@ namespace rescueApp
                     if (desiredBreeds.Any())
                     {
                         logger.LogInformation("Filtering by breeds: {Breeds}", string.Join(", ", desiredBreeds));
-                        query = query.Where(a => a.breed != null && desiredBreeds.Contains(a.breed.ToLower()));
+                        query = query.Where(a => a.Breed != null && desiredBreeds.Contains(a.Breed.ToLower()));
                     }
                 }
                 if (!string.IsNullOrEmpty(animal_type))
@@ -79,7 +96,7 @@ namespace rescueApp
                     if (desiredTypes.Any())
                     {
                         logger.LogInformation("Filtering by animal types: {AnimalTypes}", string.Join(", ", desiredTypes));
-                        query = query.Where(a => a.animal_type != null && desiredTypes.Contains(a.animal_type.ToLower()));
+                        query = query.Where(a => a.AnimalType != null && desiredTypes.Contains(a.AnimalType.ToLower()));
                     }
                 }
                 if (!string.IsNullOrEmpty(gender))
@@ -91,7 +108,7 @@ namespace rescueApp
                     if (desiredGender.Any())
                     {
                         logger.LogInformation("Filtering by gender: {Gender}", string.Join(", ", desiredGender));
-                        query = query.Where(a => a.gender != null && desiredGender.Contains(a.gender.ToLower()));
+                        query = query.Where(a => a.Gender != null && desiredGender.Contains(a.Gender.ToLower()));
                     }
                 }
 
@@ -151,15 +168,15 @@ namespace rescueApp
                 // but for a few common ones, a switch/if-else works.
                 if (sortField == "date_created")
                 {
-                    query = ascending ? query.OrderBy(a => a.date_created) : query.OrderByDescending(a => a.date_created);
+                    query = ascending ? query.OrderBy(a => a.DateCreated) : query.OrderByDescending(a => a.DateCreated);
                 }
                 else if (sortField == "name")
                 {
-                    query = ascending ? query.OrderBy(a => a.name) : query.OrderByDescending(a => a.name);
+                    query = ascending ? query.OrderBy(a => a.Name) : query.OrderByDescending(a => a.Name);
                 }
                 else // Default to id
                 {
-                    query = ascending ? query.OrderBy(a => a.id) : query.OrderByDescending(a => a.id);
+                    query = ascending ? query.OrderBy(a => a.Id) : query.OrderByDescending(a => a.Id);
                 }
                 // Add .ThenBy(a => a.id) for consistent secondary sort if desired
 
@@ -176,14 +193,38 @@ namespace rescueApp
 
 
                 // --- Execute Query ---
-                List<Animal> animals = await query.ToListAsync();
-                logger.LogInformation("Found {AnimalCount} animals matching criteria (after limit).", animals.Count);
+                //List<Animal> animals = await query.ToListAsync(); // This list now contains Animal objects, each with its AnimalImages collection
+
+                List<AnimalListItemDto> animalsDtoList = await query // query includes .Include(a => a.AnimalImages)
+                    .Select(animal => new AnimalListItemDto // Project to DTO
+                    {
+                        Id = animal.Id,
+                        Name = animal.Name,
+                        AnimalType = animal.AnimalType,
+                        Breed = animal.Breed,
+                        Gender = animal.Gender,
+                        AdoptionStatus = animal.AdoptionStatus,
+                        DateCreated = animal.DateCreated,
+                        DateUpdated = animal.DateUpdated,
+                        DateOfBirth = animal.DateOfBirth,
+                        Weight = animal.Weight,
+                        // Logic to find the primary image URL
+                        PrimaryImageUrl = animal.AnimalImages!
+                                            .OrderBy(img => !img.IsPrimary) // Primary first
+                                            .ThenBy(img => img.DisplayOrder)// Then by display order
+                                            .Select(img => img.ImageUrl)     // Select the correct URL property
+                                            .FirstOrDefault()               // Get first or null
+                    })
+                    .ToListAsync();
+
+                logger.LogInformation("Found {AnimalCount} animals matching criteria (after limit).", animalsDtoList.Count);
 
                 // --- Serialize and Respond ---
-                var jsonResponse = JsonSerializer.Serialize(animals, new JsonSerializerOptions
+                var jsonResponse = JsonSerializer.Serialize(animalsDtoList, new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    WriteIndented = false
+                    WriteIndented = false,
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
                 });
 
                 var response = req.CreateResponse(HttpStatusCode.OK);

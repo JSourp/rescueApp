@@ -9,34 +9,34 @@ namespace rescueApp.Models
     public class User
     {
         [Key]
-        public Guid id { get; set; } // Matches UUID PK
+        public Guid Id { get; set; } // Matches UUID PK
 
         [MaxLength(255)]
-        public string? external_provider_id { get; set; } // Matches VARCHAR UNIQUE NULL
+        public string? ExternalProviderId { get; set; } // Matches VARCHAR UNIQUE NULL
 
         [Required]
         [MaxLength(100)]
-        public string first_name { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(100)]
-        public string last_name { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]
         [MaxLength(255)]
-        public string email { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(50)]
-        public string role { get; set; } = string.Empty; // e.g., 'Admin', 'Staff', 'Volunteer', 'Guest'
+        public string Role { get; set; } = string.Empty; // e.g., 'Admin', 'Staff', 'Volunteer', 'Guest'
 
-        public bool is_active { get; set; } = true;
+        public bool IsActive { get; set; } = true;
 
         // Let DB handle these via defaults/triggers
-        public DateTime date_created { get; set; }
-        public DateTime date_updated { get; set; }
-        public DateTime? last_login_date { get; set; }
+        public DateTime DateCreated { get; set; }
+        public DateTime DateUpdated { get; set; }
+        public DateTime? LastLoginDate { get; set; }
         public virtual ICollection<AdoptionHistory>? CreatedAdoptionHistories { get; set; } // User creates many histories
     }
 }

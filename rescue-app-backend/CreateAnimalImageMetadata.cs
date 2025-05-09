@@ -26,27 +26,21 @@ using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 namespace rescueApp
 {
 	// DTO for request body when saving image metadata
-	public class CreateAnimalImageRequest
+	public class CreateAnimalImageMetadataRequest
 	{
-		// documentType maps to image purpose for consistency, rename if preferred
 		[Required(AllowEmptyStrings = false)]
 		[MaxLength(100)]
 		public string? DocumentType { get; set; } = "Animal Photo"; // Default type
-
 		[Required(AllowEmptyStrings = false)]
 		[MaxLength(255)]
 		public string? FileName { get; set; } // Original filename
-
 		[Required(AllowEmptyStrings = false)]
 		[MaxLength(300)]
 		public string? BlobName { get; set; } // Unique name in storage
-
 		[Required(AllowEmptyStrings = false)]
 		[Url] // Basic URL validation
 		public string? BlobUrl { get; set; } // Base URL from storage
-
 		public string? Caption { get; set; } // Optional caption
-
 		public bool IsPrimary { get; set; } = false; // Is this the main image?
 		public int DisplayOrder { get; set; } = 0; // Display order
 	}
@@ -86,23 +80,23 @@ namespace rescueApp
 				principal = await ValidateTokenAndGetPrincipal(req);
 				if (principal == null)
 				{
-					_logger.LogWarning("UpdateUserProfile: Token validation failed.");
+					_logger.LogWarning("CreateAnimalImageMetadata: Token validation failed.");
 					return await CreateErrorResponse(req, HttpStatusCode.Unauthorized, "Invalid or missing token.");
 				}
 
 				auth0UserId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 				if (string.IsNullOrEmpty(auth0UserId))
 				{
-					_logger.LogError("UpdateUserProfile: 'sub' (NameIdentifier) claim missing from token.");
+					_logger.LogError("CreateAnimalImageMetadata: 'sub' (NameIdentifier) claim missing from token.");
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User identifier missing from token.");
 				}
 
 				_logger.LogInformation("Token validation successful for user ID (sub): {Auth0UserId}", auth0UserId);
 
 				// Fetch user from DB based on validated Auth0 ID
-				currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.external_provider_id == auth0UserId);
+				currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.ExternalProviderId == auth0UserId);
 
-				if (currentUser == null || !currentUser.is_active)
+				if (currentUser == null || !currentUser.IsActive)
 				{
 					_logger.LogWarning("User not found in DB or inactive for external ID: {ExternalId}", auth0UserId);
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User not authorized or inactive.");
@@ -110,13 +104,13 @@ namespace rescueApp
 
 				// Check Role - Admins or Staff
 				var allowedRoles = new[] { "Admin", "Staff" }; // Case-sensitive match with DB role
-				if (!allowedRoles.Contains(currentUser.role))
+				if (!allowedRoles.Contains(currentUser.Role))
 				{
-					_logger.LogWarning("User Role '{UserRole}' not authorized. UserID: {UserId}", currentUser.role, currentUser.id);
+					_logger.LogWarning("User Role '{UserRole}' not authorized. UserID: {UserId}", currentUser.Role, currentUser.Id);
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "Permission denied.");
 				}
 
-				_logger.LogInformation("User {UserId} with role {UserRole} authorized.", currentUser.id, currentUser.role);
+				_logger.LogInformation("User {UserId} with role {UserRole} authorized.", currentUser.Id, currentUser.Role);
 
 			}
 			catch (Exception ex) // Catch potential exceptions during auth/authz
@@ -127,13 +121,13 @@ namespace rescueApp
 
 			// --- 2. Deserialize & Validate Request Body ---
 			string requestBody = string.Empty;
-			CreateAnimalImageRequest? imageRequest;
+			CreateAnimalImageMetadataRequest? imageRequest;
 			try
 			{
 				requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 				if (string.IsNullOrEmpty(requestBody)) return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Request body required.");
 
-				imageRequest = JsonSerializer.Deserialize<CreateAnimalImageRequest>(requestBody, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+				imageRequest = JsonSerializer.Deserialize<CreateAnimalImageMetadataRequest>(requestBody, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
 				// Use Data Annotations for Validation
 				var validationResults = new List<ValidationResult>();
@@ -143,7 +137,7 @@ namespace rescueApp
 				if (!isValid || imageRequest == null)
 				{
 					string errors = string.Join("; ", validationResults.Select(vr => $"{(vr.MemberNames.FirstOrDefault() ?? "Request")}: {vr.ErrorMessage}"));
-					_logger.LogWarning("CreateAdoption request body validation failed. Validation Errors: [{ValidationErrors}]. Body Preview: {BodyPreview}", errors, requestBody.Substring(0, Math.Min(requestBody.Length, 500)));
+					_logger.LogWarning("CreateAnimalImageMetadata request body validation failed. Validation Errors: [{ValidationErrors}]. Body Preview: {BodyPreview}", errors, requestBody.Substring(0, Math.Min(requestBody.Length, 500)));
 					return await CreateErrorResponse(req, HttpStatusCode.BadRequest, $"Invalid adoption data: {errors}");
 				}
 			}
@@ -156,7 +150,7 @@ namespace rescueApp
 
 
 			// --- 3. Check if Animal Exists ---
-			var animalExists = await _dbContext.Animals.AnyAsync(a => a.id == animalId);
+			var animalExists = await _dbContext.Animals.AnyAsync(a => a.Id == animalId);
 			if (!animalExists)
 			{
 				_logger.LogWarning("Attempted to add document metadata for non-existent Animal ID: {AnimalId}", animalId);
@@ -164,39 +158,52 @@ namespace rescueApp
 			}
 
 			// --- 4. Handle is_primary flag ---
-			// If this image is set as primary, ensure no others are
-			if (imageRequest.IsPrimary)
-			{
-				_logger.LogInformation("New image marked as primary for Animal ID {AnimalId}. Unsetting other primary flags.", animalId);
-				// Find any existing primary image for this animal and unset it
-				var existingPrimary = await _dbContext.AnimalImages
-					.FirstOrDefaultAsync(img => img.animal_id == animalId && img.is_primary);
-				if (existingPrimary != null)
-				{
-					existingPrimary.is_primary = false;
-					_dbContext.AnimalImages.Update(existingPrimary);
-				}
-			}
+			bool makeThisPrimary = imageRequest.IsPrimary; // Check if frontend explicitly requests primary
+
+            // If frontend didn't explicitly set primary, AND no other images exist for this animal, make this one primary
+            if (!makeThisPrimary)
+            {
+                bool hasExistingImages = await _dbContext.AnimalImages.AnyAsync(img => img.AnimalId == animalId);
+                if (!hasExistingImages)
+                {
+                    _logger.LogInformation("No existing images found for Animal ID {AnimalId}. Marking new image as primary.", animalId);
+                    makeThisPrimary = true;
+                }
+            }
+
+            // If this image is set as primary, ensure no others are
+            if (makeThisPrimary)
+            {
+                _logger.LogInformation("New image marked as primary for Animal ID {AnimalId}. Unsetting other primary flags.", animalId);
+                var existingPrimaries = await _dbContext.AnimalImages
+                    .Where(img => img.AnimalId == animalId && img.IsPrimary)
+                    .ToListAsync(); // Find all existing primaries (should be 0 or 1)
+                foreach(var existingPrimary in existingPrimaries)
+                {
+                    existingPrimary.IsPrimary = false;
+                    _dbContext.AnimalImages.Update(existingPrimary); // Mark for update
+                }
+            }
 
 			// --- 5. Create and Save Metadata Record ---
 			try
 			{
 				var newImageRecord = new AnimalImage
 				{
-					animal_id = animalId,
-					image_url = imageRequest.BlobUrl!,
-					blob_name = imageRequest.BlobName!,
-					caption = imageRequest.Caption,
-					display_order = imageRequest.DisplayOrder,
-					is_primary = imageRequest.IsPrimary,
-					date_uploaded = DateTime.UtcNow, // Or let DB default handle
-					uploaded_by_user_id = currentUser.id
+					AnimalId = animalId,
+					ImageUrl = imageRequest.BlobUrl!,
+					BlobName = imageRequest.BlobName!,
+					Caption = imageRequest.Caption,
+					DisplayOrder = imageRequest.DisplayOrder,
+					IsPrimary = imageRequest.IsPrimary,
+					DateUploaded = DateTime.UtcNow,
+					UploadedByUserId = currentUser!.Id
 				};
 
 				_dbContext.AnimalImages.Add(newImageRecord);
 				await _dbContext.SaveChangesAsync(); // Save new record (& potentially update old primary flag)
 
-				_logger.LogInformation("Saved image metadata for Animal ID: {AnimalId}. Image ID: {ImageId}", animalId, newImageRecord.id);
+				_logger.LogInformation("Saved image metadata for Animal ID: {AnimalId}. Image ID: {ImageId}", animalId, newImageRecord.Id);
 
 				var response = req.CreateResponse(HttpStatusCode.Created);
 

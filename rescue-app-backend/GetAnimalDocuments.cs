@@ -27,16 +27,16 @@ namespace rescueApp
 	{
 		public int Id { get; set; }
 		public int AnimalId { get; set; }
-		public string DocumentType { get; set; } = string.Empty;
-		public string FileName { get; set; } = string.Empty;
-		public string BlobName { get; set; } = string.Empty; // Might not be needed by frontend
-		public string BlobUrl { get; set; } = string.Empty;  // Maybe not needed directly by list view but needed for download link generation.
+		public string document_type { get; set; } = string.Empty;
+		public string file_name { get; set; } = string.Empty;
+		public string blob_name { get; set; } = string.Empty; // Might not be needed by frontend
+		public string blob_url { get; set; } = string.Empty;  // Maybe not needed directly by list view but needed for download link generation.
 		public string? Description { get; set; }
-		public DateTime DateUploaded { get; set; }
-		public Guid? UploadedByUserId { get; set; }
-		public string? UploaderEmail { get; set; }
-		public string? UploaderFirstName { get; set; }
-		public string? UploaderLastName { get; set; }
+		public DateTime date_uploaded { get; set; }
+		public Guid? uploaded_by_user_id { get; set; }
+		public string? uploader_email { get; set; }
+		public string? uploader_first_name { get; set; }
+		public string? uploader_last_name { get; set; }
 	}
 
 	public class GetAnimalDocuments
@@ -74,23 +74,23 @@ namespace rescueApp
 				principal = await ValidateTokenAndGetPrincipal(req);
 				if (principal == null)
 				{
-					_logger.LogWarning("UpdateUserProfile: Token validation failed.");
+					_logger.LogWarning("GetAnimalDocuments: Token validation failed.");
 					return await CreateErrorResponse(req, HttpStatusCode.Unauthorized, "Invalid or missing token.");
 				}
 
 				auth0UserId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 				if (string.IsNullOrEmpty(auth0UserId))
 				{
-					_logger.LogError("UpdateUserProfile: 'sub' (NameIdentifier) claim missing from token.");
+					_logger.LogError("GetAnimalDocuments: 'sub' (NameIdentifier) claim missing from token.");
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User identifier missing from token.");
 				}
 
 				_logger.LogInformation("Token validation successful for user ID (sub): {Auth0UserId}", auth0UserId);
 
 				// Fetch user from DB based on validated Auth0 ID
-				currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.external_provider_id == auth0UserId);
+				currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.ExternalProviderId == auth0UserId);
 
-				if (currentUser == null || !currentUser.is_active)
+				if (currentUser == null || !currentUser.IsActive)
 				{
 					_logger.LogWarning("User not found in DB or inactive for external ID: {ExternalId}", auth0UserId);
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User not authorized or inactive.");
@@ -98,13 +98,13 @@ namespace rescueApp
 
 				// Check Role - Admins or Staff
 				var allowedRoles = new[] { "Admin", "Staff" }; // Case-sensitive match with DB role
-				if (!allowedRoles.Contains(currentUser.role))
+				if (!allowedRoles.Contains(currentUser.Role))
 				{
-					_logger.LogWarning("User Role '{UserRole}' not authorized. UserID: {UserId}", currentUser.role, currentUser.id);
+					_logger.LogWarning("User Role '{UserRole}' not authorized. UserID: {UserId}", currentUser.Role, currentUser.Id);
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "Permission denied.");
 				}
 
-				_logger.LogInformation("User {UserId} with role {UserRole} authorized.", currentUser.id, currentUser.role);
+				_logger.LogInformation("User {UserId} with role {UserRole} authorized.", currentUser.Id, currentUser.Role);
 
 			}
 			catch (Exception ex) // Catch potential exceptions during auth/authz
@@ -118,7 +118,7 @@ namespace rescueApp
 			try
 			{
 				// Check if animal exists
-				var animalExists = await _dbContext.Animals.AnyAsync(a => a.id == animalId);
+				var animalExists = await _dbContext.Animals.AnyAsync(a => a.Id == animalId);
 				if (!animalExists)
 				{
 					_logger.LogWarning("Animal not found when fetching documents. Animal ID: {AnimalId}", animalId);
@@ -126,24 +126,24 @@ namespace rescueApp
 				}
 
 				var documents = await _dbContext.AnimalDocuments
-					.Where(d => d.animal_id == animalId)
-					.OrderByDescending(d => d.date_uploaded) // Show newest first
-															 // Include uploader info if needed
+					.Where(d => d.AnimalId == animalId)
+					.OrderByDescending(d => d.DateUploaded) // Show newest first
+															// Include uploader info if needed
 					.Include(d => d.UploadedByUser)
 					.Select(d => new AnimalDocumentDto // Map to DTO
 					{
-						Id = d.id,
-						AnimalId = d.animal_id,
-						DocumentType = d.document_type,
-						FileName = d.file_name,
-						BlobName = d.blob_name,
-						BlobUrl = d.blob_url,
-						Description = d.description,
-						DateUploaded = d.date_uploaded,
-						UploadedByUserId = d.uploaded_by_user_id,
-						UploaderEmail = d.UploadedByUser != null ? d.UploadedByUser.email : null,
-						UploaderFirstName = d.UploadedByUser != null ? d.UploadedByUser.first_name : null,
-						UploaderLastName = d.UploadedByUser != null ? d.UploadedByUser.last_name : null
+						Id = d.Id,
+						AnimalId = d.AnimalId,
+						document_type = d.DocumentType,
+						file_name = d.FileName,
+						blob_name = d.BlobName,
+						blob_url = d.BlobUrl,
+						Description = d.Description,
+						date_uploaded = d.DateUploaded,
+						uploaded_by_user_id = d.UploadedByUserId,
+						uploader_email = d.UploadedByUser != null ? d.UploadedByUser.Email : null,
+						uploader_first_name = d.UploadedByUser != null ? d.UploadedByUser.FirstName : null,
+						uploader_last_name = d.UploadedByUser != null ? d.UploadedByUser.LastName : null
 					})
 					.ToListAsync(); // Execute query
 

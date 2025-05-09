@@ -65,23 +65,23 @@ namespace rescueApp
 				principal = await ValidateTokenAndGetPrincipal(req);
 				if (principal == null)
 				{
-					_logger.LogWarning("UpdateUserProfile: Token validation failed.");
+					_logger.LogWarning("GetDocumentDownloadUrl: Token validation failed.");
 					return await CreateErrorResponse(req, HttpStatusCode.Unauthorized, "Invalid or missing token.");
 				}
 
 				auth0UserId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 				if (string.IsNullOrEmpty(auth0UserId))
 				{
-					_logger.LogError("UpdateUserProfile: 'sub' (NameIdentifier) claim missing from token.");
+					_logger.LogError("GetDocumentDownloadUrl: 'sub' (NameIdentifier) claim missing from token.");
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User identifier missing from token.");
 				}
 
 				_logger.LogInformation("Token validation successful for user ID (sub): {Auth0UserId}", auth0UserId);
 
 				// Fetch user from DB based on validated Auth0 ID
-				currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.external_provider_id == auth0UserId);
+				currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.ExternalProviderId == auth0UserId);
 
-				if (currentUser == null || !currentUser.is_active)
+				if (currentUser == null || !currentUser.IsActive)
 				{
 					_logger.LogWarning("User not found in DB or inactive for external ID: {ExternalId}", auth0UserId);
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User not authorized or inactive.");
@@ -89,13 +89,13 @@ namespace rescueApp
 
 				// Check Role - Admins or Staff
 				var allowedRoles = new[] { "Admin", "Staff" }; // Case-sensitive match with DB role
-				if (!allowedRoles.Contains(currentUser.role))
+				if (!allowedRoles.Contains(currentUser.Role))
 				{
-					_logger.LogWarning("User Role '{UserRole}' not authorized. UserID: {UserId}", currentUser.role, currentUser.id);
+					_logger.LogWarning("User Role '{UserRole}' not authorized. UserID: {UserId}", currentUser.Role, currentUser.Id);
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "Permission denied.");
 				}
 
-				_logger.LogInformation("User {UserId} with role {UserRole} authorized.", currentUser.id, currentUser.role);
+				_logger.LogInformation("User {UserId} with role {UserRole} authorized.", currentUser.Id, currentUser.Role);
 
 			}
 			catch (Exception ex) // Catch potential exceptions during auth/authz
@@ -140,7 +140,7 @@ namespace rescueApp
 				// --- End Parsing ---
 
 				// Use the blob_name stored in the metadata record
-				string blobNameToAccess = documentRecord.blob_name;
+				string blobNameToAccess = documentRecord.BlobName;
 				if (string.IsNullOrEmpty(blobNameToAccess))
 				{
 					_logger.LogError("Document record {DocumentId} is missing the blob name.", documentId);

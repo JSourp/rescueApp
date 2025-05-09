@@ -58,7 +58,7 @@ export const fetchSpotlights = async () => {
     // Map the API response directly to the required structure
     return data.map((animal) => {
       // Calculate "Time with us"
-      const daysWithUs = differenceInDays(new Date(), new Date(animal.date_created));
+      const daysWithUs = differenceInDays(new Date(), new Date(animal.dateCreated));
       const daysLabel = daysWithUs === 1 ? "day" : "days";
       const timeWithUs = `${daysWithUs} ${daysLabel}`;
 

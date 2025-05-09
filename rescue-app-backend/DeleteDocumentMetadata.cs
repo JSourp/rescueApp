@@ -64,23 +64,23 @@ namespace rescueApp
 				principal = await ValidateTokenAndGetPrincipal(req);
 				if (principal == null)
 				{
-					_logger.LogWarning("UpdateUserProfile: Token validation failed.");
+					_logger.LogWarning("DeleteDocumentMetadata: Token validation failed.");
 					return await CreateErrorResponse(req, HttpStatusCode.Unauthorized, "Invalid or missing token.");
 				}
 
 				auth0UserId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 				if (string.IsNullOrEmpty(auth0UserId))
 				{
-					_logger.LogError("UpdateUserProfile: 'sub' (NameIdentifier) claim missing from token.");
+					_logger.LogError("DeleteDocumentMetadata: 'sub' (NameIdentifier) claim missing from token.");
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User identifier missing from token.");
 				}
 
 				_logger.LogInformation("Token validation successful for user ID (sub): {Auth0UserId}", auth0UserId);
 
 				// Fetch user from DB based on validated Auth0 ID
-				currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.external_provider_id == auth0UserId);
+				currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.ExternalProviderId == auth0UserId);
 
-				if (currentUser == null || !currentUser.is_active)
+				if (currentUser == null || !currentUser.IsActive)
 				{
 					_logger.LogWarning("User not found in DB or inactive for external ID: {ExternalId}", auth0UserId);
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User not authorized or inactive.");
@@ -88,13 +88,13 @@ namespace rescueApp
 
 				// Check Role - Admins or Staff
 				var allowedRoles = new[] { "Admin", "Staff" }; // Case-sensitive match with DB role
-				if (!allowedRoles.Contains(currentUser.role))
+				if (!allowedRoles.Contains(currentUser.Role))
 				{
-					_logger.LogWarning("User Role '{UserRole}' not authorized. UserID: {UserId}", currentUser.role, currentUser.id);
+					_logger.LogWarning("User Role '{UserRole}' not authorized. UserID: {UserId}", currentUser.Role, currentUser.Id);
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "Permission denied.");
 				}
 
-				_logger.LogInformation("User {UserId} with role {UserRole} authorized.", currentUser.id, currentUser.role);
+				_logger.LogInformation("User {UserId} with role {UserRole} authorized.", currentUser.Id, currentUser.Role);
 
 			}
 			catch (Exception ex) // Catch potential exceptions during auth/authz
@@ -117,7 +117,7 @@ namespace rescueApp
 					return await CreateErrorResponse(req, HttpStatusCode.NotFound, "Document record not found.");
 				}
 
-				string blobNameToDelete = documentRecord.blob_name; // Get the name before deleting metadata
+				string blobNameToDelete = documentRecord.BlobName; // Get the name before deleting metadata
 
 				// 4. Delete Metadata Record from DB
 				_dbContext.AnimalDocuments.Remove(documentRecord);
@@ -166,7 +166,7 @@ namespace rescueApp
 				await transaction.CommitAsync();
 
 				_logger.LogInformation("Successfully deleted document metadata record {DocumentId} and associated blob '{BlobName}' by User ID: {UserId}",
-					documentId, blobNameToDelete ?? "N/A", currentUser!.id); // Use currentUser safely after auth check
+					documentId, blobNameToDelete ?? "N/A", currentUser!.Id); // Use currentUser safely after auth check
 
 				// 8. Return Success Response
 				// 204 No Content is standard and appropriate for DELETE

@@ -12,7 +12,7 @@ import FinalizeAdoptionForm from '@/components/admin/FinalizeAdoptionForm';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import Modal from '@/components/Modal';
 import { LoadingSpinner, PlusIcon, PencilSquareIcon, TrashIcon, SuccessCheckmarkIcon, ArrowUturnLeftIcon } from '@/components/Icons';
-import { Animal } from '@/types/animal';
+import { AnimalListItem } from '@/types/animalListItem';
 import { UserProfile } from '@/types/userProfile';
 import { useUser } from '@auth0/nextjs-auth0/client'; // To check login state & potentially role later
 import { getAuth0AccessToken } from '@/utils/auth'; // Import token helper
@@ -31,7 +31,7 @@ async function fetchAdminAnimals(
 	filters: AdminAnimalFilters, // Allow filtering by status here too
 	sortBy: string,
 	accessToken: string | null
-): Promise<Animal[]> {
+): Promise<AnimalListItem[]> {
 	if (!accessToken) {
 		console.error("fetchAdminAnimals: No access token provided.");
 		throw new Error("Authentication token is missing.");
@@ -65,7 +65,7 @@ async function fetchAdminAnimals(
 			throw new Error(`API Error: ${response.status} ${response.statusText}`);
 		}
 		const data = await response.json();
-		return data as Animal[];
+		return data as AnimalListItem[];
 	} catch (error) {
 		console.error('Error fetching admin animals:', error);
 		throw error;
@@ -111,7 +111,7 @@ export default function AdminAnimalsPage() {
 	const { user: auth0User, isLoading: isAuthLoading, error: authError } = useUser();
 
 	// Data state
-	const [animals, setAnimals] = useState<Animal[]>([]);
+	const [animals, setAnimals] = useState<AnimalListItem[]>([]);
 	const [isLoadingData, setIsLoading] = useState<boolean>(true); // For animal list
 	const [errorData, setError] = useState<string | null>(null);
 
@@ -121,7 +121,7 @@ export default function AdminAnimalsPage() {
 	const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
 	const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
 	const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState<boolean>(false);
-	const [selectedAnimal, setSelectedAnimal] = useState<Animal | null>(null);
+	const [selectedAnimal, setSelectedAnimal] = useState<AnimalListItem | null>(null);
 	const [isDeleting, setIsDeleting] = useState<boolean>(false); // Loading state for delete
 
 	// State for User Role
@@ -232,7 +232,7 @@ export default function AdminAnimalsPage() {
 		loadAnimals(); // Refresh the list
 	};
 
-	const handleEditClick = (animal: Animal) => {
+	const handleEditClick = (animal: AnimalListItem) => {
 		setSelectedAnimal(animal);
 		setIsEditModalOpen(true);
 	};
@@ -244,12 +244,12 @@ export default function AdminAnimalsPage() {
 		loadAnimals(); // Refresh the animal list
 	};
 
-	const handleReturnClick = (animal: Animal) => {
+	const handleReturnClick = (animal: AnimalListItem) => {
 		setSelectedAnimal(animal);
 		setIsReturnModalOpen(true);
 	};
 
-	const handleFinalizeClick = (animal: Animal) => {
+	const handleFinalizeClick = (animal: AnimalListItem) => {
 		setSelectedAnimal(animal);
 		setIsFinalizeModalOpen(true);
 	};
@@ -266,7 +266,7 @@ export default function AdminAnimalsPage() {
 		loadAnimals(); // Refresh list
 	};
 
-	const handleDeleteClick = (animal: Animal) => {
+	const handleDeleteClick = (animal: AnimalListItem) => {
 		setSelectedAnimal(animal);
 		setIsDeleteConfirmOpen(true);
 	};
@@ -418,7 +418,7 @@ export default function AdminAnimalsPage() {
 									<th className={thClasses}>Name</th>
 									<th className={thClasses}>Type</th>
 									<th className={thClasses}>Breed</th>
-									<th className={thClasses}>Adoption Status</th>
+									<th className={thClasses}>Status</th>
 									{/* <th className={thClasses}>Gender</th> */}
 									{/* <th className={thClasses}>Date of Birth</th> */}
 									{/* <th className={thClasses}>Weight</th> */}
@@ -437,9 +437,9 @@ export default function AdminAnimalsPage() {
 													<img
 														// Use primaryImageUrl, fallback to placeholder
 														src={animal.primaryImageUrl || '/placeholder-image.png'}
-														alt={animal.name || 'Animal'} // Use snake_case name property
+														alt={animal.name || 'Animal'}
 														className="w-10 h-10 object-cover rounded"
-														loading="lazy" // Good idea for list images
+														loading="lazy"
 													/>
 												) : (
 														<span className="text-gray-500 italic text-xs">No Image</span>
@@ -453,9 +453,9 @@ export default function AdminAnimalsPage() {
 													{animal.name ?? 'N/A'} {/* Display name */}
 												</Link>
 											</td>
-											<td className={tdClasses}>{animal.animal_type ? `${animal.animal_type}` : 'N/A'}</td>
+											<td className={tdClasses}>{animal.animalType ? `${animal.animalType}` : 'N/A'}</td>
 											<td className={tdClasses}>{animal.breed ? `${animal.breed}` : 'N/A'}</td>
-											<td className={tdClasses}>{animal.adoption_status ? `${animal.adoption_status}` : 'N/A'}</td>
+											<td className={tdClasses}>{animal.adoptionStatus ? `${animal.adoptionStatus}` : 'N/A'}</td>
 											{/* <td className={tdClasses}>{animal.gender ? `${animal.gender}` : 'N/A'}</td> */}
 											{/* <td className={tdClasses}>{animal.date_of_birth ? format(new Date(animal.date_of_birth), 'P') : 'N/A'}</td> */}
 											{/* <td className={tdClasses}>{animal.weight ? `${animal.weight} lbs` : 'N/A'}</td> */}
@@ -464,21 +464,21 @@ export default function AdminAnimalsPage() {
 													{animal.story ? animal.story : 'N/A'}
 												</div>
 											</td> */}
-											<td className={tdClasses}>{format(new Date(animal.date_created), 'P')}</td>
-											<td className={tdClasses}>{format(new Date(animal.date_updated), 'P')}</td>
+											<td className={tdClasses}>{format(new Date(animal.dateCreated), 'P')}</td>
+											<td className={tdClasses}>{format(new Date(animal.dateUpdated), 'P')}</td>
 											<td className={`${tdClasses} text-right space-x-2`}>
 												{/* Edit Button - Conditional */}
 												{['Admin', 'Staff'].includes(currentUserRole ?? '') && (
 													<button onClick={() => handleEditClick(animal)} className="..." title="Edit"> <PencilSquareIcon className="w-5 h-5 inline" /> <span className="sr-only">Edit</span> </button>
 												)}
 												{/* Process Return Button - Conditional */}
-												{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Adopted'].includes(animal.adoption_status ?? '') && (
+												{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Adopted'].includes(animal.adoptionStatus ?? '') && (
 													<button onClick={() => handleReturnClick(animal)} className="text-green-600 hover:text-green-900 ..." title="Process Return">
 														<ArrowUturnLeftIcon className="w-5 h-5 inline" />
 													</button>
 												)}
 												{/* Finalize Adoption Button - Conditional */}
-												{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Available', 'Available - In Foster', 'Adoption Pending'].includes(animal.adoption_status ?? '') && (
+												{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Available', 'Available - In Foster', 'Adoption Pending'].includes(animal.adoptionStatus ?? '') && (
 													<button onClick={() => handleFinalizeClick(animal)} className="text-green-600 hover:text-green-900 ..." title="Finalize Adoption">
 														<SuccessCheckmarkIcon className="w-5 h-5 inline" />
 													</button>

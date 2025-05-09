@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -37,9 +38,9 @@ public class GetAnimalById
             // Fetch the animal INCLUDING the ordered list of its images
             var animal = await _dbContext.Animals
                     .Include(a => a.AnimalImages // Eager load the AnimalImages collection
-                                    .OrderBy(img => img.display_order) // Order images by display_order
-                                    .ThenBy(img => img.id)) // Consistent secondary sort
-                    .FirstOrDefaultAsync(a => a.id == id); // Find animal by ID
+                                    .OrderBy(img => img.DisplayOrder) // Order images by display_order
+                                    .ThenBy(img => img.Id)) // Consistent secondary sort
+                    .FirstOrDefaultAsync(a => a.Id == id); // Find animal by ID
 
             if (animal == null)
             {
@@ -53,7 +54,8 @@ public class GetAnimalById
             var jsonResponse = JsonSerializer.Serialize(animal, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                WriteIndented = false
+                WriteIndented = false,
+                ReferenceHandler = ReferenceHandler.IgnoreCycles
             });
 
             // Create the HTTP response

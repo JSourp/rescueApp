@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Container } from '@/components/Container';
-import { Animal } from '@/types/animal'; // Assuming you have this type definition
+import { AnimalListItem } from '@/types/animalListItem'; // Assuming you have this type definition
 import Image from 'next/image';
 import Link from 'next/link';
 import { InformationCircleIcon } from "@/components/Icons";
@@ -26,7 +26,7 @@ async function fetchAvailableAnimals(filters: {
   gender: string;
   animal_type: string;
   breed: string;
-}, sortBy: string): Promise<Animal[]> {
+}, sortBy: string): Promise<AnimalListItem[]> {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   // Define the statuses considered "available" for this public page
@@ -75,7 +75,7 @@ async function fetchAvailableAnimals(filters: {
     }
 
     const data = await response.json();
-    return data as Animal[];
+    return data as AnimalListItem[];
   } catch (error) {
     console.error('Error fetching available animals:', error);
     return [];
@@ -84,7 +84,7 @@ async function fetchAvailableAnimals(filters: {
 
 
 export default function AvailableAnimalsPage() {
-  const [animals, setAnimals] = useState<Animal[]>([]); // Array of Animal objects
+  const [animals, setAnimals] = useState<AnimalListItem[]>([]); // Array of Animal objects
   const [loading, setLoading] = useState<boolean>(true); // Boolean for loading state
   const [error, setError] = useState<string | null>(null); // Error message or null
   const [genderFilter, setGenderFilter] = useState<string>(''); // String for gender filter
@@ -215,9 +215,9 @@ export default function AvailableAnimalsPage() {
                       priority={animals.indexOf(animal) < 4} // Prioritize loading images for first few animals
                     />
                     <div className="p-4 text-center">
-                      <p className="text-sm text-stone-950 dark:text-stone-200">{animal.breed} ({animal.animal_type})</p>
+                      <p className="text-sm text-stone-950 dark:text-stone-200">{animal.breed} ({animal.animalType})</p>
                       <p className="text-sm text-stone-950 dark:text-stone-200">{animal.gender}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">{animal.adoption_status}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">{animal.adoptionStatus}</p>
                     </div>
                   </Link>
                 </div>

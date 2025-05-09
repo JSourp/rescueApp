@@ -87,23 +87,23 @@ namespace rescueApp
                 principal = await ValidateTokenAndGetPrincipal(req);
                 if (principal == null)
                 {
-                    _logger.LogWarning("UpdateUserProfile: Token validation failed.");
+                    _logger.LogWarning("CreateAnimal: Token validation failed.");
                     return await CreateErrorResponse(req, HttpStatusCode.Unauthorized, "Invalid or missing token.");
                 }
 
                 auth0UserId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(auth0UserId))
                 {
-                    _logger.LogError("UpdateUserProfile: 'sub' (NameIdentifier) claim missing from token.");
+                    _logger.LogError("CreateAnimal: 'sub' (NameIdentifier) claim missing from token.");
                     return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User identifier missing from token.");
                 }
 
                 _logger.LogInformation("Token validation successful for user ID (sub): {Auth0UserId}", auth0UserId);
 
                 // Fetch user from DB based on validated Auth0 ID
-                currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.external_provider_id == auth0UserId);
+                currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.ExternalProviderId == auth0UserId);
 
-                if (currentUser == null || !currentUser.is_active)
+                if (currentUser == null || !currentUser.IsActive)
                 {
                     _logger.LogWarning("User not found in DB or inactive for external ID: {ExternalId}", auth0UserId);
                     return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User not authorized or inactive.");
@@ -111,13 +111,13 @@ namespace rescueApp
 
                 // Check Role - Admins and Staff can create
                 var allowedRoles = new[] { "Admin", "Staff" }; // Case-sensitive match with DB role
-                if (!allowedRoles.Contains(currentUser.role))
+                if (!allowedRoles.Contains(currentUser.Role))
                 {
-                    _logger.LogWarning("User Role '{UserRole}' not authorized to create animal. UserID: {UserId}", currentUser.role, currentUser.id);
+                    _logger.LogWarning("User Role '{UserRole}' not authorized to create animal. UserID: {UserId}", currentUser.Role, currentUser.Id);
                     return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "Permission denied to create animal.");
                 }
 
-                _logger.LogInformation("User {UserId} with role {UserRole} authorized to create animal.", currentUser.id, currentUser.role);
+                _logger.LogInformation("User {UserId} with role {UserRole} authorized to create animal.", currentUser.Id, currentUser.Role);
 
             }
             catch (Exception ex) // Catch potential exceptions during auth/authz
@@ -169,29 +169,29 @@ namespace rescueApp
 
                 var newAnimal = new Animal
                 {
-                    animal_type = createData.animal_type!,
-                    name = createData.Name!,
-                    breed = createData.Breed!,
-                    date_of_birth = dateOfBirthUtc,
-                    gender = createData.Gender!,
-                    weight = createData.Weight, // Nullable decimal?
-                    story = createData.Story, // Nullable string
-                    adoption_status = createData.adoption_status!, // Use status from request
-                    created_by_user_id = currentUser.id,
-                    updated_by_user_id = currentUser.id
+                    AnimalType = createData.animal_type!,
+                    Name = createData.Name!,
+                    Breed = createData.Breed!,
+                    DateOfBirth = dateOfBirthUtc,
+                    Gender = createData.Gender!,
+                    Weight = createData.Weight, // Nullable decimal?
+                    Story = createData.Story, // Nullable string
+                    AdoptionStatus = createData.adoption_status!, // Use status from request
+                    CreatedByUserId = currentUser.Id,
+                    UpdatedByUserId = currentUser.Id
                 };
 
                 _dbContext.Animals.Add(newAnimal);
                 await _dbContext.SaveChangesAsync(); // Should now save DOB correctly
 
-                _logger.LogInformation("Successfully created new Animal with ID: {animal_id} by User ID: {UserId}", newAnimal.id, currentUser!.id); // Use currentUser safely
+                _logger.LogInformation("Successfully created new Animal with ID: {animal_id} by User ID: {UserId}", newAnimal.Id, currentUser!.Id); // Use currentUser safely
 
                 // --- 4. Return Response ---
                 var response = req.CreateResponse(HttpStatusCode.Created);
                 var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
                 var jsonPayload = JsonSerializer.Serialize(newAnimal, jsonOptions);
                 response.Headers.Add("Content-Type", "application/json; charset=utf-8");
-                response.Headers.Add("Location", $"/api/animals/{newAnimal.id}");
+                response.Headers.Add("Location", $"/api/animals/{newAnimal.Id}");
                 await response.WriteStringAsync(jsonPayload);
                 return response;
             }

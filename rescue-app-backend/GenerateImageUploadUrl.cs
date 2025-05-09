@@ -45,7 +45,12 @@ namespace rescueApp
 			_logger = logger;
 			if (string.IsNullOrEmpty(_blobConnectionString))
 			{
-				_logger.LogError("AzureBlobStorageConnectionString is not configured.");
+				_logger.LogError("CRITICAL_CONFIG_ERROR: AzureBlobStorageConnectionString is not configured in GenerateImageUploadUrl.");
+			}
+			if (string.IsNullOrEmpty(_auth0Domain) || string.IsNullOrEmpty(_auth0Audience))
+			{
+				// Make this very obvious
+				_logger.LogError("CRITICAL_CONFIG_ERROR: AUTH0_ISSUER_BASE_URL or AUTH0_AUDIENCE is not configured for GenerateImageUploadUrl. Token validation will fail.");
 			}
 		}
 
@@ -68,23 +73,23 @@ namespace rescueApp
 				principal = await ValidateTokenAndGetPrincipal(req);
 				if (principal == null)
 				{
-					_logger.LogWarning("UpdateUserProfile: Token validation failed.");
+					_logger.LogWarning("GenerateImageUploadUrl: Token validation failed.");
 					return await CreateErrorResponse(req, HttpStatusCode.Unauthorized, "Invalid or missing token.");
 				}
 
 				auth0UserId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 				if (string.IsNullOrEmpty(auth0UserId))
 				{
-					_logger.LogError("UpdateUserProfile: 'sub' (NameIdentifier) claim missing from token.");
+					_logger.LogError("GenerateImageUploadUrl: 'sub' (NameIdentifier) claim missing from token.");
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User identifier missing from token.");
 				}
 
 				_logger.LogInformation("Token validation successful for user ID (sub): {Auth0UserId}", auth0UserId);
 
 				// Fetch user from DB based on validated Auth0 ID
-				currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.external_provider_id == auth0UserId);
+				currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.ExternalProviderId == auth0UserId);
 
-				if (currentUser == null || !currentUser.is_active)
+				if (currentUser == null || !currentUser.IsActive)
 				{
 					_logger.LogWarning("User not found in DB or inactive for external ID: {ExternalId}", auth0UserId);
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User not authorized or inactive.");
@@ -92,13 +97,13 @@ namespace rescueApp
 
 				// Check Role - Admins or Staff
 				var allowedRoles = new[] { "Admin", "Staff" }; // Case-sensitive match with DB role
-				if (!allowedRoles.Contains(currentUser.role))
+				if (!allowedRoles.Contains(currentUser.Role))
 				{
-					_logger.LogWarning("User Role '{UserRole}' not authorized. UserID: {UserId}", currentUser.role, currentUser.id);
+					_logger.LogWarning("User Role '{UserRole}' not authorized. UserID: {UserId}", currentUser.Role, currentUser.Id);
 					return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "Permission denied.");
 				}
 
-				_logger.LogInformation("User {UserId} with role {UserRole} authorized.", currentUser.id, currentUser.role);
+				_logger.LogInformation("User {UserId} with role {UserRole} authorized.", currentUser.Id, currentUser.Role);
 
 			}
 			catch (Exception ex) // Catch potential exceptions during auth/authz
@@ -110,13 +115,18 @@ namespace rescueApp
 
 
 			// --- 2. Get Query Parameters ---
+			_logger.LogInformation("Attempting to parse query parameters. Raw Query: {RawQuery}", req.Url.Query); // Log the raw query
+
 			var queryParams = HttpUtility.ParseQueryString(req.Url.Query);
 			string? filename = queryParams["filename"];
 			string? contentType = queryParams["contentType"]; // e.g., image/jpeg, image/png
 
+			_logger.LogInformation("Parsed filename: '{Filename}', Parsed contentType: '{ContentType}'", filename, contentType);
+
 			if (string.IsNullOrWhiteSpace(filename) || string.IsNullOrWhiteSpace(contentType))
 			{
-				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Missing required query parameters: 'filename' and 'contentType'.");
+				// Corrected error message string to match code for clarity, though not the root cause
+				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Missing required query parameters: 'filename' and/or 'contentType'.");
 			}
 
 			// Basic validation (add more as needed - size, allowed types)
@@ -202,13 +212,14 @@ namespace rescueApp
 				await response.WriteAsJsonAsync(new
 				{
 					sasUrl = sasUri.ToString(),    // URL frontend uses for direct PUT upload
-					blobUrl = blobClient.Uri.ToString() // URL to save in your database (without SAS)
+					blob_url = blobClient.Uri.ToString(), // URL to save in your database (without SAS)
+					blob_name = uniqueBlobName, // Unique blob name for reference
 				});
 				return response;
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "Error generating SAS URL for file {FileName}", filename);
+				_logger.LogError(ex, "Error generating SAS URL for file {filename}", filename);
 				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Could not generate upload URL.");
 			}
 		}

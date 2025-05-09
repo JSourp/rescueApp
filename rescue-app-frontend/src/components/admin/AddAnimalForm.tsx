@@ -87,7 +87,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 		}
 		// --- Got Token ---
 
-		let uploadedImageData: { blobUrl: string; blobName: string; fileName: string } | null = null;
+		let uploadedImageData: { blob_url: string; blob_name: string; file_name: string } | null = null;
 
 		// --- Step 1: Upload Image if selected ---
 		if (selectedFile) {
@@ -101,10 +101,11 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 				if (!apiBaseUrl) {
 					throw new Error("API Base URL is not configured."); // Add check
 				}
-				const filename = encodeURIComponent(selectedFile.name);
+				const file_name = encodeURIComponent(selectedFile.name);
 				const contentType = encodeURIComponent(selectedFile.type);
 
-				const urlToFetch = `${apiBaseUrl}/image-upload-url?filename=${filename}&contentType=${contentType}`;
+				const urlToFetch = `${apiBaseUrl}/image-upload-url?filename=${file_name}&contentType=${contentType}`;
+				const fetchHeaders = { 'Authorization': `Bearer ${accessToken}` };
 
 				console.log("Requesting SAS URL from:", urlToFetch); // Log the URL before fetching
 
@@ -114,7 +115,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 
 				if (!sasUrlResponse.ok) { throw new Error(`Failed to get upload URL: ${sasUrlResponse.statusText}`); }
 				const sasData = await sasUrlResponse.json();
-				if (!sasData || !sasData.sasUrl || !sasData.blobName || !sasData.blobUrl) throw new Error("Invalid SAS response.");
+				if (!sasData || !sasData.sasUrl || !sasData.blob_name || !sasData.blob_url) throw new Error("Invalid SAS response.");
 
 				console.log("Got SAS URL, attempting direct upload to Azure...");
 
@@ -135,11 +136,11 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 					throw new Error(`Failed to upload image to Azure: ${uploadResponse.statusText}`);
 				}
 
-				console.log("Image uploaded successfully:", sasData.blobUrl);
+				console.log("Image uploaded successfully:", sasData.blob_url);
 				uploadedImageData = { // Store details needed for metadata POST
-					blobUrl: sasData.blobUrl,
-					blobName: sasData.blobName,
-					fileName: selectedFile.name // Store original filename
+					blob_url: sasData.blob_url,
+					blob_name: sasData.blob_name,
+					file_name: selectedFile.name // Store original filename
 				};
 
 			} catch (uploadError: any) {
@@ -189,13 +190,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 			const createdAnimal = await response.json(); // Get created animal back (includes ID)
 			newAnimalId = createdAnimal.id; // Store the new ID
 			setSubmitMessage(`${createdAnimal.name} added successfully!`);
-
-			// Delay the form closure to let the user see the success message
-			setTimeout(() => {
-				onClose(); // Close the form after a delay
-				setIsSuccess(false); // Optionally reset the success state
-				setSubmitMessage(""); // Clear the success message
-			}, 5000); // Adjust the delay time (e.g., 5000ms = 5 seconds)
+			onAnimalAdded(); // Call parent handler (close modal, refresh list)
 
 		} catch (error: any) {
 			console.error("Create animal API error:", error);
@@ -206,13 +201,61 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 			return; // Stop if animal creation fails
 		}
 
-		// --- Final Success ---
-		// If we reach here, everything succeeded
-		reset(); // Clear the form
-		if (fileInputRef.current) fileInputRef.current.value = ''; // Clear file input
-		setSelectedFile(null); // Clear file state
-		onAnimalAdded(); // Call parent handler (close modal, refresh list)
-		setIsProcessing(false); // Ensure processing is false
+		// --- Step 3: Submit Image Metadata IF image was uploaded AND animal created ---
+		if (uploadedImageData && newAnimalId) {
+			console.log(`Saving image metadata for animal ID ${newAnimalId}`);
+			try {
+				const metadataPayload = {
+					documentType: "Animal Photo",
+					fileName: uploadedImageData.file_name,
+					blobName: uploadedImageData.blob_name,
+					blobUrl: uploadedImageData.blob_url,
+					isPrimary: true, // Example: Mark first image as primary
+					displayOrder: 0  // Example: First image
+				};
+
+				const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+				const metadataResponse = await fetch(`${apiBaseUrl}/animals/${newAnimalId}/images`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': `Bearer ${accessToken}`
+					},
+					body: JSON.stringify(metadataPayload)
+				});
+
+				if (!metadataResponse.ok) {
+					// Get error from metadata save attempt
+					let errorMsg = `Error ${metadataResponse.status}: Failed to save image details.`;
+					try {
+						// Try to parse error from backend if response has body
+						const errorBody = await metadataResponse.json();
+						errorMsg = errorBody.message || errorMsg;
+					} catch (_) {
+						errorMsg = `${metadataResponse.status}: ${metadataResponse.statusText}`; // Fallback
+					}
+					throw new Error(errorMsg);
+				}
+				console.log("Image metadata saved successfully.");
+
+			} catch (error: any) {
+				// This catch block is for errors specifically during metadata save
+				console.error("Save image metadata error:", error);
+				setApiError(error.message || "Animal was created, but failed to save image details.");
+				// Don't necessarily return here, the animal *was* created.
+				// Let finally block reset isProcessing.
+				// The onAnimalAdded() will still be called, user will see animal without image.
+			}
+		}
+
+		// --- Final Success (if no critical errors above stopped execution) ---
+		if (!apiError) { // Check if any error was set during the process
+			reset(); // Clear the form
+			if (fileInputRef.current) fileInputRef.current.value = ''; // Clear file input
+			setSelectedFile(null);
+			onAnimalAdded(); // Call parent handler (close modal, refresh list)
+		}
+		setIsProcessing(false);
 	};
 
 

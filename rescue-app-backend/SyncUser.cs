@@ -74,32 +74,32 @@ namespace rescueApp
 
 				// --- Find or Create User ---
 				var existingUser = await _dbContext.Users
-										 .FirstOrDefaultAsync(u => u.external_provider_id == syncRequest.ExternalProviderId);
+										 .FirstOrDefaultAsync(u => u.ExternalProviderId == syncRequest.ExternalProviderId);
 
 				User? userToReturn;
 
 				if (existingUser != null)
 				{
-					_logger.LogInformation("User found in local DB. ExternalProviderId: {ExternalId}, UserId: {UserId}", syncRequest.ExternalProviderId, existingUser.id);
+					_logger.LogInformation("User found in local DB. ExternalProviderId: {ExternalId}, UserId: {UserId}", syncRequest.ExternalProviderId, existingUser.Id);
 					userToReturn = existingUser;
 					bool profileDataUpdated = false;
 
 					// Update profile info if changed
-					if (existingUser.first_name != syncRequest.FirstName && !string.IsNullOrWhiteSpace(syncRequest.FirstName))
+					if (existingUser.FirstName != syncRequest.FirstName && !string.IsNullOrWhiteSpace(syncRequest.FirstName))
 					{
-						existingUser.first_name = syncRequest.FirstName; profileDataUpdated = true;
+						existingUser.FirstName = syncRequest.FirstName; profileDataUpdated = true;
 					}
-					if (existingUser.last_name != syncRequest.LastName && !string.IsNullOrWhiteSpace(syncRequest.LastName))
+					if (existingUser.LastName != syncRequest.LastName && !string.IsNullOrWhiteSpace(syncRequest.LastName))
 					{
-						existingUser.last_name = syncRequest.LastName; profileDataUpdated = true;
+						existingUser.LastName = syncRequest.LastName; profileDataUpdated = true;
 					}
-					if (existingUser.email != syncRequest.Email && !string.IsNullOrWhiteSpace(syncRequest.Email))
+					if (existingUser.Email != syncRequest.Email && !string.IsNullOrWhiteSpace(syncRequest.Email))
 					{ // Ensure email isn't empty/whitespace if updating
-						existingUser.email = syncRequest.Email; profileDataUpdated = true;
+						existingUser.Email = syncRequest.Email; profileDataUpdated = true;
 					}
 
 					// Always update last_login_date
-					existingUser.last_login_date = utcNow;
+					existingUser.LastLoginDate = utcNow;
 
 					// --- Conditionally set date_updated ONLY if profile data changed ---
 					//if (profileDataUpdated)
@@ -115,12 +115,12 @@ namespace rescueApp
 					try
 					{
 						await _dbContext.SaveChangesAsync(); // Save any tracked changes (login date, profile fields, updated date)
-						_logger.LogInformation("SaveChangesAsync completed for UserId: {UserId}. ProfileDataUpdatedFlag: {ProfileUpdated}", existingUser.id, profileDataUpdated);
+						_logger.LogInformation("SaveChangesAsync completed for UserId: {UserId}. ProfileDataUpdatedFlag: {ProfileUpdated}", existingUser.Id, profileDataUpdated);
 					}
 					catch (DbUpdateConcurrencyException ex)
 					{
 						// Handle potential concurrency issues if needed
-						_logger.LogError(ex, "Concurrency error saving user update for UserId: {UserId}", existingUser.id);
+						_logger.LogError(ex, "Concurrency error saving user update for UserId: {UserId}", existingUser.Id);
 						// Decide how to handle - potentially reload and retry or return error
 						throw; // Re-throw for outer catch block or handle specifically
 					}
@@ -130,18 +130,18 @@ namespace rescueApp
 					_logger.LogInformation("User not found in local DB, creating new user. ExternalProviderId: {ExternalId}", syncRequest.ExternalProviderId);
 					var newUser = new User
 					{
-						id = Guid.NewGuid(),
-						external_provider_id = syncRequest.ExternalProviderId,
-						email = syncRequest.Email,
-						first_name = syncRequest.FirstName ?? "Unknown",
-						last_name = syncRequest.LastName ?? "User",
-						role = "Guest", // Default role
-						is_active = true,
-						last_login_date = utcNow
+						Id = Guid.NewGuid(),
+						ExternalProviderId = syncRequest.ExternalProviderId,
+						Email = syncRequest.Email,
+						FirstName = syncRequest.FirstName ?? "Unknown",
+						LastName = syncRequest.LastName ?? "User",
+						Role = "Guest", // Default role
+						IsActive = true,
+						LastLoginDate = utcNow
 					};
 					_dbContext.Users.Add(newUser);
 					await _dbContext.SaveChangesAsync(); // Save the new user
-					_logger.LogInformation("Created new user with ID: {UserId}", newUser.id);
+					_logger.LogInformation("Created new user with ID: {UserId}", newUser.Id);
 					userToReturn = newUser;
 				}
 

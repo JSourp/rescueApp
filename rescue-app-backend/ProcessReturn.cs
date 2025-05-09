@@ -44,7 +44,6 @@ namespace rescueApp
     {
         private readonly AppDbContext _dbContext;
         private readonly ILogger<ProcessReturn> _logger;
-        // Config needed for token validation (copy from GetUserProfile/CreateAdoption)
         private readonly string _auth0Domain = Environment.GetEnvironmentVariable("AUTH0_ISSUER_BASE_URL") ?? string.Empty;
         private readonly string _auth0Audience = Environment.GetEnvironmentVariable("AUTH0_AUDIENCE") ?? string.Empty;
         private static ConfigurationManager<OpenIdConnectConfiguration>? _configManager;
@@ -77,23 +76,23 @@ namespace rescueApp
                 principal = await ValidateTokenAndGetPrincipal(req);
                 if (principal == null)
                 {
-                    _logger.LogWarning("UpdateUserProfile: Token validation failed.");
+                    _logger.LogWarning("ProcessReturn: Token validation failed.");
                     return await CreateErrorResponse(req, HttpStatusCode.Unauthorized, "Invalid or missing token.");
                 }
 
                 auth0UserId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(auth0UserId))
                 {
-                    _logger.LogError("UpdateUserProfile: 'sub' (NameIdentifier) claim missing from token.");
+                    _logger.LogError("ProcessReturn: 'sub' (NameIdentifier) claim missing from token.");
                     return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User identifier missing from token.");
                 }
 
                 _logger.LogInformation("Token validation successful for user ID (sub): {Auth0UserId}", auth0UserId);
 
                 // Fetch user from DB based on validated Auth0 ID
-                currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.external_provider_id == auth0UserId);
+                currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.ExternalProviderId == auth0UserId);
 
-                if (currentUser == null || !currentUser.is_active)
+                if (currentUser == null || !currentUser.IsActive)
                 {
                     _logger.LogWarning("User not found in DB or inactive for external ID: {ExternalId}", auth0UserId);
                     return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User not authorized or inactive.");
@@ -101,13 +100,13 @@ namespace rescueApp
 
                 // Check Role - Admins or Staff can process a return
                 var allowedRoles = new[] { "Admin", "Staff" }; // Case-sensitive match with DB role
-                if (!allowedRoles.Contains(currentUser.role))
+                if (!allowedRoles.Contains(currentUser.Role))
                 {
-                    _logger.LogWarning("User Role '{UserRole}' not authorized to process a return. UserID: {UserId}", currentUser.role, currentUser.id);
+                    _logger.LogWarning("User Role '{UserRole}' not authorized to process a return. UserID: {UserId}", currentUser.Role, currentUser.Id);
                     return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "Permission denied to process a return.");
                 }
 
-                _logger.LogInformation("User {UserId} with role {UserRole} authorized to process a return.", currentUser.id, currentUser.role);
+                _logger.LogInformation("User {UserId} with role {UserRole} authorized to process a return.", currentUser.Id, currentUser.Role);
 
             }
             catch (Exception ex) // Catch potential exceptions during auth/authz
@@ -152,9 +151,9 @@ namespace rescueApp
                 // 4. Find the ACTIVE AdoptionHistory record
                 var activeAdoption = await _dbContext.AdoptionHistories
                     .Include(ah => ah.Animal) // Include animal to check status easily
-					.FirstOrDefaultAsync(ah => ah.animal_id == returnRequest.animal_id && ah.return_date == null);
+                    .FirstOrDefaultAsync(ah => ah.AnimalId == returnRequest.animal_id && ah.ReturnDate == null);
 
-				if (activeAdoption == null)
+                if (activeAdoption == null)
                 {
 					_logger.LogWarning("No active adoption record found for Animal ID: {animal_id} to process return.", returnRequest.animal_id);
 					await transaction.RollbackAsync();
@@ -164,50 +163,50 @@ namespace rescueApp
                  // 5. Find the Animal (should be loaded via Include) & Check Status
                  var animalToUpdate = activeAdoption.Animal;
                  if (animalToUpdate == null) { // Should not happen if FK constraint exists
-					_logger.LogError("Animal record not found for AdoptionHistory ID: {HistoryId}, Animal ID: {animal_id}", activeAdoption.id, activeAdoption.animal_id);
-					await transaction.RollbackAsync();
-                      return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Data inconsistency: Animal not found for existing adoption record.");
-                 }
+                    _logger.LogError("Animal record not found for AdoptionHistory ID: {HistoryId}, Animal ID: {animal_id}", activeAdoption.Id, activeAdoption.AnimalId);
+                    await transaction.RollbackAsync();
+                    return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Data inconsistency: Animal not found for existing adoption record.");
+                }
 
-                 if (animalToUpdate.adoption_status != "Adopted")
-                 {
-					_logger.LogWarning("Attempted to return animal whose status is not 'Adopted'. Animal Id: {animal_id}, Status: {Status}", animalToUpdate.id, animalToUpdate.adoption_status);
-					await transaction.RollbackAsync();
-                      // Use Conflict or BadRequest? Conflict seems appropriate as state doesn't match expected pre-condition.
-                     return await CreateErrorResponse(req, HttpStatusCode.Conflict, $"Cannot process return: Animal status is currently '{animalToUpdate.adoption_status ?? "None"}', not 'Adopted'.");
-                 }
+                if (animalToUpdate.AdoptionStatus != "Adopted")
+                {
+                    _logger.LogWarning("Attempted to return animal whose status is not 'Adopted'. Animal Id: {animal_id}, Status: {Status}", animalToUpdate.Id, animalToUpdate.AdoptionStatus);
+                    await transaction.RollbackAsync();
+                    // Use Conflict or BadRequest? Conflict seems appropriate as state doesn't match expected pre-condition.
+                    return await CreateErrorResponse(req, HttpStatusCode.Conflict, $"Cannot process return: Animal status is currently '{animalToUpdate.AdoptionStatus ?? "None"}', not 'Adopted'.");
+                }
 
-				// 6. Update AdoptionHistory Record
-				// Ensure return_date has UTC Kind
-				activeAdoption.return_date = DateTime.SpecifyKind(returnRequest.return_date!.Value, DateTimeKind.Utc); // Use ! after validation ensures it has value
-				activeAdoption.updated_by_user_id = currentUser.id;
-				if (!string.IsNullOrWhiteSpace(returnRequest.notes))
-				{ // Append to existing notes
-					activeAdoption.notes = string.IsNullOrEmpty(activeAdoption.notes)
-						 ? $"Return processed on {utcNow:yyyy-MM-dd}: {returnRequest.notes}"
-						 : $"{activeAdoption.notes}\nReturn processed on {utcNow:yyyy-MM-dd}: {returnRequest.notes}";
-				}
+                // 6. Update AdoptionHistory Record
+                // Ensure return_date has UTC Kind
+                activeAdoption.ReturnDate = DateTime.SpecifyKind(returnRequest.return_date!.Value, DateTimeKind.Utc); // Use ! after validation ensures it has value
+                activeAdoption.UpdatedByUserId = currentUser.Id;
+                if (!string.IsNullOrWhiteSpace(returnRequest.notes))
+                { // Append to existing notes
+                    activeAdoption.Notes = string.IsNullOrEmpty(activeAdoption.Notes)
+                         ? $"Return processed on {utcNow:yyyy-MM-dd}: {returnRequest.notes}"
+                         : $"{activeAdoption.Notes}\nReturn processed on {utcNow:yyyy-MM-dd}: {returnRequest.notes}";
+                }
 
-				// 7. Update Animal Record
-				animalToUpdate.adoption_status = returnRequest.adoption_status!; // Use validated status from request
-				animalToUpdate.updated_by_user_id = currentUser.id;
+                // 7. Update Animal Record
+                animalToUpdate.AdoptionStatus = returnRequest.adoption_status!; // Use validated status from request
+                animalToUpdate.UpdatedByUserId = currentUser.Id;
 
-                 _dbContext.AdoptionHistories.Update(activeAdoption); // Mark history as updated
-                 _dbContext.Animals.Update(animalToUpdate); // Mark animal as updated
+                _dbContext.AdoptionHistories.Update(activeAdoption); // Mark history as updated
+                _dbContext.Animals.Update(animalToUpdate); // Mark animal as updated
 
                 // 8. Save Changes
-                 await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();
 
                 // 9. Commit Transaction
-                 await transaction.CommitAsync();
+                await transaction.CommitAsync();
 
-				_logger.LogInformation("Successfully processed return for Animal ID: {animal_id}. AdoptionHistory ID: {HistoryId}. New Status: {NewStatus}",
-				   animalToUpdate.id, activeAdoption.id, animalToUpdate.adoption_status);
+                _logger.LogInformation("Successfully processed return for Animal ID: {animal_id}. AdoptionHistory ID: {HistoryId}. New Status: {NewStatus}",
+                   animalToUpdate.Id, activeAdoption.Id, animalToUpdate.AdoptionStatus);
 
                 // 10. Return Success Response (200 OK is fine for updates)
-                 var response = req.CreateResponse(HttpStatusCode.OK);
-                 await response.WriteAsJsonAsync(new { message = "Return processed successfully." });
-                 return response;
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                await response.WriteAsJsonAsync(new { message = "Return processed successfully." });
+                return response;
             }
             catch (Exception ex)
             {

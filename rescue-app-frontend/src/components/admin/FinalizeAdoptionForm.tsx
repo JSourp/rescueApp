@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { LoadingSpinner, SuccessCheckmarkIcon } from '@/components/Icons';
 import { getAuth0AccessToken } from '@/utils/auth'; // Shared helper
-import { Animal } from '@/types/animal'; // Import your Animal type
+import { Animal } from '@/types/animalListItem'; // Import your Animal type
 import { format } from 'date-fns'; // For default date
 
 interface FinalizeFormData {
@@ -81,8 +81,7 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 		}
 		// --- Got Token ---
 
-		// Construct payload matching backend CreateAdoptionRequest DTO
-		// And include animal_id
+		// Construct payload
 		const payload = {
 			animal_id: animal.id,
 			adopter_first_name: formData.adopter_first_name,

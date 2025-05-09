@@ -86,23 +86,23 @@ namespace rescueApp
                 principal = await ValidateTokenAndGetPrincipal(req);
                 if (principal == null)
                 {
-                    _logger.LogWarning("UpdateUserProfile: Token validation failed.");
+                    _logger.LogWarning("UpdateAnimal: Token validation failed.");
                     return await CreateErrorResponse(req, HttpStatusCode.Unauthorized, "Invalid or missing token.");
                 }
 
                 auth0UserId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(auth0UserId))
                 {
-                    _logger.LogError("UpdateUserProfile: 'sub' (NameIdentifier) claim missing from token.");
+                    _logger.LogError("UpdateAnimal: 'sub' (NameIdentifier) claim missing from token.");
                     return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User identifier missing from token.");
                 }
 
                 _logger.LogInformation("Token validation successful for user ID (sub): {Auth0UserId}", auth0UserId);
 
                 // Fetch user from DB based on validated Auth0 ID
-                currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.external_provider_id == auth0UserId);
+                currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.ExternalProviderId == auth0UserId);
 
-                if (currentUser == null || !currentUser.is_active)
+                if (currentUser == null || !currentUser.IsActive)
                 {
                     _logger.LogWarning("UpdateAnimal: User not authorized or inactive. ExternalId: {ExternalId}", auth0UserId);
                     return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User not authorized or inactive.");
@@ -110,12 +110,12 @@ namespace rescueApp
 
                 // Check Role - Admins and Staff can update
                 var allowedRoles = new[] { "Admin", "Staff" }; // Case-sensitive
-                if (!allowedRoles.Contains(currentUser.role))
+                if (!allowedRoles.Contains(currentUser.Role))
                 {
-                    _logger.LogWarning("User Role '{UserRole}' not authorized to update animal. UserID: {UserId}", currentUser.role, currentUser.id);
+                    _logger.LogWarning("User Role '{UserRole}' not authorized to update animal. UserID: {UserId}", currentUser.Role, currentUser.Id);
                     return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "Permission denied to update animal.");
                 }
-                _logger.LogInformation("User {UserId} with role {UserRole} authorized.", currentUser.id, currentUser.role);
+                _logger.LogInformation("User {UserId} with role {UserRole} authorized.", currentUser.Id, currentUser.Role);
             }
             catch (Exception ex) // Catch potential exceptions during auth/authz
             {
@@ -165,30 +165,30 @@ namespace rescueApp
                 }
 
                 // Update properties comparing model to DTO
-                if (existingAnimal.animal_type != updateData.animal_type) { existingAnimal.animal_type = updateData.animal_type; }
-                if (existingAnimal.name != updateData.name) { existingAnimal.name = updateData.name; }
-                if (existingAnimal.breed != updateData.breed) { existingAnimal.breed = updateData.breed; }
+                if (existingAnimal.AnimalType != updateData.animal_type) { existingAnimal.AnimalType = updateData.animal_type; }
+                if (existingAnimal.Name != updateData.name) { existingAnimal.Name = updateData.name; }
+                if (existingAnimal.Breed != updateData.breed) { existingAnimal.Breed = updateData.breed; }
                 // Use SpecifyKind for date again
                 DateTime? dobUtc = updateData.date_of_birth.HasValue ? DateTime.SpecifyKind(updateData.date_of_birth.Value, DateTimeKind.Utc) : null;
-                if (existingAnimal.date_of_birth != dobUtc) { existingAnimal.date_of_birth = dobUtc; }
-                if (existingAnimal.gender != updateData.gender) { existingAnimal.gender = updateData.gender; }
-                if (existingAnimal.weight != updateData.weight) { existingAnimal.weight = updateData.weight; }
-                if (existingAnimal.story != updateData.story) { existingAnimal.story = updateData.story; }
-                if (existingAnimal.adoption_status != updateData.adoption_status) { existingAnimal.adoption_status = updateData.adoption_status; }
+                if (existingAnimal.DateOfBirth != dobUtc) { existingAnimal.DateOfBirth = dobUtc; }
+                if (existingAnimal.Gender != updateData.gender) { existingAnimal.Gender = updateData.gender; }
+                if (existingAnimal.Weight != updateData.weight) { existingAnimal.Weight = updateData.weight; }
+                if (existingAnimal.Story != updateData.story) { existingAnimal.Story = updateData.story; }
+                if (existingAnimal.AdoptionStatus != updateData.adoption_status) { existingAnimal.AdoptionStatus = updateData.adoption_status; }
 
                 // Always set the user performing the update if any profile data changed
-                existingAnimal.updated_by_user_id = currentUser.id;
+                existingAnimal.UpdatedByUserId = currentUser.Id;
 
                 // ---- Save if ANY changes were detected by EF Core ----
                 // (This includes changes to updated_by_user_id or any other field)
                 if (_dbContext.ChangeTracker.HasChanges())
                 {
-                    _logger.LogInformation("Saving updates for Animal ID: {animal_id} by User ID: {UserId}.", existingAnimal.id, currentUser!.id);
+                    _logger.LogInformation("Saving updates for Animal ID: {animal_id} by User ID: {UserId}.", existingAnimal.Id, currentUser!.Id);
                     await _dbContext.SaveChangesAsync(); // Save changes
                 }
                 else
                 {
-                    _logger.LogInformation("No changes detected by EF Core for Animal ID: {animal_id}", existingAnimal.id);
+                    _logger.LogInformation("No changes detected by EF Core for Animal ID: {animal_id}", existingAnimal.Id);
                 }
 
                 // --- 4. Return Response ---

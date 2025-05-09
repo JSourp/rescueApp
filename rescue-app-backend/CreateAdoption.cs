@@ -58,23 +58,23 @@ namespace rescueApp
                 principal = await ValidateTokenAndGetPrincipal(req);
                 if (principal == null)
                 {
-                    _logger.LogWarning("UpdateUserProfile: Token validation failed.");
+                    _logger.LogWarning("CreateAdoption: Token validation failed.");
                     return await CreateErrorResponse(req, HttpStatusCode.Unauthorized, "Invalid or missing token.");
                 }
 
                 auth0UserId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(auth0UserId))
                 {
-                    _logger.LogError("UpdateUserProfile: 'sub' (NameIdentifier) claim missing from token.");
+                    _logger.LogError("CreateAdoption: 'sub' (NameIdentifier) claim missing from token.");
                     return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User identifier missing from token.");
                 }
 
                 _logger.LogInformation("Token validation successful for user ID (sub): {Auth0UserId}", auth0UserId);
 
                 // Fetch user from DB based on validated Auth0 ID
-                currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.external_provider_id == auth0UserId);
+                currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.ExternalProviderId == auth0UserId);
 
-                if (currentUser == null || !currentUser.is_active)
+                if (currentUser == null || !currentUser.IsActive)
                 {
                     _logger.LogWarning("User not found in DB or inactive for external ID: {ExternalId}", auth0UserId);
                     return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User not authorized or inactive.");
@@ -82,13 +82,13 @@ namespace rescueApp
 
                 // Check Role - Admins or Staff can finalize an adoption
                 var allowedRoles = new[] { "Admin", "Staff" }; // Case-sensitive match with DB role
-                if (!allowedRoles.Contains(currentUser.role))
+                if (!allowedRoles.Contains(currentUser.Role))
                 {
-                    _logger.LogWarning("User Role '{UserRole}' not authorized to finalize an adoption. UserID: {UserId}", currentUser.role, currentUser.id);
+                    _logger.LogWarning("User Role '{UserRole}' not authorized to finalize an adoption. UserID: {UserId}", currentUser.Role, currentUser.Id);
                     return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "Permission denied to finalize an adoption.");
                 }
 
-                _logger.LogInformation("User {UserId} with role {UserRole} authorized to finalize an adoption.", currentUser.id, currentUser.role);
+                _logger.LogInformation("User {UserId} with role {UserRole} authorized to finalize an adoption.", currentUser.Id, currentUser.Role);
 
             }
             catch (Exception ex) // Catch potential exceptions during auth/authz
@@ -110,7 +110,7 @@ namespace rescueApp
                 adoptionRequest = JsonSerializer.Deserialize<CreateAdoptionRequest>(requestBody, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
                 // Honeypot check first
-                if (adoptionRequest != null && !string.IsNullOrEmpty(adoptionRequest.botcheck))
+                if (adoptionRequest != null && !string.IsNullOrEmpty(adoptionRequest.Botcheck))
                 {
                     _logger.LogWarning("Bot submission detected via honeypot field in CreateAdoption.");
                     return req.CreateResponse(HttpStatusCode.OK); // Return OK to not alert bot
@@ -141,18 +141,18 @@ namespace rescueApp
             try
             {
                 // 4. Find Animal & Check Status
-                var animalToAdopt = await _dbContext.Animals.FindAsync(adoptionRequest.animal_id);
+                var animalToAdopt = await _dbContext.Animals.FindAsync(adoptionRequest.AnimalId);
                 if (animalToAdopt == null)
                 {
-                    _logger.LogWarning("Animal not found for adoption. Animal Id: {animal_id}", adoptionRequest.animal_id);
+                    _logger.LogWarning("Animal not found for adoption. Animal Id: {animal_id}", adoptionRequest.AnimalId);
                     await transaction.RollbackAsync(); // Rollback before returning error
                     return req.CreateResponse(HttpStatusCode.NotFound);
                 }
 
                 var adoptableStatuses = new List<string> { "Available", "Available - In Foster", "Adoption Pending" };
-                if (animalToAdopt!.adoption_status == null || !adoptableStatuses.Contains(animalToAdopt.adoption_status))
+                if (animalToAdopt!.AdoptionStatus == null || !adoptableStatuses.Contains(animalToAdopt.AdoptionStatus))
                 {
-                    _logger.LogWarning("Animal not found for adoption. Animal ID: {animal_id}", adoptionRequest.animal_id);
+                    _logger.LogWarning("Animal not found for adoption. Animal ID: {animal_id}", adoptionRequest.AnimalId);
                     await transaction.RollbackAsync(); // Rollback before returning error
                     return req.CreateResponse(HttpStatusCode.NotFound);
                 }
@@ -165,7 +165,7 @@ namespace rescueApp
                 }
 
                 // 5. Find or Create Adopter
-                var adopter = await FindOrCreateAdopterAsync(adoptionRequest, currentUser.id);
+                var adopter = await FindOrCreateAdopterAsync(adoptionRequest, currentUser.Id);
                 if (adopter == null)
                 {
                     _logger.LogError("Failed to find or create adopter record.");
@@ -176,11 +176,11 @@ namespace rescueApp
 
                 // 6. Check Active Adoption History
                 bool alreadyActivelyAdopted = await _dbContext.AdoptionHistories
-                    .AnyAsync(ah => ah.animal_id == adoptionRequest.animal_id && ah.return_date == null);
+                    .AnyAsync(ah => ah.AnimalId == adoptionRequest.AnimalId && ah.ReturnDate == null);
                 if (alreadyActivelyAdopted)
                 {
                     // Create more specific message
-                    string conflictMessage = $"Cannot finalize: '{animalToAdopt.name ?? "Animal"}' (ID: {adoptionRequest.animal_id}) already has an active adoption record where a return has not been logged.";
+                    string conflictMessage = $"Cannot finalize: '{animalToAdopt.Name ?? "Animal"}' (ID: {adoptionRequest.AnimalId}) already has an active adoption record where a return has not been logged.";
                     _logger.LogWarning(conflictMessage);
                     await transaction.RollbackAsync();
                     // Send specific message back in the error response
@@ -192,23 +192,23 @@ namespace rescueApp
                 var utcNow = DateTime.UtcNow;
                 var newAdoptionRecord = new AdoptionHistory
                 {
-                    animal_id = animalToAdopt.id,
+                    AnimalId = animalToAdopt.Id,
                     // --- Use Navigation Property instead of ID ---
                     // adopter_id = adopter.Id, // Let EF Core handle this
                     Adopter = adopter, // Assign the Adopter object directly
-                    adoption_date = adoptionRequest.adoption_date.HasValue
-                                    ? DateTime.SpecifyKind(adoptionRequest.adoption_date.Value, DateTimeKind.Utc)
+                    AdoptionDate = adoptionRequest.AdoptionDate.HasValue
+                                    ? DateTime.SpecifyKind(adoptionRequest.AdoptionDate.Value, DateTimeKind.Utc)
                                     : utcNow,
-                    return_date = null,
-                    notes = adoptionRequest.notes,
-                    created_by_user_id = currentUser!.id, // Use the validated admin/staff user ID, non-null assertion after auth check
-                    updated_by_user_id = currentUser!.id,
+                    ReturnDate = null,
+                    Notes = adoptionRequest.Notes,
+                    CreatedByUserId = currentUser!.Id, // Use the validated admin/staff user ID, non-null assertion after auth check
+                    UpdatedByUserId = currentUser!.Id,
                 };
                 _dbContext.AdoptionHistories.Add(newAdoptionRecord);
 
 
                 // 8. Update Animal
-                animalToAdopt.adoption_status = "Adopted";
+                animalToAdopt.AdoptionStatus = "Adopted";
 
 
                 // 9. Save ALL Changes ONCE
@@ -219,21 +219,21 @@ namespace rescueApp
                 await transaction.CommitAsync();
 
                 _logger.LogInformation("Successfully recorded adoption for Animal ID: {animal_id}. Adopter ID: {adopter_id}, History ID: {HistoryId}",
-                    animalToAdopt.id,
-                    adopter.id, // ID is now available after SaveChanges
-                    newAdoptionRecord.id); // ID is now available after SaveChanges
+                    animalToAdopt.Id,
+                    adopter.Id, // ID is now available after SaveChanges
+                    newAdoptionRecord.Id); // ID is now available after SaveChanges
 
                 // 11. Create Success Response using a DTO ---
                 var response = req.CreateResponse(HttpStatusCode.Created);
-                response.Headers.Add("Location", $"/api/adoptionhistory/{newAdoptionRecord.id}"); // Location of new resource
+                response.Headers.Add("Location", $"/api/adoptionhistory/{newAdoptionRecord.Id}"); // Location of new resource
 
                 // 12. Create a simple object/DTO to return, avoiding potential cycles
                 var responseDto = new
                 {
-                    id = newAdoptionRecord.id,
-                    animalId = newAdoptionRecord.animal_id,
-                    adopterId = newAdoptionRecord.adopter_id,
-                    adoptionDate = newAdoptionRecord.adoption_date
+                    id = newAdoptionRecord.Id,
+                    animalId = newAdoptionRecord.AnimalId,
+                    adopterId = newAdoptionRecord.AdopterId,
+                    adoptionDate = newAdoptionRecord.AdoptionDate
                     // Add any other simple fields the frontend might need immediately
                 };
 
@@ -256,7 +256,7 @@ namespace rescueApp
                 }
                 // Log the actual exception from the try block
                 _logger.LogError(ex, "Error processing adoption transaction for Animal ID: {animal_id}. ExceptionType: {ExType}, Message: {ExMsg}, InnerMsg: {InnerMsg}",
-                    adoptionRequest?.animal_id ?? -1, ex.GetType().FullName, ex.Message, ex.InnerException?.Message ?? "N/A");
+                    adoptionRequest?.AnimalId ?? -1, ex.GetType().FullName, ex.Message, ex.InnerException?.Message ?? "N/A");
                 return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An internal error occurred while finalizing the adoption.");
             }
         }
@@ -266,7 +266,7 @@ namespace rescueApp
         private async Task<Adopter?> FindOrCreateAdopterAsync(CreateAdoptionRequest reqData, Guid? currentUserId)
         {
             // Use snake_case DTO property, ensure not null after validation
-            var inputEmail = reqData.adopter_email!;
+            var inputEmail = reqData.AdopterEmail!;
             var adopterEmailLower = inputEmail.ToLower(); // Still useful for logging consistency
             var utcNow = DateTime.UtcNow;
 
@@ -274,61 +274,61 @@ namespace rescueApp
 
             // Use EF.Functions.ILike with the snake_case MODEL property 'adopter_email'
             var existingAdopter = await _dbContext.Adopters
-                                      .FirstOrDefaultAsync(a => EF.Functions.ILike(a.adopter_email, inputEmail));
+                                      .FirstOrDefaultAsync(a => EF.Functions.ILike(a.AdopterEmail, inputEmail));
 
             if (existingAdopter != null)
             {
-                _logger.LogInformation("Found existing adopter by email. Adopter Id: {adopter_id}", existingAdopter.id);
+                _logger.LogInformation("Found existing adopter by email. Adopter Id: {adopter_id}", existingAdopter.Id);
 
                 // Optional: Update existing adopter's info if provided data differs
                 // Compare Model.snake_case with DTO.snake_case
                 bool changed = false;
-                if (existingAdopter.adopter_first_name != reqData.adopter_first_name) { existingAdopter.adopter_first_name = reqData.adopter_first_name!; changed = true; }
-                if (existingAdopter.adopter_last_name != reqData.adopter_last_name) { existingAdopter.adopter_last_name = reqData.adopter_last_name!; changed = true; }
-                if (existingAdopter.adopter_primary_phone != reqData.adopter_primary_phone) { existingAdopter.adopter_primary_phone = reqData.adopter_primary_phone!; changed = true; }
-                if (existingAdopter.adopter_primary_phone_type != reqData.adopter_primary_phone_type) { existingAdopter.adopter_primary_phone_type = reqData.adopter_primary_phone_type!; changed = true; }
-                if (existingAdopter.adopter_street_address != reqData.adopter_street_address) { existingAdopter.adopter_street_address = reqData.adopter_street_address!; changed = true; }
-                if (existingAdopter.adopter_city != reqData.adopter_city) { existingAdopter.adopter_city = reqData.adopter_city!; changed = true; }
-                if (existingAdopter.adopter_state_province != reqData.adopter_state_province) { existingAdopter.adopter_state_province = reqData.adopter_state_province!; changed = true; }
-                if (existingAdopter.adopter_zip_postal_code != reqData.adopter_zip_postal_code) { existingAdopter.adopter_zip_postal_code = reqData.adopter_zip_postal_code!; changed = true; }
+                if (existingAdopter.AdopterFirstName != reqData.AdopterFirstName) { existingAdopter.AdopterFirstName = reqData.AdopterFirstName!; changed = true; }
+                if (existingAdopter.AdopterLastName != reqData.AdopterLastName) { existingAdopter.AdopterLastName = reqData.AdopterLastName!; changed = true; }
+                if (existingAdopter.AdopterPrimaryPhone != reqData.AdopterPrimaryPhone) { existingAdopter.AdopterPrimaryPhone = reqData.AdopterPrimaryPhone!; changed = true; }
+                if (existingAdopter.AdopterPrimaryPhoneType != reqData.AdopterPrimaryPhoneType) { existingAdopter.AdopterPrimaryPhoneType = reqData.AdopterPrimaryPhoneType!; changed = true; }
+                if (existingAdopter.AdopterStreetAddress != reqData.AdopterStreetAddress) { existingAdopter.AdopterStreetAddress = reqData.AdopterStreetAddress!; changed = true; }
+                if (existingAdopter.AdopterCity != reqData.AdopterCity) { existingAdopter.AdopterCity = reqData.AdopterCity!; changed = true; }
+                if (existingAdopter.AdopterStateProvince != reqData.AdopterStateProvince) { existingAdopter.AdopterStateProvince = reqData.AdopterStateProvince!; changed = true; }
+                if (existingAdopter.AdopterZipPostalCode != reqData.AdopterZipPostalCode) { existingAdopter.AdopterZipPostalCode = reqData.AdopterZipPostalCode!; changed = true; }
                 // Optional Fields
-                if (existingAdopter.adopter_secondary_phone != reqData.adopter_secondary_phone) { existingAdopter.adopter_secondary_phone = reqData.adopter_secondary_phone; changed = true; } // Nullable
-                if (existingAdopter.adopter_secondary_phone_type != reqData.adopter_secondary_phone_type) { existingAdopter.adopter_secondary_phone_type = reqData.adopter_secondary_phone_type; changed = true; } // Nullable
-                if (existingAdopter.spouse_partner_roommate != reqData.spouse_partner_roommate) { existingAdopter.spouse_partner_roommate = reqData.spouse_partner_roommate; changed = true; } // Nullable
-                if (existingAdopter.adopter_apt_unit != reqData.adopter_apt_unit) { existingAdopter.adopter_apt_unit = reqData.adopter_apt_unit; changed = true; } // Nullable
+                if (existingAdopter.AdopterSecondaryPhone != reqData.AdopterSecondaryPhone) { existingAdopter.AdopterSecondaryPhone = reqData.AdopterSecondaryPhone; changed = true; } // Nullable
+                if (existingAdopter.AdopterSecondaryPhoneType != reqData.AdopterSecondaryPhoneType) { existingAdopter.AdopterSecondaryPhoneType = reqData.AdopterSecondaryPhoneType; changed = true; } // Nullable
+                if (existingAdopter.SpousePartnerRoommate != reqData.SpousePartnerRoommate) { existingAdopter.SpousePartnerRoommate = reqData.SpousePartnerRoommate; changed = true; } // Nullable
+                if (existingAdopter.AdopterAptUnit != reqData.AdopterAptUnit) { existingAdopter.AdopterAptUnit = reqData.AdopterAptUnit; changed = true; } // Nullable
 
                 if (changed)
                 {
-                    _logger.LogInformation("Updating existing adopter info for Adopter Id: {adopter_id}", existingAdopter.id);
+                    _logger.LogInformation("Updating existing adopter info for Adopter Id: {adopter_id}", existingAdopter.Id);
                     // Set Updated By User ID when changes are detected
-                    existingAdopter.updated_by_user_id = currentUserId;
+                    existingAdopter.UpdatedByUserId = currentUserId;
                 }
 
                 return existingAdopter;
             }
             else
             {
-                _logger.LogInformation("Creating new adopter record for email: {Email}", reqData.adopter_email);
+                _logger.LogInformation("Creating new adopter record for email: {Email}", reqData.AdopterEmail);
                 var newAdopter = new Adopter
                 {
                     // Map snake_case DTO to snake_case Model (use ! safely after validation)
-                    adopter_first_name = reqData.adopter_first_name!,
-                    adopter_last_name = reqData.adopter_last_name!,
-                    adopter_email = reqData.adopter_email!,
-                    adopter_primary_phone = reqData.adopter_primary_phone!,
-                    adopter_primary_phone_type = reqData.adopter_primary_phone_type!,
-                    adopter_street_address = reqData.adopter_street_address!,
-                    adopter_city = reqData.adopter_city!,
-                    adopter_state_province = reqData.adopter_state_province!,
-                    adopter_zip_postal_code = reqData.adopter_zip_postal_code!,
+                    AdopterFirstName = reqData.AdopterFirstName!,
+                    AdopterLastName = reqData.AdopterLastName!,
+                    AdopterEmail = reqData.AdopterEmail!,
+                    AdopterPrimaryPhone = reqData.AdopterPrimaryPhone!,
+                    AdopterPrimaryPhoneType = reqData.AdopterPrimaryPhoneType!,
+                    AdopterStreetAddress = reqData.AdopterStreetAddress!,
+                    AdopterCity = reqData.AdopterCity!,
+                    AdopterStateProvince = reqData.AdopterStateProvince!,
+                    AdopterZipPostalCode = reqData.AdopterZipPostalCode!,
                     // Optional fields
-                    adopter_secondary_phone = reqData.adopter_secondary_phone,
-                    adopter_secondary_phone_type = reqData.adopter_secondary_phone_type,
-                    spouse_partner_roommate = reqData.spouse_partner_roommate,
-                    adopter_apt_unit = reqData.adopter_apt_unit,
-                    created_by_user_id = currentUserId,
-                    updated_by_user_id = currentUserId,
-                    notes = null,
+                    AdopterSecondaryPhone = reqData.AdopterSecondaryPhone,
+                    AdopterSecondaryPhoneType = reqData.AdopterSecondaryPhoneType,
+                    SpousePartnerRoommate = reqData.SpousePartnerRoommate,
+                    AdopterAptUnit = reqData.AdopterAptUnit,
+                    CreatedByUserId = currentUserId,
+                    UpdatedByUserId = currentUserId,
+                    Notes = null,
                 };
                 _dbContext.Adopters.Add(newAdopter);
                 // Let the main SaveChangesAsync call handle this insert

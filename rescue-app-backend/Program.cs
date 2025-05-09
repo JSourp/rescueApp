@@ -31,11 +31,11 @@ var host = new HostBuilder()
         // Now register DbContext using either the real or dummy string
         // This allows the design-time analysis to succeed.
         services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(connectionString) // This will use the dummy string during 'dotnet ef'
-                                                // Optional: Add minimal logging ONLY for design time if needed
-                                                // #if DEBUG
-                                                // .LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information)
-                                                // #endif
+            options.UseNpgsql(connectionString).UseSnakeCaseNamingConvention() // This will use the dummy string during 'dotnet ef'
+                                                                               // Optional: Add minimal logging ONLY for design time if needed
+                                                                               // #if DEBUG
+                                                                               // .LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information)
+                                                                               // #endif
         );
     })
     .Build();

@@ -6,35 +6,20 @@ namespace rescueApp.Models
 {
     public class AnimalImage
     {
-        [Key]
-        public int id { get; set; } // Matches SERIAL PK
+        public int Id { get; set; } // Matches SERIAL PK
+        public int AnimalId { get; set; } // Foreign key property
+        public string ImageUrl { get; set; } = string.Empty;
+        public string BlobName { get; set; } = string.Empty; // Unique name in storage
+        public string? Caption { get; set; } // Optional
+        public int DisplayOrder { get; set; } = 0; // Default order
+        public bool IsPrimary { get; set; } = false; // Default not primary
+        public DateTime DateUploaded { get; set; }
+        public Guid? UploadedByUserId { get; set; } // Nullable Guid FK
 
-        [Required]
-        public int animal_id { get; set; } // Foreign key property
-
-        [Required]
-        public string image_url { get; set; } = string.Empty;
-
-        [Required]
-        public string blob_name { get; set; } = string.Empty; // Unique name in storage
-
-        public string? caption { get; set; } // Optional
-
-        [Required]
-        public int display_order { get; set; } = 0; // Default order
-
-        [Required]
-        public bool is_primary { get; set; } = false; // Default not primary
-
-        // Audit columns (DB handles default for date_uploaded)
-        public DateTime date_uploaded { get; set; }
-        public Guid? uploaded_by_user_id { get; set; } // Nullable Guid FK
-
-        // Navigation properties
-        [ForeignKey("animal_id")]
+        [ForeignKey("AnimalId")]
         public virtual Animal? Animal { get; set; }
 
-        [ForeignKey("uploaded_by_user_id")]
+        [ForeignKey("UploadedByUserId")]
         public virtual User? UploadedByUser { get; set; }
     }
 }

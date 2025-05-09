@@ -7,6 +7,8 @@ import { AnimalImage as AnimalImageType } from '@/types/animalImage';
 import Image from 'next/image';
 import { calculateAge } from "@/components/data";
 import { PopupWidget } from "@/components/PopupWidget";
+import { Container } from '@/components/Container';
+import { LoadingSpinner } from "@/components/Icons";
 import Modal from '@/components/Modal';
 import AdoptionForm from '@/components/AdoptionForm';
 import { format, differenceInDays } from "date-fns";
@@ -98,72 +100,70 @@ export default function AnimalDetailsPage() {
   }
 
   // Format the intake date
-  const intakeDate = format(new Date(animal.date_created), "MMM dd yyyy"); // Format as "Apr 09 2025"
+  const intakeDate = format(new Date(animal.dateCreated), "MMM dd yyyy"); // Format as "Apr 09 2025"
 
   // Calculate the number of days the animal has been with you
-  const daysWithUs = differenceInDays(new Date(), new Date(animal.date_created));
+  const daysWithUs = differenceInDays(new Date(), new Date(animal.dateCreated));
 
   // Determine the correct label for "day" or "days"
   const daysLabel = daysWithUs === 1 ? "day" : "days";
 
-  // Ensure animalImages exists and has items before rendering slider
-  const images = animal.animalImages?.filter(img => img.blobUrl) ?? []; // Use optional chaining and filter potentially null URLs
+  // Safely extract images, default to empty array, filter out any potentially missing URLs
+  const images = animal.animalImages?.filter(img => img.blobUrl) ?? [];
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-4xl font-bold mb-6">{animal.name}</h1>
+      <h1 className="text-center text-4xl font-bold mb-6">{animal.name}</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
           {/* --- Image Carousel --- */}
           {images.length > 0 ? (
-            <div className="mb-4 slick-container"> {/* Add wrapper for styling if needed */}
+            <div className="mb-4 slick-container"> {/* Wrapper for potential custom arrow styling */}
               <Slider {...sliderSettings}>
-                {images
-                  // Optionally sort images here if not sorted by API
-                  // .sort((a, b) => (a.displayOrder ?? 99) - (b.displayOrder ?? 99))
-                  .map((image, index) => (
-                    <div key={image.id || index}> {/* Use image ID if available */}
-                      <div className="aspect-w-4 aspect-h-3"> {/* Maintain aspect ratio */}
-                        <Image
-                          src={image.blobUrl || '/placeholder-image.png'}
-                          alt={`${animal.name || 'Animal'} picture ${index + 1} ${image.caption ? `- ${image.caption}` : ''}`}
-                          fill // Use fill layout
-                          className="object-cover rounded-lg"
-                          priority={index === 0} // Prioritize first image
-                        />
-                      </div>
-                      {image.caption && <p className="text-center text-xs italic text-gray-500 mt-1">{image.caption}</p>}
+                {images.map((image, index) => (
+                  <div key={image.id || index}> {/* Use unique image ID */}
+                    <div className="aspect-w-4 aspect-h-3 bg-gray-100 dark:bg-gray-700 rounded-lg"> {/* Aspect ratio container */}
+                      <Image
+                        src={image.blobUrl} // Use correct camelCase prop
+                        alt={`${animal.name || 'Animal'} picture ${index + 1} ${image.caption ? `- ${image.caption}` : ''}`}
+                        fill
+                        className="object-cover rounded-lg"
+                        priority={index === 0} // Prioritize first image
+                        sizes="(max-width: 768px) 100vw, 50vw" // Example sizes attribute
+                      />
                     </div>
-                  ))
-                }
+                    {image.caption && <p className="text-center text-xs italic text-gray-500 mt-1">{image.caption}</p>}
+                  </div>
+                ))}
               </Slider>
             </div>
           ) : (
-            // Fallback if animalImages array is empty or missing
-            <div className="aspect-w-4 aspect-h-3 mb-4">
+              // Fallback if animal.animalImages is empty or missing
+              <div className="aspect-w-4 aspect-h-3 mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
                 <Image
                   src={'/placeholder-image.png'}
-                  alt={animal.name || ''}
-                  fill
-                  className="object-cover rounded-lg"
+                  alt={animal.name || 'Animal image'}
+                  fill // or width={450} height={450}
+                  className="object-contain p-4" // Use contain for placeholder? Or cover?
                   priority
                 />
             </div>
           )}
         </div>
+        {/* --- Animal Details --- */}
         <div className="text-base">
           <p className="mb-4">{animal.story}</p>
-          <p className="mb-2">Species: {animal.animal_type}</p>
+          <p className="mb-2">Species: {animal.animalType}</p>
           <p className="mb-2">Breed: {animal.breed}</p>
-          <p className="mb-2">Age: {calculateAge(animal.date_of_birth)}</p>
+          <p className="mb-2">Age: {calculateAge(animal.dateOfBirth)}</p>
           <p className="mb-2">Gender: {animal.gender}</p>
           <p className="mb-2">Weight: {animal.weight} lbs</p>
-          {/*<p className="mb-2">Intake date: {intakeDate}</p>*/}
+          <p className="mb-2">Intake date: {intakeDate}</p>
           <p className="mb-2">Time with us: {daysWithUs} {daysLabel}</p>
-          <p className="mb-2">Adoption Status: {animal.adoption_status}</p>
+          <p className="mb-2">Adoption Status: {animal.adoptionStatus}</p>
 
           {/* View Apply to Adopt Button - Conditional */}
-          {['Available', 'Available - In Foster', 'Adoption Pending'].includes(animal.adoption_status ?? '') && (
+          {['Available', 'Available - In Foster', 'Adoption Pending'].includes(animal.adoptionStatus ?? '') && (
             <button
               className="bg-primary hover:bg-primary-800 w-full sm:w-auto text-white font-bold rounded-md transition duration-300 py-2 px-4 mt-4"
               onClick={() => setshowAdoptionForm(true)}>
