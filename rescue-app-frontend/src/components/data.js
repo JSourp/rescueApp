@@ -9,13 +9,13 @@ import {
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-// Keep calculateAge function as is (make sure it handles null date_of_birth)
-export const calculateAge = (date_of_birth) => {
-  if (!date_of_birth) {
+// Keep calculateAge function as is (make sure it handles null dateOfBirth)
+export const calculateAge = (dateOfBirth) => {
+  if (!dateOfBirth) {
     return "Unknown";
   }
   try {
-    const birthDate = new Date(date_of_birth);
+    const birthDate = new Date(dateOfBirth);
     // Add check for invalid date
     if (isNaN(birthDate.getTime())) {
         return "Unknown";
@@ -37,7 +37,7 @@ export const calculateAge = (date_of_birth) => {
 
     return [yearText, monthText].filter(Boolean).join(" and ");
   } catch (e) {
-      console.error("Error calculating age for date:", date_of_birth, e);
+      console.error("Error calculating age for date:", dateOfBirth, e);
       return "Unknown";
   }
 };
@@ -76,7 +76,7 @@ export const fetchSpotlights = async () => {
           },
           {
             title: "Age:",
-            desc: calculateAge(animal.date_of_birth),
+            desc: calculateAge(animal.dateOfBirth),
             icon: <ArrowRightIcon/>,
           },
           {

@@ -166,13 +166,6 @@ export function PopupWidget() {
                         {errors.email && <p className={errorTextClasses}>{errors.email.message as string}</p>}
                       </div>
 
-                      {/* Email */}
-                      <div className="mb-4">
-                        <label htmlFor="email" className={labelBaseClasses}>Email Address *</label>
-                        <input type="email" id="email" {...register("email", { required: "Email is required", pattern: { value: /^\S+@\S+$/i, message: "Invalid email format" } })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.email)}`} />
-                        {errors.email && <p className={errorTextClasses}>{errors.email.message as string}</p>}
-                      </div>
-
                       {/* Phone */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
@@ -195,7 +188,7 @@ export function PopupWidget() {
                       {/* Message */}
                       <div className="mb-4">
                         <label htmlFor="message" className={labelBaseClasses}>Your Message *</label>
-                        <textarea id="message" rows={2} {...register("message", { required: "Enter your Message" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.message)} h-auto`} />
+                        <textarea id="message" rows={4} {...register("message", { required: "Enter your Message" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.message)} h-auto`} />
                         {errors.message && <p className={errorTextClasses}>{errors.message.message as string}</p>}
                       </div>
 

@@ -6,17 +6,17 @@ import AdoptionForm from '@/components/AdoptionForm'; // Import AdoptionForm
 
 // Update interface to include id and name
 interface SpotlightData {
-    id: number;
-    name: string;
+  id: number;
+  name: string;
+  title: string;
+  desc: string | null;
+  image: any; // Keep 'any' or use string | StaticImageData
+  bullets: {
     title: string;
     desc: string | null;
-    image: any; // Keep 'any' or use string | StaticImageData
-    bullets: {
-      title: string;
-      desc: string | null;
-      icon: React.ReactNode;
-    }[];
-    imgPos?: "left" | "right"; // Keep imgPos if needed for data structure
+    icon: React.ReactNode;
+  }[];
+  imgPos?: "left" | "right"; // Keep imgPos if needed for data structure
 }
 
 interface SpotlightsProps {
@@ -42,9 +42,8 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
       <Container className="flex flex-wrap mb-20 lg:gap-10 lg:flex-nowrap ">
         {/* Image Section */}
         <div
-          className={`flex items-center justify-center w-full lg:w-1/2 ${
-            imagePosition === "right" ? "lg:order-1" : "" // Use layout variable
-          }`}
+          className={`flex items-center justify-center w-full lg:w-3/5 ${imagePosition === "right" ? "lg:order-1" : "" // Use layout variable
+            }`}
         >
           <div>
             <Image
@@ -64,9 +63,8 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
 
         {/* Text Content Section */}
         <div
-          className={`flex flex-wrap items-center w-full lg:w-1/2 ${
-            imagePosition === "right" ? "lg:justify-end lg:pl-10" : "lg:pr-10" // Adjusted padding
-          }`}
+          className={`flex flex-wrap items-center w-full lg:w-2/5 ${imagePosition === "right" ? "lg:justify-end lg:pl-10" : "lg:pr-10" // Adjusted padding
+            }`}
         >
           <div>
             <div className="flex flex-col w-full mt-4">
@@ -88,28 +86,28 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
               ))}
             </div>
 
-             <div className="w-full mt-8"> {/* Add margin top */}
-                 <button
-                     onClick={() => setShowAdoptForm(true)}
+            <div className="w-full mt-8"> {/* Add margin top */}
+              <button
+                onClick={() => setShowAdoptForm(true)}
                 className="bg-primary hover:bg-primary-800 w-full sm:w-auto px-6 py-3 text-white font-bold rounded-md transition duration-300"
-                 >
-                     Apply to Adopt {data.name}
-                 </button>
-             </div>
+              >
+                Apply to Adopt {data.name}
+              </button>
+            </div>
 
           </div>
         </div>
       </Container>
 
-       {showAdoptForm && (
-         <Modal onClose={() => setShowAdoptForm(false)}>
-           <AdoptionForm
-             animalName={data.name} // Pass name from data prop
+      {showAdoptForm && (
+        <Modal onClose={() => setShowAdoptForm(false)}>
+          <AdoptionForm
+            animalName={data.name} // Pass name from data prop
             animal_id={data.id}   // Pass id from data prop
-             onClose={() => setShowAdoptForm(false)}
-           />
-         </Modal>
-       )}
+            onClose={() => setShowAdoptForm(false)}
+          />
+        </Modal>
+      )}
     </>
   );
 };
