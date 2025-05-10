@@ -25,49 +25,28 @@ using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
-	// DTO for request body when saving image metadata
-	public class CreateAnimalImageMetadataRequest
-	{
-		[Required(AllowEmptyStrings = false)]
-		[MaxLength(100)]
-		public string? DocumentType { get; set; } = "Animal Photo"; // Default type
-		[Required(AllowEmptyStrings = false)]
-		[MaxLength(255)]
-		public string? FileName { get; set; } // Original filename
-		[Required(AllowEmptyStrings = false)]
-		[MaxLength(300)]
-		public string? BlobName { get; set; } // Unique name in storage
-		[Required(AllowEmptyStrings = false)]
-		[Url] // Basic URL validation
-		public string? ImageUrl { get; set; } // Base URL from storage
-		public string? Caption { get; set; } // Optional caption
-		public bool IsPrimary { get; set; } = false; // Is this the main image?
-		public int DisplayOrder { get; set; } = 0; // Display order
-	}
-
-	public class CreateAnimalImageMetadata
+	public class SetPrimaryAnimalImage
 	{
 		private readonly AppDbContext _dbContext;
-		private readonly ILogger<CreateAnimalImageMetadata> _logger;
+		private readonly ILogger<SetPrimaryAnimalImage> _logger;
 		private readonly string _auth0Domain = Environment.GetEnvironmentVariable("AUTH0_ISSUER_BASE_URL") ?? string.Empty;
 		private readonly string _auth0Audience = Environment.GetEnvironmentVariable("AUTH0_AUDIENCE") ?? string.Empty;
 		private static ConfigurationManager<OpenIdConnectConfiguration>? _configManager;
 		private static TokenValidationParameters? _validationParameters;
 
-		public CreateAnimalImageMetadata(AppDbContext dbContext, ILogger<CreateAnimalImageMetadata> logger)
+		public SetPrimaryAnimalImage(AppDbContext dbContext, ILogger<SetPrimaryAnimalImage> logger)
 		{
 			_dbContext = dbContext;
 			_logger = logger;
 		}
 
-		[Function("CreateAnimalImageMetadata")]
+		[Function("SetPrimaryAnimalImage")]
 		public async Task<AzureFuncHttp.HttpResponseData> Run(
-			// Secure: Admin/Staff/Volunteer can add images
-			[HttpTrigger(AuthorizationLevel.Anonymous, "POST", Route = "animals/{animalId:int}/images")]
+			[HttpTrigger(AuthorizationLevel.Anonymous, "PUT", Route = "images/{imageId:int}/set-primary")]
 			AzureFuncHttp.HttpRequestData req,
-			int animalId)
+			int imageId)
 		{
-			_logger.LogInformation("C# HTTP trigger processing CreateAnimalImageMetadata for Animal ID: {AnimalId}.", animalId);
+			_logger.LogInformation("C# HTTP trigger processing SetPrimaryAnimalImage for Image ID: {ImageId}.", imageId);
 
 			User? currentUser;
 			ClaimsPrincipal? principal;
@@ -119,121 +98,50 @@ namespace rescueApp
 				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Authentication/Authorization error.");
 			}
 
-			// --- 2. Deserialize & Validate Request Body ---
-			string requestBody = string.Empty;
-			CreateAnimalImageMetadataRequest? imageRequest;
+			if (currentUser == null) { return await CreateErrorResponse(req, HttpStatusCode.Forbidden, "User not authorized."); }
+
+			using var transaction = await _dbContext.Database.BeginTransactionAsync();
 			try
 			{
-				requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-				if (string.IsNullOrEmpty(requestBody)) return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Request body required.");
-
-				imageRequest = JsonSerializer.Deserialize<CreateAnimalImageMetadataRequest>(requestBody, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-				// Use Data Annotations for Validation
-				var validationResults = new List<ValidationResult>();
-				var validationContext = new ValidationContext(imageRequest!, serviceProvider: null, items: null);
-				bool isValid = Validator.TryValidateObject(imageRequest!, validationContext, validationResults, validateAllProperties: true);
-
-				if (!isValid || imageRequest == null)
+				var imageToSetPrimary = await _dbContext.AnimalImages.FindAsync(imageId);
+				if (imageToSetPrimary == null)
 				{
-					string errors = string.Join("; ", validationResults.Select(vr => $"{(vr.MemberNames.FirstOrDefault() ?? "Request")}: {vr.ErrorMessage}"));
-					_logger.LogWarning("CreateAnimalImageMetadata request body validation failed. Validation Errors: [{ValidationErrors}]. Body Preview: {BodyPreview}", errors, requestBody.Substring(0, Math.Min(requestBody.Length, 500)));
-					return await CreateErrorResponse(req, HttpStatusCode.BadRequest, $"Invalid adoption data: {errors}");
+					await transaction.RollbackAsync();
+					return await CreateErrorResponse(req, HttpStatusCode.NotFound, "Image record not found.");
 				}
+
+				// Unset other primary images for the same animal
+				var otherPrimaryImages = await _dbContext.AnimalImages
+					.Where(img => img.AnimalId == imageToSetPrimary.AnimalId && img.IsPrimary && img.Id != imageId)
+					.ToListAsync();
+
+				foreach (var otherPrimary in otherPrimaryImages)
+				{
+					otherPrimary.IsPrimary = false;
+					_dbContext.AnimalImages.Update(otherPrimary);
+				}
+
+				// Set the selected image as primary
+				imageToSetPrimary.IsPrimary = true;
+				imageToSetPrimary.UploadedByUserId = currentUser.Id;
+				imageToSetPrimary.DateUploaded = DateTime.UtcNow;
+				_dbContext.AnimalImages.Update(imageToSetPrimary);
+
+				await _dbContext.SaveChangesAsync();
+				await transaction.CommitAsync();
+
+				_logger.LogInformation("Image ID {ImageId} for Animal ID {AnimalId} successfully set as primary by User {UserId}.",
+					imageId, imageToSetPrimary.AnimalId, currentUser.Id);
+
+				return req.CreateResponse(HttpStatusCode.OK);
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "Error deserializing or validating CreateAnimal request body.");
-				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request format or data.");
-			}
-			if (imageRequest == null) { /* Should be caught above, but defensive check */ return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request data."); }
-
-
-			// --- 3. Check if Animal Exists ---
-			var animalExists = await _dbContext.Animals.AnyAsync(a => a.Id == animalId);
-			if (!animalExists)
-			{
-				_logger.LogWarning("Attempted to add document metadata for non-existent Animal ID: {AnimalId}", animalId);
-				return await CreateErrorResponse(req, HttpStatusCode.NotFound, $"Animal with ID {animalId} not found.");
-			}
-
-			// --- 4. Handle is_primary flag ---
-			bool makeThisNewImagePrimary = imageRequest.IsPrimary;
-
-			// If frontend didn't specifically request this to be primary,
-			// check if it should become primary by default (e.g., it's the first image)
-			if (!makeThisNewImagePrimary)
-			{
-				bool animalHasOtherImages = await _dbContext.AnimalImages
-											.AnyAsync(img => img.AnimalId == animalId);
-				if (!animalHasOtherImages)
-				{
-					_logger.LogInformation("No existing images for Animal ID {AnimalId}. Marking new image as primary by default.", animalId);
-					makeThisNewImagePrimary = true;
-				}
-			}
-
-			// If this image is set as primary, ensure no others are
-			if (makeThisNewImagePrimary)
-			{
-				_logger.LogInformation("New image to be marked as primary for Animal ID {AnimalId}. Unsetting other primary flags.", animalId);
-				var existingPrimaries = await _dbContext.AnimalImages
-					.Where(img => img.AnimalId == animalId && img.IsPrimary)
-					.ToListAsync(); // Materialize the list before iterating and updating
-
-				foreach (var existingPrimary in existingPrimaries)
-				{
-					if (existingPrimary.Id != 0)
-					{ // Ensure it's not the one we are about to add if somehow IDs are pre-assigned
-						existingPrimary.IsPrimary = false;
-						_dbContext.AnimalImages.Update(existingPrimary);
-					}
-				}
-			}
-
-			// --- 5. Create and Save Metadata Record ---
-			try
-			{
-				var newImageRecord = new AnimalImage
-				{
-					AnimalId = animalId,
-					ImageUrl = imageRequest.ImageUrl!,
-					BlobName = imageRequest.BlobName!,
-					Caption = imageRequest.Caption,
-					DisplayOrder = imageRequest.DisplayOrder,
-					IsPrimary = makeThisNewImagePrimary,
-					DateUploaded = DateTime.UtcNow,
-					UploadedByUserId = currentUser!.Id
-				};
-
-				_dbContext.AnimalImages.Add(newImageRecord);
-				await _dbContext.SaveChangesAsync(); // Save new record (& potentially update old primary flag)
-
-				_logger.LogInformation("Saved image metadata for Animal ID: {AnimalId}. Image ID: {ImageId}", animalId, newImageRecord.Id);
-
-				var response = req.CreateResponse(HttpStatusCode.Created);
-
-				// Define serialization options
-				var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-
-				// Manually serialize DTO and use WriteStringAsync ---
-				var jsonPayload = JsonSerializer.Serialize(newImageRecord, jsonOptions);
-				response.Headers.Add("Content-Type", "application/json; charset=utf-8"); // Set Content-Type
-				await response.WriteStringAsync(jsonPayload); // Write the JSON string
-				return response;
-			}
-			catch (DbUpdateException dbEx) // Catch specific DB errors
-			{
-				_logger.LogError(dbEx, "Database error creating animal. InnerEx: {InnerMessage}", dbEx.InnerException?.Message);
-				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "A database error occurred while creating the animal.");
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Error creating animal.");
-				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An internal error occurred while creating the animal.");
+				await transaction.RollbackAsync();
+				_logger.LogError(ex, "Error setting primary image for Image ID: {ImageId}", imageId);
+				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Failed to set primary image.");
 			}
 		}
-
 		// --- Token Validation Logic shared helper/service ---
 		private async Task<ClaimsPrincipal?> ValidateTokenAndGetPrincipal(AzureFuncHttp.HttpRequestData req)
 		{

@@ -3,7 +3,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { format } from 'date-fns';
 import { useForm, SubmitHandler } from 'react-hook-form';
-import { LoadingSpinner, TrashIcon, ArrowUturnLeftIcon, SuccessCheckmarkIcon, ExclamationTriangleIcon } from '@/components/Icons';
+import {
+	LoadingSpinner, TrashIcon, ArrowUturnLeftIcon, SuccessCheckmarkIcon,
+	ExclamationTriangleIcon, StarIconOutline, StarIconSolid
+} from '@/components/Icons';
 import { getAuth0AccessToken } from '@/utils/auth';
 import { Animal } from '@/types/animal';
 import { AnimalImage } from '@/types/animalImage';
@@ -160,8 +163,47 @@ export default function EditAnimalForm({ animalId, initialAnimalName, onClose, o
 		setImagesToDelete(prev => prev.filter(id => id !== imageId));
 		console.log("Unmarked image ID for deletion:", imageId);
 	};
-	// --- End Image Handling Functions ---
 
+	const handleSetPrimaryImage = async (imageId: number) => {
+		setApiError(null);
+		setIsProcessing(true);
+
+		const accessToken = await getAuth0AccessToken();
+		if (!accessToken) {
+			setApiError("Authentication required to set primary image.");
+			setIsProcessing(false);
+			return;
+		}
+
+		try {
+			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+			if (!apiBaseUrl) {
+				console.error("API Base URL not configured for handleSetPrimaryImage");
+				throw new Error("API Base URL not configured."); // Throw to be caught by caller
+			}
+
+			const response = await fetch(`${apiBaseUrl}/images/${imageId}/set-primary`, {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${accessToken}`,
+				}
+			});
+
+			if (!response.ok) {
+				const errorText = await response.text();
+				console.error(`EditForm set-primary: API Error ${response.status}: ${errorText}`);
+				throw new Error(`API Error (${response.status})`);
+			}
+
+			onAnimalUpdated(); // Trigger parent refresh/close
+		} catch (error: any) {
+			console.error("Set primary image error:", error);
+			setApiError(error.message || "Failed to set primary image.");
+		} finally {
+			setIsProcessing(false);
+		}
+	};
 
 	// --- Form Submission ---
 	const handleUpdateAnimal: SubmitHandler<EditAnimalFormData> = async (formData) => {
@@ -222,6 +264,7 @@ export default function EditAnimalForm({ animalId, initialAnimalName, onClose, o
 						const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 						const filename = encodeURIComponent(file.name); // Renamed from 'file_name'
 						const contentType = encodeURIComponent(file.type);
+						const isAnyExistingPrimary = currentImages.some(img => img.isPrimary && !imagesToDelete.includes(img.id));
 
 						const urlToFetch = `${apiBaseUrl}/image-upload-url?filename=${filename}&contentType=${contentType}`;
 
@@ -256,7 +299,7 @@ export default function EditAnimalForm({ animalId, initialAnimalName, onClose, o
 							blobName: sasData.blob_name,
 							imageUrl: sasData.imageUrl,
 							caption: null, // Get caption from form if you add it
-							isPrimary: false, // Need logic to set primary (maybe first uploaded?)
+							isPrimary: !isAnyExistingPrimary && (newFiles.indexOf(file) === 0), // Make first new file primary if no existing primary
 							displayOrder: 0 // Need logic for ordering
 						};
 						const metadataResponse = await fetch(`${apiBaseUrl}/animals/${animalData.id}/images`, {
@@ -473,8 +516,7 @@ export default function EditAnimalForm({ animalId, initialAnimalName, onClose, o
 												type="button"
 												onClick={() => handleMarkImageForDelete(img.id)}
 												className="absolute top-1 right-1 bg-red-600/80 hover:bg-red-700 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-												title="Mark for Deletion"
-											>
+												title="Mark for Deletion">
 												<TrashIcon className="w-4 h-4" />
 											</button>
 										) : (
@@ -482,12 +524,26 @@ export default function EditAnimalForm({ animalId, initialAnimalName, onClose, o
 												type="button"
 												onClick={() => handleUndoMarkImageForDelete(img.id)}
 												className="absolute top-1 right-1 bg-yellow-500/80 hover:bg-yellow-600 text-black p-1 rounded-full"
-												title="Undo Mark for Deletion"
-											>
-												<ArrowUturnLeftIcon className="w-4 h-4" />
+													title="Undo Mark for Deletion">
+													<ArrowUturnLeftIcon className="w-4 h-4" />
 											</button>
 										)}
-										{/* TODO: Add button to mark as primary */}
+										{/* Set as Primary Button */}
+										{!img.isPrimary && !imagesToDelete.includes(img.id) && ( // Only show if not already primary and not marked for delete
+											<button
+												type="button"
+												onClick={() => handleSetPrimaryImage(img.id)}
+												className="bg-blue-500/80 hover:bg-blue-600 text-white p-1 rounded-full"
+												title="Make Primary"
+											>
+												<StarIconOutline className="w-4 h-4" />
+											</button>
+										)}
+										{img.isPrimary && ( // Show filled star if it is primary
+											<span className="bg-yellow-400 text-black p-1 rounded-full cursor-default" title="Current Primary Image">
+												<StarIconSolid className="w-4 h-4" />
+											</span>
+										)}
 									</div>
 								))}
 							</div>

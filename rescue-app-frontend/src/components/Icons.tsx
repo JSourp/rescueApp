@@ -13,6 +13,18 @@ interface LoadingSpinnerProps {
 	className?: string; // Additional Tailwind CSS classes
 }
 
+export const StarIconSolid = ({ size = 20, className = "" }: IconProps) => ( // Filled star
+	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width={size} height={size} className={className} aria-hidden="true">
+		<path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.116 3.986 1.242 5.36c.329 1.423-.946 2.545-2.201 1.843L12 17.351l-4.754 2.818c-1.255.702-2.53-.42-2.201-1.843l1.242-5.36-4.116-3.986C.814 10.194 1.286 8.742 2.45 8.65l5.404-.434L10.788 3.21Z" clipRule="evenodd" />
+	</svg>
+);
+
+export const StarIconOutline = ({ size = 20, className = "" }: IconProps) => ( // Empty star
+	<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" width={size} height={size} className={className} aria-hidden="true">
+		<path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.822.672l-4.901-2.973a.563.563 0 0 0-.622 0l-4.901 2.973a.562.562 0 0 1-.822-.672l1.285-5.385a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+	</svg>
+);
+
 export const DocumentArrowUpIcon = ({ size = 20, className = "" }: IconProps) => (
 	<svg
 		xmlns="http://www.w3.org/2000/svg"
