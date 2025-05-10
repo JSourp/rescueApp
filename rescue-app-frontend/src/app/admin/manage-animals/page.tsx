@@ -444,10 +444,11 @@ export default function AdminAnimalsPage() {
 										<tr key={animalItem.id} className={index % 2 === 0 ? trEvenClasses : trOddClasses}>
 											<td className={tdClasses}>
 												{animalItem.primaryImageUrl ? (
-													<img
+													<Image
 														// Use primaryImageUrl, fallback to placeholder
 														src={animalItem.primaryImageUrl || '/placeholder-image.png'}
 														alt={animalItem.name || 'Animal'}
+														fill
 														className="w-10 h-10 object-cover rounded"
 														loading="lazy"
 													/>

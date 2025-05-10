@@ -273,7 +273,7 @@ export default function AdminAnimalDetailClientUI({
 					<div className="md:col-span-1 space-y-4">
 						{animals.length > 0 ? (
 							animals.map((animalItem, index) => (
-								<div className="aspect-square relative">
+								<div key={animalItem.id || index} className="aspect-square relative">
 									{animalItem.primaryImageUrl ? (
 										<Image
 											src={animalItem.primaryImageUrl || '/placeholder-image.png'}
