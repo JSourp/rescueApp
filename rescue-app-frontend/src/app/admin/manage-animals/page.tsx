@@ -448,7 +448,8 @@ export default function AdminAnimalsPage() {
 														// Use primaryImageUrl, fallback to placeholder
 														src={animalItem.primaryImageUrl || '/placeholder-image.png'}
 														alt={animalItem.name || 'Animal'}
-														fill
+														width={32}
+														height={32}
 														className="w-10 h-10 object-cover rounded"
 														loading="lazy"
 													/>
