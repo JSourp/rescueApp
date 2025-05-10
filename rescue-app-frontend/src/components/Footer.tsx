@@ -33,7 +33,7 @@ export function Footer() {
               them loving forever homes.
             </p>
             <p className="mt-5 text-sm text-gray-500 dark:text-gray-400">
-              Registered 501(c)(3) EIN: 12-3456789
+              Registered 501(c)(3) EIN: 33-5038937
             </p>
           </div>
 

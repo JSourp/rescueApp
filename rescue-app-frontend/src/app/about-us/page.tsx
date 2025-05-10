@@ -13,7 +13,7 @@ export default function AboutUsPage() {
     "Jonathan Sourp",
   ];
 
-  const ein = "123-456789"; // Replace with your actual EIN
+  const ein = "33-5038937";
 
   // Dynamically calculate the number of board members
   const boardMemberCount = boardMembers.length;
