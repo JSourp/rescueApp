@@ -166,7 +166,7 @@ namespace rescueApp
 					DocumentType = metadataRequest.document_type!,
 					FileName = metadataRequest.file_name!,
 					BlobName = metadataRequest.blob_name!,
-					BlobUrl = metadataRequest.blob_url!,
+					ImageUrl = metadataRequest.blob_url!,
 					Description = metadataRequest.description, // Nullable
 					DateUploaded = utcNow, // Let DB default handle? Explicit is fine too.
 					UploadedByUserId = currentUser.Id // Link to logged-in user
@@ -188,7 +188,7 @@ namespace rescueApp
 					newDocument.DocumentType,
 					newDocument.FileName,
 					newDocument.BlobName,
-					newDocument.BlobUrl,
+					newDocument.ImageUrl,
 					newDocument.Description,
 					newDocument.DateUploaded,
 					newDocument.UploadedByUserId

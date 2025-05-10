@@ -212,7 +212,7 @@ namespace rescueApp
 				await response.WriteAsJsonAsync(new
 				{
 					sasUrl = sasUri.ToString(),    // URL frontend uses for direct PUT upload
-					blob_url = blobClient.Uri.ToString(), // URL to save in your database (without SAS)
+					imageUrl = blobClient.Uri.ToString(), // URL to save in your database (without SAS)
 					blob_name = uniqueBlobName, // Unique blob name for reference
 				});
 				return response;

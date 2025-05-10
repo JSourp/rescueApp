@@ -87,7 +87,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 		}
 		// --- Got Token ---
 
-		let uploadedImageData: { blob_url: string; blob_name: string; file_name: string } | null = null;
+		let uploadedImageData: { imageUrl: string; blob_name: string; file_name: string } | null = null;
 
 		// --- Step 1: Upload Image if selected ---
 		if (selectedFile) {
@@ -115,7 +115,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 
 				if (!sasUrlResponse.ok) { throw new Error(`Failed to get upload URL: ${sasUrlResponse.statusText}`); }
 				const sasData = await sasUrlResponse.json();
-				if (!sasData || !sasData.sasUrl || !sasData.blob_name || !sasData.blob_url) throw new Error("Invalid SAS response.");
+				if (!sasData || !sasData.sasUrl || !sasData.blob_name || !sasData.imageUrl) throw new Error("Invalid SAS response.");
 
 				console.log("Got SAS URL, attempting direct upload to Azure...");
 
@@ -136,9 +136,9 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 					throw new Error(`Failed to upload image to Azure: ${uploadResponse.statusText}`);
 				}
 
-				console.log("Image uploaded successfully:", sasData.blob_url);
+				console.log("Image uploaded successfully:", sasData.imageUrl);
 				uploadedImageData = { // Store details needed for metadata POST
-					blob_url: sasData.blob_url,
+					imageUrl: sasData.imageUrl,
 					blob_name: sasData.blob_name,
 					file_name: selectedFile.name // Store original filename
 				};
@@ -209,7 +209,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 					documentType: "Animal Photo",
 					fileName: uploadedImageData.file_name,
 					blobName: uploadedImageData.blob_name,
-					blobUrl: uploadedImageData.blob_url,
+					imageUrl: uploadedImageData.imageUrl,
 					isPrimary: true, // Example: Mark first image as primary
 					displayOrder: 0  // Example: First image
 				};

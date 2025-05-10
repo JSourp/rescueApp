@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { LoadingSpinner, SuccessCheckmarkIcon } from '@/components/Icons';
 import { getAuth0AccessToken } from '@/utils/auth'; // Shared helper
-import { Animal } from '@/types/animalListItem'; // Import your Animal type
+import { Animal } from '@/types/animal';
 import { format } from 'date-fns'; // For default date
 
 interface FinalizeFormData {

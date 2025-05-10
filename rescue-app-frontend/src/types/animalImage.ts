@@ -4,7 +4,7 @@ export interface AnimalImage {
     documentType: string; // e.g., "Animal Photo"
     fileName: string;
     blobName: string;
-    blobUrl: string;      // <-- URL for display
+    imageUrl: string;      // <-- URL for display
     caption?: string | null;
     isPrimary: boolean;
     displayOrder: number;

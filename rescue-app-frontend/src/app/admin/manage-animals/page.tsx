@@ -116,12 +116,14 @@ export default function AdminAnimalsPage() {
 	const [errorData, setError] = useState<string | null>(null);
 
 	// State for Modals and Selected Animal
+	const [selectedAnimal, setSelectedAnimal] = useState<AnimalListItem | null>(null);
 	const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
 	const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+	const [animalIdToEdit, setAnimalIdToEdit] = useState<number | null>(null); // Stores only the ID
+	const [animalNameToEdit, setAnimalNameToEdit] = useState<string | null>(null); // Stores name for modal title
 	const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
 	const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
 	const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState<boolean>(false);
-	const [selectedAnimal, setSelectedAnimal] = useState<AnimalListItem | null>(null);
 	const [isDeleting, setIsDeleting] = useState<boolean>(false); // Loading state for delete
 
 	// State for User Role
@@ -232,9 +234,16 @@ export default function AdminAnimalsPage() {
 		loadAnimals(); // Refresh the list
 	};
 
-	const handleEditClick = (animal: AnimalListItem) => {
-		setSelectedAnimal(animal);
+	const handleEditClick = (animalItem: AnimalListItem) => { // animalItem is from your list
+		setAnimalIdToEdit(animalItem.id);
+		setAnimalNameToEdit(animalItem.name || 'Animal'); // Use name, or a default if name is null
 		setIsEditModalOpen(true);
+	};
+
+	const handleCloseEditModal = () => {
+		setIsEditModalOpen(false);
+		setAnimalIdToEdit(null);
+		setAnimalNameToEdit(null);
 	};
 
 	const handleReturnCompletion = () => {
@@ -255,6 +264,7 @@ export default function AdminAnimalsPage() {
 	};
 
 	const handleAnimalUpdated = () => {
+		handleCloseEditModal(); // Close modal
 		setIsEditModalOpen(false);
 		setSelectedAnimal(null);
 		loadAnimals(); // Refresh list
@@ -430,14 +440,14 @@ export default function AdminAnimalsPage() {
 							</thead>
 							<tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
 								{animals.length > 0 ? (
-									animals.map((animal, index) => (
-										<tr key={animal.id} className={index % 2 === 0 ? trEvenClasses : trOddClasses}>
+									animals.map((animalItem, index) => (
+										<tr key={animalItem.id} className={index % 2 === 0 ? trEvenClasses : trOddClasses}>
 											<td className={tdClasses}>
-												{animal.primaryImageUrl ? (
+												{animalItem.primaryImageUrl ? (
 													<img
 														// Use primaryImageUrl, fallback to placeholder
-														src={animal.primaryImageUrl || '/placeholder-image.png'}
-														alt={animal.name || 'Animal'}
+														src={animalItem.primaryImageUrl || '/placeholder-image.png'}
+														alt={animalItem.name || 'Animal'}
 														className="w-10 h-10 object-cover rounded"
 														loading="lazy"
 													/>
@@ -447,45 +457,45 @@ export default function AdminAnimalsPage() {
 											</td>
 											<td className={tdClasses}>
 												<Link
-													href={`/admin/animal/${animal.id}`}
+													href={`/admin/animal/${animalItem.id}`}
 													className="font-medium text-text-link hover:underline"
-													title={`View details for ${animal.name}`}>
-													{animal.name ?? 'N/A'} {/* Display name */}
+													title={`View details for ${animalItem.name}`}>
+													{animalItem.name ?? 'N/A'} {/* Display name */}
 												</Link>
 											</td>
-											<td className={tdClasses}>{animal.animalType ? `${animal.animalType}` : 'N/A'}</td>
-											<td className={tdClasses}>{animal.breed ? `${animal.breed}` : 'N/A'}</td>
-											<td className={tdClasses}>{animal.adoptionStatus ? `${animal.adoptionStatus}` : 'N/A'}</td>
-											{/* <td className={tdClasses}>{animal.gender ? `${animal.gender}` : 'N/A'}</td> */}
-											{/* <td className={tdClasses}>{animal.date_of_birth ? format(new Date(animal.date_of_birth), 'P') : 'N/A'}</td> */}
-											{/* <td className={tdClasses}>{animal.weight ? `${animal.weight} lbs` : 'N/A'}</td> */}
+											<td className={tdClasses}>{animalItem.animalType ? `${animalItem.animalType}` : 'N/A'}</td>
+											<td className={tdClasses}>{animalItem.breed ? `${animalItem.breed}` : 'N/A'}</td>
+											<td className={tdClasses}>{animalItem.adoptionStatus ? `${animalItem.adoptionStatus}` : 'N/A'}</td>
+											{/* <td className={tdClasses}>{animalItem.gender ? `${animalItem.gender}` : 'N/A'}</td> */}
+											{/* <td className={tdClasses}>{animalItem.date_of_birth ? format(new Date(animalItem.date_of_birth), 'P') : 'N/A'}</td> */}
+											{/* <td className={tdClasses}>{animalItem.weight ? `${animalItem.weight} lbs` : 'N/A'}</td> */}
 											{/* <td className={`${tdClasses} max-w-xs`}>
-												<div className="overflow-hidden overflow-ellipsis whitespace-nowrap" title={animal.story}>
-													{animal.story ? animal.story : 'N/A'}
+												<div className="overflow-hidden overflow-ellipsis whitespace-nowrap" title={animalItem.story}>
+													{animalItem.story ? animalItem.story : 'N/A'}
 												</div>
 											</td> */}
-											<td className={tdClasses}>{format(new Date(animal.dateCreated), 'P')}</td>
-											<td className={tdClasses}>{format(new Date(animal.dateUpdated), 'P')}</td>
+											<td className={tdClasses}>{format(new Date(animalItem.dateCreated), 'P')}</td>
+											<td className={tdClasses}>{format(new Date(animalItem.dateUpdated), 'P')}</td>
 											<td className={`${tdClasses} text-right space-x-2`}>
 												{/* Edit Button - Conditional */}
 												{['Admin', 'Staff'].includes(currentUserRole ?? '') && (
-													<button onClick={() => handleEditClick(animal)} className="..." title="Edit"> <PencilSquareIcon className="w-5 h-5 inline" /> <span className="sr-only">Edit</span> </button>
+													<button onClick={() => handleEditClick(animalItem)} className="..." title="Edit"> <PencilSquareIcon className="w-5 h-5 inline" /> <span className="sr-only">Edit</span> </button>
 												)}
 												{/* Process Return Button - Conditional */}
-												{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Adopted'].includes(animal.adoptionStatus ?? '') && (
-													<button onClick={() => handleReturnClick(animal)} className="text-green-600 hover:text-green-900 ..." title="Process Return">
+												{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Adopted'].includes(animalItem.adoptionStatus ?? '') && (
+													<button onClick={() => handleReturnClick(animalItem)} className="text-green-600 hover:text-green-900 ..." title="Process Return">
 														<ArrowUturnLeftIcon className="w-5 h-5 inline" />
 													</button>
 												)}
 												{/* Finalize Adoption Button - Conditional */}
-												{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Available', 'Available - In Foster', 'Adoption Pending'].includes(animal.adoptionStatus ?? '') && (
-													<button onClick={() => handleFinalizeClick(animal)} className="text-green-600 hover:text-green-900 ..." title="Finalize Adoption">
+												{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Available', 'Available - In Foster', 'Adoption Pending'].includes(animalItem.adoptionStatus ?? '') && (
+													<button onClick={() => handleFinalizeClick(animalItem)} className="text-green-600 hover:text-green-900 ..." title="Finalize Adoption">
 														<SuccessCheckmarkIcon className="w-5 h-5 inline" />
 													</button>
 												)}
 												{/* Delete Button - Conditional */}
 												{currentUserRole === 'Admin' && (
-													<button onClick={() => handleDeleteClick(animal)} className="..." title="Delete"> <TrashIcon className="w-5 h-5 inline text-accent-800" /> <span className="sr-only">Delete</span> </button>
+													<button onClick={() => handleDeleteClick(animalItem)} className="..." title="Delete"> <TrashIcon className="w-5 h-5 inline text-accent-800" /> <span className="sr-only">Delete</span> </button>
 												)}
 											</td>
 										</tr>
@@ -510,12 +520,14 @@ export default function AdminAnimalsPage() {
 				</Modal>
 			)}
 
-			{isEditModalOpen && selectedAnimal && (
-				<Modal onClose={() => { setIsEditModalOpen(false); setSelectedAnimal(null); }}>
-					{/* Create EditAnimalForm component below */}
+			{isEditModalOpen && animalIdToEdit !== null && ( // Ensure animalIdToEdit is not null
+				<Modal onClose={handleCloseEditModal}>
 					<EditAnimalForm
-						animal={selectedAnimal}
-						onClose={() => { setIsEditModalOpen(false); setSelectedAnimal(null); }}
+						animalId={animalIdToEdit} // Pass the ID
+						// Pass the initial name for display purposes in the form's header
+						// The EditAnimalForm will then fetch its own full data
+						initialAnimalName={animalNameToEdit}
+						onClose={handleCloseEditModal}
 						onAnimalUpdated={handleAnimalUpdated}
 					/>
 				</Modal>

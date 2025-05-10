@@ -24,70 +24,101 @@ interface EditAnimalFormData {
 }
 
 interface EditAnimalFormProps {
-	animal: Animal;
+	animalId: number; // Receive ID instead of full object
+	initialAnimalName?: string | null;
 	onClose: () => void;
 	onAnimalUpdated: () => void;
 }
 
-export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: EditAnimalFormProps) {
+async function fetchFullAnimalDetails(id: number, accessToken: string): Promise<Animal | null> {
+	const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+	if (!apiBaseUrl) {
+		console.error("API Base URL not configured for fetchFullAnimalDetails");
+		throw new Error("API Base URL not configured."); // Throw to be caught by caller
+	}
+	const url = `${apiBaseUrl}/animals/${id}`; // Correct URL construction
+	console.log("EditForm: Fetching full animal details from:", url);
+
+	try {
+		const response = await fetch(url, {
+			headers: { 'Authorization': `Bearer ${accessToken}` },
+			cache: 'no-store'
+		});
+		if (!response.ok) {
+			const errorText = await response.text();
+			console.error(`EditForm: API Error ${response.status}: ${errorText}`);
+			throw new Error(`API Error (${response.status})`);
+		}
+		return await response.json() as Animal;
+	} catch (error) {
+		console.error(`EditForm: Error in fetchFullAnimalDetails for ID ${id}:`, error);
+		throw error; // Re-throw to be caught by calling useEffect
+	}
+}
+
+export default function EditAnimalForm({ animalId, initialAnimalName, onClose, onAnimalUpdated }: EditAnimalFormProps) {
+	const [animalData, setAnimalData] = useState<Animal | null>(null);
+	const [isLoadingAnimal, setIsLoadingAnimal] = useState<boolean>(true);
+
 	const [apiError, setApiError] = useState<string | null>(null);
 	const [isUploading, setIsUploading] = useState<boolean>(false); // For image upload state
-	// Store the CURRENT images associated with the animal
-	const [currentImages, setCurrentImages] = useState<AnimalImage[]>(animal.animalImages || []);
-	// Store NEW files selected for upload
+	const [currentImages, setCurrentImages] = useState<AnimalImage[]>([]);
 	const [newFiles, setNewFiles] = useState<File[]>([]);
-	// Store Data URLs for previewing NEW files
 	const [newFilePreviews, setNewFilePreviews] = useState<string[]>([]);
-	// Store IDs of existing images marked for DELETION
 	const [imagesToDelete, setImagesToDelete] = useState<number[]>([]);
-	// Combined processing state
 	const [isProcessing, setIsProcessing] = useState<boolean>(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
-
-	// Initialize currentImages from the prop
 
 	const {
 		register,
 		handleSubmit,
 		reset,
 		formState: { errors, isSubmitting, isDirty },
-	} = useForm<EditAnimalFormData>({
-		mode: 'onTouched',
-		defaultValues: { // Pre-fill form with existing animal data
-			animal_type: animal.animalType || '',
-			name: animal.name || '',
-			breed: animal.breed || '',
-			// Format date for input type="date" (YYYY-MM-DD)
-			date_of_birth: animal.dateOfBirth ? format(new Date(animal.dateOfBirth), 'yyyy-MM-dd') : '',
-			gender: animal.gender || '',
-			weight: animal.weight ?? '', // Handle null weight
-			story: animal.story || '',
-			adoption_status: animal.adoptionStatus || '',
-		}
-	});
+	} = useForm<EditAnimalFormData>({ mode: 'onTouched' });
 
-	// Reset form and image state when the animal prop changes
+	// --- Fetch full animal data when component mounts or animalId changes ---
 	useEffect(() => {
-		if (animal) {
-			reset({
-				animal_type: animal.animalType || '',
-				name: animal.name || '',
-				breed: animal.breed || '',
-				date_of_birth: animal.dateOfBirth ? format(new Date(animal.dateOfBirth), 'yyyy-MM-dd') : '',
-				gender: animal.gender || '',
-				weight: animal.weight ?? '',
-				story: animal.story || '',
-				adoption_status: animal.adoptionStatus || '',
-			});
+		if (!animalId) return;
 
-			// Reset image management state
-			setCurrentImages(animal.animalImages || []);
-			setNewFiles([]);
-			setNewFilePreviews([]);
-			setImagesToDelete([]);
-			if (fileInputRef.current) fileInputRef.current.value = '';
-		}
-	}, [animal, reset]);
+		const loadAnimalData = async () => {
+			setIsLoadingAnimal(true);
+			setApiError(null);
+			const token = await getAuth0AccessToken();
+			if (!token) {
+				setApiError("Authentication error for fetching details.");
+				setIsLoadingAnimal(false);
+				return;
+			}
+			try {
+				const fetchedAnimal = await fetchFullAnimalDetails(animalId, token);
+				if (fetchedAnimal) {
+					setAnimalData(fetchedAnimal);
+					reset({ // Populate form with fetched data
+						animal_type: fetchedAnimal.animalType || '',
+						name: fetchedAnimal.name || '',
+						breed: fetchedAnimal.breed || '',
+						date_of_birth: fetchedAnimal.dateOfBirth ? format(new Date(fetchedAnimal.dateOfBirth), 'yyyy-MM-dd') : '',
+						gender: fetchedAnimal.gender || '',
+						weight: fetchedAnimal.weight ?? '',
+						story: fetchedAnimal.story || '',
+						adoption_status: fetchedAnimal.adoptionStatus || '',
+					});
+					setCurrentImages(fetchedAnimal.animalImages || []);
+					setNewFiles([]);
+					setNewFilePreviews([]);
+					setImagesToDelete([]);
+					if (fileInputRef.current) fileInputRef.current.value = '';
+				} else {
+					setApiError("Failed to load animal details for editing.");
+				}
+			} catch (err) {
+				setApiError(err instanceof Error ? err.message : "Error loading animal details.");
+			} finally {
+				setIsLoadingAnimal(false);
+			}
+		};
+		loadAnimalData();
+	}, [animalId, reset]); // Depend on animalId and reset
 
 	const [isSuccess, setIsSuccess] = useState(false);
 	const [submitMessage, setSubmitMessage] = useState("");
@@ -134,6 +165,11 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 
 	// --- Form Submission ---
 	const handleUpdateAnimal: SubmitHandler<EditAnimalFormData> = async (formData) => {
+		if (!animalData) { // Ensure animalData is loaded
+			setApiError("Animal data not loaded yet.");
+			return;
+		}
+
 		setApiError(null);
 		setIsSuccess(false);
 		setIsProcessing(true);
@@ -179,7 +215,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 			if (newFiles.length > 0) {
 				console.log("Uploading new files:", newFiles.map(f => f.name));
 				for (const file of newFiles) {
-					let sasData: { sasUrl: string; blob_url: string; blob_name: string } | null = null;
+					let sasData: { sasUrl: string; imageUrl: string; blob_name: string } | null = null;
 					let uploadSuccessful = false;
 					try {
 						// 2a: Get SAS URL
@@ -218,12 +254,12 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 							documentType: "Animal Photo", // Fixed type for animal images
 							fileName: file.name,
 							blobName: sasData.blob_name,
-							blobUrl: sasData.blob_url,
+							imageUrl: sasData.imageUrl,
 							caption: null, // Get caption from form if you add it
 							isPrimary: false, // Need logic to set primary (maybe first uploaded?)
 							displayOrder: 0 // Need logic for ordering
 						};
-						const metadataResponse = await fetch(`${apiBaseUrl}/animals/${animal.id}/images`, {
+						const metadataResponse = await fetch(`${apiBaseUrl}/animals/${animalData.id}/images`, {
 							method: 'POST',
 							headers: {
 								'Content-Type': 'application/json',
@@ -276,7 +312,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 				};
 
 				const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-				const updateResponse = await fetch(`${apiBaseUrl}/animals/${animal.id}`, {
+				const updateResponse = await fetch(`${apiBaseUrl}/animals/${animalData.id}`, {
 					method: 'PUT',
 					headers: {
 						'Content-Type': 'application/json',
@@ -346,7 +382,9 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 		<div className="flex flex-col max-h-[85vh]">
 			{/* Header */}
 			<div className="flex-shrink-0 p-5 bg-primary-600">
-				<h3 className="text-lg text-white text-center font-semibold">Edit {animal.name}</h3>
+				<h3 className="text-lg text-white text-center font-semibold">
+					Edit {isLoadingAnimal ? (initialAnimalName || `Animal ID ${animalId}`) : (animalData?.name || `Animal ID ${animalId}`)}
+				</h3>
 			</div>
 
 			{/* Form Area - Scrollable */}
@@ -428,7 +466,7 @@ export default function EditAnimalForm({ animal, onClose, onAnimalUpdated }: Edi
 							<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 mb-4">
 								{currentImages.map((img) => (
 									<div key={img.id} className={`relative group border rounded ${imagesToDelete.includes(img.id) ? 'opacity-40 border-red-500' : 'border-transparent'}`}>
-										<Image src={img.blobUrl} alt={img.caption || `Animal image ${img.id}`} width={100} height={100} className="object-cover rounded aspect-square" />
+										<Image src={img.imageUrl} alt={img.caption || `Animal image ${img.id}`} width={100} height={100} className="object-cover rounded aspect-square" />
 										{/* Delete Button Overlay */}
 										{!imagesToDelete.includes(img.id) ? (
 											<button

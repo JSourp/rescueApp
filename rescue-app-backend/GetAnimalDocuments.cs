@@ -137,7 +137,7 @@ namespace rescueApp
 						document_type = d.DocumentType,
 						file_name = d.FileName,
 						blob_name = d.BlobName,
-						blob_url = d.BlobUrl,
+						blob_url = d.ImageUrl,
 						Description = d.Description,
 						date_uploaded = d.DateUploaded,
 						uploaded_by_user_id = d.UploadedByUserId,

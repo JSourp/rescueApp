@@ -6,7 +6,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Container } from '@/components/Container';
 import { format, differenceInDays } from 'date-fns';
-import { Animal } from '@/types/animalListItem';
+import { Animal } from '@/types/animal';
+import { AnimalListItem } from '@/types/animalListItem';
 import { UserProfile } from '@/types/userProfile';
 import { AnimalDocument } from '@/types/animalDocument';
 import { getAuth0AccessToken } from '@/utils/auth';
@@ -47,6 +48,7 @@ export default function AdminAnimalDetailClientUI({
 }: AdminAnimalDetailClientUIProps) {
 
 	// Use initial data passed via props
+	const [animals, setAnimals] = useState<AnimalListItem[]>([]);
 	const [animal, setAnimal] = useState<Animal>(initialAnimal);
 	const [documents, setDocuments] = useState<AnimalDocument[]>(initialDocuments);
 	const [errorData, setErrorData] = useState<string | null>(null); // For API errors during actions
@@ -54,6 +56,8 @@ export default function AdminAnimalDetailClientUI({
 
 	// Modal states
 	const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+	const [animalIdToEdit, setAnimalIdToEdit] = useState<number | null>(null); // Stores only the ID
+	const [animalNameToEdit, setAnimalNameToEdit] = useState<string | null>(null); // Stores name for modal title
 	const [isReturnModalOpen, setIsReturnModalOpen] = useState<boolean>(false);
 	const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState<boolean>(false);
 	const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -84,7 +88,16 @@ export default function AdminAnimalDetailClientUI({
 	};
 
 	// --- Handlers  ---
-	const handleEditClick = (animal: Animal) => { setSelectedAnimal(animal); setIsEditModalOpen(true); };
+	const handleEditClick = (animalItem: AnimalListItem) => { // animalItem is from your list
+		setAnimalIdToEdit(animalItem.id);
+		setAnimalNameToEdit(animalItem.name || 'Animal'); // Use name, or a default if name is null
+		setIsEditModalOpen(true);
+	};
+	const handleCloseEditModal = () => {
+		setIsEditModalOpen(false);
+		setAnimalIdToEdit(null);
+		setAnimalNameToEdit(null);
+	};
 	const handleAnimalUpdated = () => { setIsEditModalOpen(false); setSelectedAnimal(null); handleDataRefresh(); };
 	const handleReturnClick = (animal: Animal) => { setSelectedAnimal(animal); setIsReturnModalOpen(true); };
 	const handleReturnCompletion = () => { setIsReturnModalOpen(false); setSelectedAnimal(null); handleDataRefresh(); };
@@ -232,7 +245,7 @@ export default function AdminAnimalDetailClientUI({
 	};
 
 	// --- Calculate derived state ---
-	const daysWithUs = differenceInDays(new Date(), new Date(animal.date_created)); // Use correct field name
+	const daysWithUs = differenceInDays(new Date(), new Date(animal.dateCreated)); // Use correct field name
 	const daysLabel = daysWithUs === 1 ? "day" : "days";
 
 	return (
@@ -244,7 +257,7 @@ export default function AdminAnimalDetailClientUI({
 					<h1 className="text-3xl font-bold mt-2 text-gray-900 dark:text-gray-100">
 						{animal.name}
 					</h1>
-					<p className="text-lg text-gray-600 dark:text-gray-400 mt-1">Status: {animal.adoption_status}</p>
+					<p className="text-lg text-gray-600 dark:text-gray-400 mt-1">Status: {animal.adoptionStatus}</p>
 				</div>
 
 				{/* Display potential API errors from actions */}
@@ -258,29 +271,43 @@ export default function AdminAnimalDetailClientUI({
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 					{/* Left Column: Image & Basic Info */}
 					<div className="md:col-span-1 space-y-4">
-						<div className="aspect-square relative">
-							<Image
-								src={animal.primaryImageUrl || '/placeholder-image.png'}
-								alt={animal.name || 'Animal Image'}
-								fill // Use fill for aspect ratio container
-								className="object-cover rounded-lg shadow-md border dark:border-gray-700"
-								priority // Prioritize image on detail page
-							/>
-						</div>
+						{animals.length > 0 ? (
+							animals.map((animalItem, index) => (
+								<div className="aspect-square relative">
+									{animalItem.primaryImageUrl ? (
+										<Image
+											src={animalItem.primaryImageUrl || '/placeholder-image.png'}
+											alt={animalItem.name || ''}
+											fill // Use fill for aspect ratio container
+											className="object-cover rounded-lg shadow-md border dark:border-gray-700"
+											priority // Prioritize image on detail page
+										/>
+									) : (
+										<span className="text-gray-500 italic text-xs">No Image</span>
+									)}
+								</div>
+							))
+						) : (
+							<tr>
+								<td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+									No animals found.
+								</td>
+							</tr>
+						)}
 						{/* TODO: Add Edit Image Button/Flow Here */}
 						<h2 className="text-xl font-semibold border-b pb-2 dark:border-gray-700">Details</h2>
 						<dl className="space-y-2 text-sm">
-							<DetailItem label="Species" value={animal.animal_type} />
+							<DetailItem label="Species" value={animal.animalType} />
 							<DetailItem label="Breed" value={animal.breed} />
 							<DetailItem label="Gender" value={animal.gender} />
-							<DetailItem label="Date of Birth" value={animal.date_of_birth ? format(new Date(animal.date_of_birth), 'PPP') : 'Unknown'} />
-							<DetailItem label="Age" value={calculateAge(animal.date_of_birth)} />
+							<DetailItem label="Date of Birth" value={animal.dateOfBirth ? format(new Date(animal.dateOfBirth), 'PPP') : 'Unknown'} />
+							<DetailItem label="Age" value={calculateAge(animal.dateOfBirth)} />
 							<DetailItem label="Weight" value={animal.weight ? `${animal.weight} lbs` : 'N/A'} />
-							<DetailItem label="Date Added" value={format(new Date(animal.date_created), 'PPP')} />
-							<DetailItem label="Added By" value={animal.created_by_user_id ?? '...'} />
+							<DetailItem label="Date Added" value={format(new Date(animal.dateCreated), 'PPP')} />
+							<DetailItem label="Added By" value={animal.createdByUserId ?? '...'} />
 							{/* TODO: Fix this - <DetailItem label="Time with us" value={daysWithUs} {daysLabel} /> */}
-							<DetailItem label="Last Updated" value={format(new Date(animal.date_updated), 'PPP')} />
-							<DetailItem label="Updated By" value={animal.updated_by_user_id ?? '...'} />
+							<DetailItem label="Last Updated" value={format(new Date(animal.dateUpdated), 'PPP')} />
+							<DetailItem label="Updated By" value={animal.updatedByUserId ?? '...'} />
 						</dl>
 					</div>
 
@@ -309,7 +336,7 @@ export default function AdminAnimalDetailClientUI({
 								)}
 
 								{/* Process Return Button - Conditional */}
-								{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Adopted'].includes(animal.adoption_status ?? '') && (
+								{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Adopted'].includes(animal.adoptionStatus ?? '') && (
 									<button onClick={() => handleReturnClick(animal)} className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow py-3 px-6" title="Process Return">
 										<span className="flex items-center space-x-2">
 											<ArrowUturnLeftIcon className="w-5 h-5 inline" />
@@ -319,7 +346,7 @@ export default function AdminAnimalDetailClientUI({
 								)}
 
 								{/* Finalize Adoption Button - Conditional */}
-								{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Available', 'Available - In Foster', 'Adoption Pending'].includes(animal.adoption_status ?? '') && (
+								{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Available', 'Available - In Foster', 'Adoption Pending'].includes(animal.adoptionStatus ?? '') && (
 									<button onClick={() => handleFinalizeClick(animal)} className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow py-3 px-6" title="Finalize Adoption">
 										<span className="flex items-center space-x-2">
 											<SuccessCheckmarkIcon className="w-5 h-5 inline" />
@@ -416,11 +443,14 @@ export default function AdminAnimalDetailClientUI({
 			</Container>
 
 			{/* --- Modals --- */}
-			{isEditModalOpen && selectedAnimal && (
-				<Modal onClose={() => { setIsEditModalOpen(false); setSelectedAnimal(null); }}>
+			{isEditModalOpen && animalIdToEdit !== null && ( // Ensure animalIdToEdit is not null
+				<Modal onClose={handleCloseEditModal}>
 					{/* Create EditAnimalForm component below */}
 					<EditAnimalForm
-						animal={selectedAnimal}
+						animalId={animalIdToEdit} // Pass the ID
+						// Pass the initial name for display purposes in the form's header
+						// The EditAnimalForm will then fetch its own full data
+						initialAnimalName={animalNameToEdit}
 						onClose={() => { setIsEditModalOpen(false); setSelectedAnimal(null); }}
 						onAnimalUpdated={handleAnimalUpdated}
 					/>

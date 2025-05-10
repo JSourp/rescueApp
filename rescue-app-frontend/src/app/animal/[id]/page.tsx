@@ -105,7 +105,7 @@ export default function AnimalDetailsPage() {
   const daysLabel = daysWithUs === 1 ? "day" : "days";
 
   // Safely extract images, default to empty array, filter out any potentially missing URLs
-  const images = animal.animalImages?.filter(img => img.blobUrl) ?? [];
+  const images = animal.animalImages?.filter(img => img.imageUrl) ?? [];
 
   return (
     <div className="container mx-auto py-8">
@@ -120,7 +120,7 @@ export default function AnimalDetailsPage() {
                   <div key={image.id || index}> {/* Use unique image ID */}
                     <div className="aspect-w-4 aspect-h-3 bg-gray-100 dark:bg-gray-700 rounded-lg"> {/* Aspect ratio container */}
                       <Image
-                        src={image.blobUrl} // Use correct camelCase prop
+                        src={image.imageUrl} // Use correct camelCase prop
                         alt={`${animal.name || 'Animal'} picture ${index + 1} ${image.caption ? `- ${image.caption}` : ''}`}
                         fill
                         className="object-cover rounded-lg"

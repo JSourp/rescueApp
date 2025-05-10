@@ -39,7 +39,7 @@ namespace rescueApp
 		public string? BlobName { get; set; } // Unique name in storage
 		[Required(AllowEmptyStrings = false)]
 		[Url] // Basic URL validation
-		public string? BlobUrl { get; set; } // Base URL from storage
+		public string? ImageUrl { get; set; } // Base URL from storage
 		public string? Caption { get; set; } // Optional caption
 		public bool IsPrimary { get; set; } = false; // Is this the main image?
 		public int DisplayOrder { get; set; } = 0; // Display order
@@ -191,7 +191,7 @@ namespace rescueApp
 				var newImageRecord = new AnimalImage
 				{
 					AnimalId = animalId,
-					ImageUrl = imageRequest.BlobUrl!,
+					ImageUrl = imageRequest.ImageUrl!,
 					BlobName = imageRequest.BlobName!,
 					Caption = imageRequest.Caption,
 					DisplayOrder = imageRequest.DisplayOrder,
