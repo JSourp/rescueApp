@@ -528,21 +528,27 @@ export default function EditAnimalForm({ animalId, initialAnimalName, onClose, o
 													<ArrowUturnLeftIcon className="w-4 h-4" />
 											</button>
 										)}
-										{/* Set as Primary Button */}
-										{!img.isPrimary && !imagesToDelete.includes(img.id) && ( // Only show if not already primary and not marked for delete
-											<button
-												type="button"
-												onClick={() => handleSetPrimaryImage(img.id)}
-												className="bg-blue-500/80 hover:bg-blue-600 text-white p-1 rounded-full"
-												title="Make Primary"
-											>
-												<StarIconOutline className="w-4 h-4" />
-											</button>
-										)}
-										{img.isPrimary && ( // Show filled star if it is primary
-											<span className="bg-yellow-400 text-black p-1 rounded-full cursor-default" title="Current Primary Image">
-												<StarIconSolid className="w-4 h-4" />
-											</span>
+										{/* Set as Primary Button / Indicator */}
+										{!imagesToDelete.includes(img.id) && ( // Don't show primary options if marked for delete
+											img.isPrimary ? (
+												// Is primary: Show as a disabled button or a styled span that looks like a button
+												<button
+													type="button"
+													disabled // It's already primary, so it's an indicator
+													className="bg-yellow-400 text-black p-1 rounded-full cursor-default flex items-center justify-center w-6 h-6" // Added flex, w-6 h-6 for consistency
+													title="Current Primary Image">
+													<StarIconSolid className="w-4 h-4" />
+												</button>
+											) : (
+												// Not primary: Show interactive button
+												<button
+													type="button"
+													onClick={() => handleSetPrimaryImage(img.id)}
+														className="bg-blue-500 hover:bg-blue-600 text-white p-1 rounded-full flex items-center justify-center w-6 h-6" // Added flex, w-6 h-6
+														title="Make Primary">
+														<StarIconOutline className="w-4 h-4" />
+													</button>
+												)
 										)}
 									</div>
 								))}
