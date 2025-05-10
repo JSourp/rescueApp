@@ -20,7 +20,7 @@ const document_types = [
 
 // Form data includes metadata fields (file handled separately)
 interface DocumentFormData {
-	document_type: string;
+	documentType: string;
 	description?: string;
 }
 
@@ -45,7 +45,7 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 		formState: { errors, isSubmitting }, // isSubmitting from RHF for metadata submit part
 	} = useForm<DocumentFormData>({
 		mode: 'onTouched',
-		defaultValues: { document_type: '', description: '' },
+		defaultValues: { documentType: '', description: '' },
 	});
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,10 +117,10 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 			// 3. Save Metadata to your backend API
 			const metadataPayload = {
 				// Match the backend DTO (CreateDocumentMetadataRequest) - needs PascalCase
-				document_type: metadataFormData.document_type,
-				file_name: selectedFile.name, // Use original file_name
-				blob_name: sasData.blob_name, // Use unique name from SAS response
-				blob_url: sasData.blob_url, // Use base blob URL from SAS response
+				documentType: metadataFormData.documentType,
+				fileName: selectedFile.name, // Use original file_name
+				blobName: sasData.blob_name, // Use unique name from SAS response
+				blobUrl: sasData.blob_url, // Use base blob URL from SAS response
 				description: metadataFormData.description || null
 			};
 
@@ -201,13 +201,13 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 							{/* Document Type */}
 							<div>
 								<label htmlFor="document_type" className={labelBaseClasses}>Document Type *</label>
-								<select id="document_type" {...register("document_type", { required: "Document type is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.document_type)}`}>
+								<select id="document_type" {...register("documentType", { required: "Document type is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.documentType)}`}>
 									<option value="">Select Type...</option>
 									{document_types.map(type => (
 										<option key={type} value={type}>{type}</option>
 									))}
 								</select>
-								{errors.document_type && <p className={errorTextClasses}>{errors.document_type.message}</p>}
+								{errors.documentType && <p className={errorTextClasses}>{errors.documentType.message}</p>}
 							</div>
 
 							{/* Description */}

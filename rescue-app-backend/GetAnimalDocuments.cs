@@ -27,16 +27,16 @@ namespace rescueApp
 	{
 		public int Id { get; set; }
 		public int AnimalId { get; set; }
-		public string document_type { get; set; } = string.Empty;
-		public string file_name { get; set; } = string.Empty;
-		public string blob_name { get; set; } = string.Empty; // Might not be needed by frontend
-		public string blob_url { get; set; } = string.Empty;  // Maybe not needed directly by list view but needed for download link generation.
+		public string DocumentType { get; set; } = string.Empty;
+		public string FileName { get; set; } = string.Empty;
+		public string BlobName { get; set; } = string.Empty; // Might not be needed by frontend
+		public string ImageUrl { get; set; } = string.Empty;  // Maybe not needed directly by list view but needed for download link generation.
 		public string? Description { get; set; }
-		public DateTime date_uploaded { get; set; }
-		public Guid? uploaded_by_user_id { get; set; }
-		public string? uploader_email { get; set; }
-		public string? uploader_first_name { get; set; }
-		public string? uploader_last_name { get; set; }
+		public DateTime DateUploaded { get; set; }
+		public Guid? UploadedByUserId { get; set; }
+		public string? UploaderEmail { get; set; }
+		public string? UploaderFirstName { get; set; }
+		public string? UploaderLastName { get; set; }
 	}
 
 	public class GetAnimalDocuments
@@ -134,16 +134,16 @@ namespace rescueApp
 					{
 						Id = d.Id,
 						AnimalId = d.AnimalId,
-						document_type = d.DocumentType,
-						file_name = d.FileName,
-						blob_name = d.BlobName,
-						blob_url = d.ImageUrl,
+						DocumentType = d.DocumentType,
+						FileName = d.FileName,
+						BlobName = d.BlobName,
+						ImageUrl = d.ImageUrl,
 						Description = d.Description,
-						date_uploaded = d.DateUploaded,
-						uploaded_by_user_id = d.UploadedByUserId,
-						uploader_email = d.UploadedByUser != null ? d.UploadedByUser.Email : null,
-						uploader_first_name = d.UploadedByUser != null ? d.UploadedByUser.FirstName : null,
-						uploader_last_name = d.UploadedByUser != null ? d.UploadedByUser.LastName : null
+						DateUploaded = d.DateUploaded,
+						UploadedByUserId = d.UploadedByUserId,
+						UploaderEmail = d.UploadedByUser != null ? d.UploadedByUser.Email : null,
+						UploaderFirstName = d.UploadedByUser != null ? d.UploadedByUser.FirstName : null,
+						UploaderLastName = d.UploadedByUser != null ? d.UploadedByUser.LastName : null
 					})
 					.ToListAsync(); // Execute query
 
