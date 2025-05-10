@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Azure.Functions.Worker;
@@ -17,6 +18,16 @@ using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
+	public class GraduateDto
+	{
+		public int Id { get; set; }
+		public string? Name { get; set; }
+		public string? ImageUrl { get; set; } // Or PrimaryImageUrl
+		public string? AnimalType { get; set; }
+		public string? Breed { get; set; }
+		public string? Gender { get; set; }
+		public DateTime AdoptionDate { get; set; }
+	}
 	public class GetGraduates
 	{
 		private readonly AppDbContext _dbContext;
@@ -90,36 +101,34 @@ namespace rescueApp
 						break;
 				}
 
-				// Select the data needed for the frontend Graduate type
-				var graduates = await historyQuery
-					.Select(ah => new // Create a DTO or anonymous type matching frontend Graduate interface
+				List<GraduateDto> dtoList = await historyQuery
+					.Select(ah => new GraduateDto
 					{
-						// Select needed properties from ah.Animal (using snake_case)
-						ah.Animal!.Id,
-						ah.Animal.Name,
+						Id = ah.Id,
+						Name = ah.Animal!.Name,
+						AnimalType = ah.Animal!.AnimalType,
+						Breed = ah.Animal!.Breed,
+						Gender = ah.Animal!.Gender,
+						AdoptionDate = ah.AdoptionDate,
 						// Find the image marked as primary, or the first by display order, or null
 						ImageUrl = ah.Animal.AnimalImages! // Use ! since Animal should be included
 									 .OrderBy(img => img.IsPrimary ? 0 : 1) // Prioritize primary=true
 									 .ThenBy(img => img.DisplayOrder) // Then by explicit order
 									 .Select(img => img.ImageUrl)      // Select the URL string
 									 .FirstOrDefault(),                 // Get the best match or null
-						ah.Animal.AnimalType,
-						ah.Animal.Breed,
-						ah.Animal.Gender,
-						// Select the adoption_date from AdoptionHistory
-						ah.AdoptionDate
-						// Add any other needed Animal fields
 					})
-					.ToListAsync(); // Execute query
+					.ToListAsync();
 
-				_logger.LogInformation("Found {GraduateCount} graduate animals matching criteria.", graduates.Count);
+				_logger.LogInformation("Found {GraduateCount} graduate animals matching criteria.", dtoList.Count);
 
-				// Serialize and Respond
-				var jsonResponse = JsonSerializer.Serialize(graduates, new JsonSerializerOptions
+				// --- Serialize and Respond ---
+				var jsonResponse = JsonSerializer.Serialize(dtoList, new JsonSerializerOptions
 				{
-					// PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // REMOVED
-					WriteIndented = false
+					PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+					WriteIndented = false,
+					ReferenceHandler = ReferenceHandler.IgnoreCycles
 				});
+
 				var response = req.CreateResponse(HttpStatusCode.OK);
 				response.Headers.Add("Content-Type", "application/json; charset=utf-8");
 				await response.WriteStringAsync(jsonResponse);

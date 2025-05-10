@@ -194,8 +194,6 @@ namespace rescueApp
 
 
                 // --- Execute Query ---
-                //List<Animal> animals = await query.ToListAsync(); // This list now contains Animal objects, each with its AnimalImages collection
-
                 List<AnimalListItemDto> animalsDtoList = await query // query includes .Include(a => a.AnimalImages)
                     .Select(animal => new AnimalListItemDto // Project to DTO
                     {

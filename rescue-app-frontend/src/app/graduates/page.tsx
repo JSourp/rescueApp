@@ -2,21 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { Container } from '@/components/Container';
-import { AnimalListItem } from '@/types/animalListItem'; // Assuming you have this type definition
+import { Animal } from '@/types/animal';
 import Image from 'next/image';
 import Link from 'next/link';
 import { InformationCircleIcon, GraduationCapIcon } from "@/components/Icons";
 import { format } from 'date-fns';
 
 // Define interface for the data returned by the /api/graduates endpoint
-// It includes base Animal fields plus the adoption_date
-interface Graduate extends AnimalListItem {
+interface Graduate extends Animal {
 	id: number;
-	name: string | null;
-	animal_type: string | null;
-	breed: string | null;
-	gender: string | null;
-	adoption_date: string;
+	name?: string | null;
+	imageUrl?: string | null;
+	animalType?: string | null;
+	breed?: string | null;
+	gender?: string | null;
+	adoptionDate: string;
 }
 
 async function fetchGraduates(
@@ -229,7 +229,7 @@ export default function GraduatesPage() {
 												</h2>
 											</div>
 											<Image
-												src={graduate.primaryImageUrl || '/placeholder-image.png'}
+												src={graduate.imageUrl || '/placeholder-image.png'}
 												alt={graduate.name ? `${graduate.name}` : ''}
 												width={400}
 												height={300}
@@ -238,7 +238,7 @@ export default function GraduatesPage() {
 											/>
 											<div className="p-4 text-center min-h-[50px]">
 												<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-													Adopted: {format(new Date(graduate.adoption_date), 'MMM dd, yyyy')}
+													Adopted: {graduate.adoptionDate ? format(new Date(graduate.adoptionDate), 'MMM dd, yyyy') : 'Date N/A'}
 												</p>
 											</div>
 										</Link>
