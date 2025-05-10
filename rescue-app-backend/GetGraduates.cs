@@ -21,6 +21,7 @@ namespace rescueApp
 	public class GraduateDto
 	{
 		public int Id { get; set; }
+		public int AnimalId { get; set; }
 		public string? Name { get; set; }
 		public string? ImageUrl { get; set; } // Or PrimaryImageUrl
 		public string? AnimalType { get; set; }
@@ -105,6 +106,7 @@ namespace rescueApp
 					.Select(ah => new GraduateDto
 					{
 						Id = ah.Id,
+						AnimalId = ah.Animal!.Id,
 						Name = ah.Animal!.Name,
 						AnimalType = ah.Animal!.AnimalType,
 						Breed = ah.Animal!.Breed,
