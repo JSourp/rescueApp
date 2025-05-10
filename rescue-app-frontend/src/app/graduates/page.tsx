@@ -11,7 +11,7 @@ import { format } from 'date-fns';
 // Define interface for the data returned by the /api/graduates endpoint
 interface Graduate extends Animal {
 	id: number;
-	animalid: number;
+	animalId: number;
 	name?: string | null;
 	imageUrl?: string | null;
 	animalType?: string | null;
@@ -223,7 +223,7 @@ export default function GraduatesPage() {
 									<div
 										key={graduate.id}
 										className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 border border-gray-300 dark:border-transparent">
-										<Link href={`/animal/${graduate.animalid}`} className="block"> {/* Make entire card clickable */}
+										<Link href={`/animal/${graduate.animalId}`} className="block"> {/* Make entire card clickable */}
 											<div className="text-center">
 												<h2 className="text-xl font-semibold py-2 text-gray-900 dark:text-gray-100 truncate px-2">
 													{graduate.name}
