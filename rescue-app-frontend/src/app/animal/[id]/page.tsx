@@ -104,17 +104,62 @@ export default function AnimalDetailsPage() {
   // Determine the correct label for "day" or "days"
   const daysLabel = daysWithUs === 1 ? "day" : "days";
 
-  // Safely extract images, default to empty array, filter out any potentially missing URLs
-  const images = animal.animalImages?.filter(img => img.imageUrl) ?? [];
+  // Safely extract images, default to empty array, filter out any potentially missing URLs and sort them
+  const images = animal.animalImages
+    ?.filter(img => img.imageUrl) // filter for valid URLs
+    .sort((a, b) => {
+      // If a is primary and b is not, a comes first (-1)
+      if (a.isPrimary && !b.isPrimary) {
+        return -1;
+      }
+      // If b is primary and a is not, b comes first (1)
+      if (!a.isPrimary && b.isPrimary) {
+        return 1;
+      }
+      // If both are primary or both are not primary,
+      // maintain their existing relative order (from backend's display_order/id sort)
+      return (a.displayOrder ?? 99) - (b.displayOrder ?? 99);
+    }) ?? []; // Default to empty array if animalImages is null/undefined
 
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-center text-4xl font-bold mb-6">{animal.name}</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          {/* --- Image Carousel --- */}
-          {images.length > 0 ? (
-            <div className="mb-4 slick-container"> {/* Wrapper for potential custom arrow styling */}
+          {/* --- Image Display Logic with 0, 1, or >1 Image Cases --- */}
+          {images.length === 0 ? (
+            // --- Case 1: No Images ---
+            <div className="aspect-video mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center shadow-md">
+              <Image
+                src={'/placeholder-image.png'}
+                alt={animal.name || 'Animal image'}
+                width={300} // Example intrinsic size for placeholder
+                height={225}
+                className="object-contain p-4 max-h-[400px]" // Contain placeholder
+                priority
+              />
+            </div>
+          ) : images.length === 1 ? (
+            // --- Case 2: Exactly One Image ---
+            <div className="relative w-full aspect-w-1 aspect-h-1 lg:aspect-w-16 lg:aspect-h-9">
+              <Image
+                src={images[0].imageUrl || '/placeholder-image.png'} // Access the first (and only) image's URL
+                alt={`${animal.name || 'Animal'} picture ${images[0].caption ? `- ${images[0].caption}` : ''}`}
+                layout="fill"
+                className="object-cover rounded-lg shadow-md"
+                priority // First and only image, so prioritize
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 40vw, 30vw" // Match sizes from slider
+              />
+              {/* Optional: Display caption for single image, styled consistently
+              {images[0].caption && (
+                <p className="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white text-xs text-center rounded-b-lg">
+                  {images[0].caption}
+                </p>
+              )} */}
+            </div>
+          ) : (
+            // --- Case 3: Multiple Images -> Show Slider ---
+            <div className="mb-4 slick-container">
               <Slider {...sliderSettings}>
                 {images.map((image, index) => (
                   <div key={image.id || index}> {/* Use unique image ID */}
@@ -132,18 +177,7 @@ export default function AnimalDetailsPage() {
                   </div>
                 ))}
               </Slider>
-            </div>
-          ) : (
-              // Fallback if animal.animalImages is empty or missing
-              <div className="aspect-w-4 aspect-h-3 mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                <Image
-                  src={'/placeholder-image.png'}
-                  alt={animal.name || 'Animal image'}
-                  fill // or width={450} height={450}
-                  className="object-contain p-4" // Use contain for placeholder? Or cover?
-                  priority
-                />
-            </div>
+                </div>
           )}
         </div>
         {/* --- Animal Details --- */}

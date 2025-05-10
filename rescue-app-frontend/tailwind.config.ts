@@ -235,6 +235,8 @@ const config: Config = {
   variants: {
     extend: {},
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/aspect-ratio')
+  ],
 };
 export default config;

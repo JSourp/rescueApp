@@ -45,13 +45,12 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
           className={`flex items-center justify-center w-full lg:w-3/5 ${imagePosition === "right" ? "lg:order-1" : "" // Use layout variable
             }`}
         >
-          <div>
+          <div className="relative w-full aspect-w-1 aspect-h-1 lg:aspect-w-16 lg:aspect-h-9">
             <Image
               // Check if data.image is already an object (like StaticImageData) or just a URL string
               src={typeof data.image === 'string' ? data.image : data.image.src}
-              width={521} // Consider making responsive if needed
-              height={521}
               alt={data.name || 'Spotlight Animal'} // Use actual name for alt text
+              layout="fill"
               className={"object-cover rounded-lg shadow-md"} // Added rounded corners/shadow
               // Add blurDataURL only if data.image is StaticImageData or handle separately
               blurDataURL={typeof data.image !== 'string' ? data.image.blurDataURL : undefined}

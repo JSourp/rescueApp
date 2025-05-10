@@ -27,6 +27,7 @@ namespace rescueApp
         public DateTime DateUpdated { get; set; }
         public DateTime? DateOfBirth { get; set; }
         public decimal? Weight { get; set; }
+        public string? Story { get; set; }
         public string? PrimaryImageUrl { get; set; } // URL of the main image
     }
 
@@ -208,6 +209,7 @@ namespace rescueApp
                         DateUpdated = animal.DateUpdated,
                         DateOfBirth = animal.DateOfBirth,
                         Weight = animal.Weight,
+                        Story = animal.Story,
                         // Logic to find the primary image URL
                         PrimaryImageUrl = animal.AnimalImages!
                                             .OrderBy(img => !img.IsPrimary) // Primary first
