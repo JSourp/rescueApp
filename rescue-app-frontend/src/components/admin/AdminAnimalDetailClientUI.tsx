@@ -248,6 +248,23 @@ export default function AdminAnimalDetailClientUI({
 	const daysWithUs = differenceInDays(new Date(), new Date(animal.dateCreated)); // Use correct field name
 	const daysLabel = daysWithUs === 1 ? "day" : "days";
 
+	// Safely extract images, default to empty array, filter out any potentially missing URLs and sort them
+	const images = animal.animalImages
+		?.filter(img => img.imageUrl) // filter for valid URLs
+		.sort((a, b) => {
+			// If a is primary and b is not, a comes first (-1)
+			if (a.isPrimary && !b.isPrimary) {
+				return -1;
+			}
+			// If b is primary and a is not, b comes first (1)
+			if (!a.isPrimary && b.isPrimary) {
+				return 1;
+			}
+			// If both are primary or both are not primary,
+			// maintain their existing relative order (from backend's display_order/id sort)
+			return (a.displayOrder ?? 99) - (b.displayOrder ?? 99);
+		}) ?? []; // Default to empty array if animalImages is null/undefined
+
 	return (
 		<>
 			<Container className="py-10">
@@ -271,28 +288,28 @@ export default function AdminAnimalDetailClientUI({
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 					{/* Left Column: Image & Basic Info */}
 					<div className="md:col-span-1 space-y-4">
-						{animals.length > 0 ? (
-							animals.map((animalItem, index) => (
-								<div key={animalItem.id || index} className="aspect-square relative">
-									{animalItem.primaryImageUrl ? (
-										<Image
-											src={animalItem.primaryImageUrl || '/placeholder-image.png'}
-											alt={animalItem.name || ''}
-											fill // Use fill for aspect ratio container
-											className="object-cover rounded-lg shadow-md border dark:border-gray-700"
-											priority // Prioritize image on detail page
-										/>
-									) : (
-										<span className="text-gray-500 italic text-xs">No Image</span>
-									)}
-								</div>
-							))
+						{images.length === 0 ? (
+							<div className="aspect-video mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center shadow-md">
+								<Image
+									src={'/placeholder-image.png'}
+									alt={animal.name || 'Animal image'}
+									width={300} // Example intrinsic size for placeholder
+									height={225}
+									className="object-contain p-4 max-h-[400px]" // Contain placeholder
+									priority
+								/>
+							</div>
 						) : (
-							<tr>
-								<td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-									No animals found.
-								</td>
-							</tr>
+								<div className="relative w-full aspect-w-1 aspect-h-1 lg:aspect-w-16 lg:aspect-h-9">
+									<Image
+										src={images[0].imageUrl || '/placeholder-image.png'} // Access the first (and only) image's URL
+										alt={`${animal.name || 'Animal'} picture ${images[0].caption ? `- ${images[0].caption}` : ''}`}
+										fill
+										className="object-cover rounded-lg shadow-md"
+										priority // First and only image, so prioritize
+										sizes="(max-width: 768px) 100vw, (max-width: 1024px) 40vw, 30vw" // Match sizes from slider
+									/>
+								</div>
 						)}
 						{/* TODO: Add Edit Image Button/Flow Here */}
 						<h2 className="text-xl font-semibold border-b pb-2 dark:border-gray-700">Details</h2>
@@ -304,10 +321,11 @@ export default function AdminAnimalDetailClientUI({
 							<DetailItem label="Age" value={calculateAge(animal.dateOfBirth)} />
 							<DetailItem label="Weight" value={animal.weight ? `${animal.weight} lbs` : 'N/A'} />
 							<DetailItem label="Date Added" value={format(new Date(animal.dateCreated), 'PPP')} />
-							<DetailItem label="Added By" value={animal.createdByUserId ?? '...'} />
-							{/* TODO: Fix this - <DetailItem label="Time with us" value={daysWithUs} {daysLabel} /> */}
+							<DetailItem label="Time with us" value={`${daysWithUs} ${daysLabel}`} />
 							<DetailItem label="Last Updated" value={format(new Date(animal.dateUpdated), 'PPP')} />
-							<DetailItem label="Updated By" value={animal.updatedByUserId ?? '...'} />
+							{/* TODO: Display user name (first and last) or email instead of ID */}
+							{/* <DetailItem label="Added By" value={animal.createdByUserId ?? '...'} /> */}
+							{/* <DetailItem label="Updated By" value={animal.updatedByUserId ?? '...'} /> */}
 						</dl>
 					</div>
 
@@ -390,15 +408,15 @@ export default function AdminAnimalDetailClientUI({
 										{documents.map(doc => (
 											<li key={doc.id} className="px-4 py-3 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-800/50">
 												<div>
-													<p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title={doc.file_name}>
-														{doc.file_name}
+													<p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title={doc.fileName}>
+														{doc.fileName}
 													</p>
 													<p className="text-xs text-gray-500 dark:text-gray-400">
-														Type: {doc.document_type}
+														Type: {doc.documentType}
 													</p>
 													<p className="text-xs text-gray-500 dark:text-gray-400">
-														Uploaded: {doc.date_uploaded && typeof doc.date_uploaded === 'string'
-															? format(new Date(doc.date_uploaded), 'PPP') // Format only if valid string
+														Uploaded: {doc.dateUploaded && typeof doc.dateUploaded === 'string'
+															? format(new Date(doc.dateUploaded), 'PPP') // Format only if valid string
 															: 'Invalid Date' // Fallback for null/undefined/invalid
 														}
 													</p>
@@ -407,9 +425,8 @@ export default function AdminAnimalDetailClientUI({
 													<button
 														onClick={() => handleDownloadClick(doc)}
 														disabled={isFetchingLink === doc.id}
-														className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 disabled:opacity-50"
-														title="View/Download Document"
-													>
+														className="text-secondary-600 hover:text-secondary-800 dark:text-secondary-400 dark:hover:text-secondary-300 disabled:opacity-50"
+														title="View/Download Document">
 														{isFetchingLink === doc.id ? (
 															<LoadingSpinner className="w-5 h-5" />
 														) : (
@@ -420,12 +437,11 @@ export default function AdminAnimalDetailClientUI({
 													{/* Delete Document Button - Conditional */}
 													{currentUserRole === 'Admin' && (
 														<button onClick={() => handleDeleteDocClick(doc)}
-															className="text-text-on-accent bg-accent-700 hover:bg-accent-900 transition duration-300 rounded-md shadow py-3 px-6"
+															className="text-accent-600 hover:text-accent-800 dark:text-accent-400 dark:hover:text-accent-300 disabled:opacity-50"
 															disabled={isDeletingDoc}
 															title="Delete Document">
 															<span className="flex items-center space-x-2">
 																<TrashIcon className="w-5 h-5 inline" />
-																<span>Delete Document</span>
 															</span>
 														</button>
 													)}
@@ -506,7 +522,7 @@ export default function AdminAnimalDetailClientUI({
 				<Modal onClose={handleCloseDocDeleteConfirm}>
 					<ConfirmDeleteModal
 						itemType='document'
-						itemName={selectedDocument.file_name ?? 'this document'} // Use file_name
+						itemName={selectedDocument.fileName ?? 'this document'} // Use file_name
 						onClose={handleCloseDocDeleteConfirm}
 						onConfirmDelete={handleConfirmDocDelete} // Call the new handler
 						isDeleting={isDeletingDoc} // Pass the specific deleting state

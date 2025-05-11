@@ -30,7 +30,7 @@ namespace rescueApp
 		public string DocumentType { get; set; } = string.Empty;
 		public string FileName { get; set; } = string.Empty;
 		public string BlobName { get; set; } = string.Empty; // Might not be needed by frontend
-		public string ImageUrl { get; set; } = string.Empty;  // Maybe not needed directly by list view but needed for download link generation.
+		public string BlobUrl { get; set; } = string.Empty;  // Maybe not needed directly by list view but needed for download link generation.
 		public string? Description { get; set; }
 		public DateTime DateUploaded { get; set; }
 		public Guid? UploadedByUserId { get; set; }
@@ -137,7 +137,7 @@ namespace rescueApp
 						DocumentType = d.DocumentType,
 						FileName = d.FileName,
 						BlobName = d.BlobName,
-						ImageUrl = d.ImageUrl,
+						BlobUrl = d.BlobUrl,
 						Description = d.Description,
 						DateUploaded = d.DateUploaded,
 						UploadedByUserId = d.UploadedByUserId,

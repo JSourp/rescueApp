@@ -7,7 +7,7 @@ import { LoadingSpinner, SuccessCheckmarkIcon, ExclamationTriangleIcon, Document
 import { getAuth0AccessToken } from '@/utils/auth';
 
 // Define the types of documents users can upload
-const document_types = [
+const documentTypes = [
 	'Vaccination Record',
 	'Spay/Neuter Certificate',
 	'Microchip Record',
@@ -154,7 +154,7 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 			setTimeout(() => { onClose(); }, 2000);
 
 		} catch (error: any) {
-			console.error("Document upload process error:", error);
+			console.error("Document upload process", error);
 			setApiError(error.message || "An unknown error occurred during upload.");
 			setIsSuccess(false);
 			// TODO: Consider deleting the blob if metadata save failed
@@ -203,7 +203,7 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 								<label htmlFor="document_type" className={labelBaseClasses}>Document Type *</label>
 								<select id="document_type" {...register("documentType", { required: "Document type is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.documentType)}`}>
 									<option value="">Select Type...</option>
-									{document_types.map(type => (
+									{documentTypes.map(type => (
 										<option key={type} value={type}>{type}</option>
 									))}
 								</select>
@@ -241,7 +241,7 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 						{/* Display General API Error */}
 						{apiError && (
 							<p className="mb-4 p-3 text-sm text-center text-red-700 bg-red-100 dark:text-red-200 dark:bg-red-900/30 border border-red-300 dark:border-red-600 rounded-md">
-								<ExclamationTriangleIcon className="h-5 w-5 inline mr-1 align-text-bottom" /> Error: {apiError}
+								<ExclamationTriangleIcon className="h-5 w-5 inline mr-1 align-text-bottom" /> {apiError}
 							</p>
 						)}
 					</form>

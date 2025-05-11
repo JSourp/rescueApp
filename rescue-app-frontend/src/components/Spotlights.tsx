@@ -50,7 +50,7 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
               // Check if data.image is already an object (like StaticImageData) or just a URL string
               src={typeof data.image === 'string' ? data.image : data.image.src}
               alt={data.name || 'Spotlight Animal'} // Use actual name for alt text
-              layout="fill"
+              fill
               className={"object-cover rounded-lg shadow-md"} // Added rounded corners/shadow
               // Add blurDataURL only if data.image is StaticImageData or handle separately
               blurDataURL={typeof data.image !== 'string' ? data.image.blurDataURL : undefined}

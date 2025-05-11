@@ -217,21 +217,7 @@ const config: Config = {
       stock: [defaultTheme.fontFamily.sans],
     },
   },
-  safelist: [
-    {
-      pattern: /bg-sc-(sandal|asparagus|gothic|trendy-pink|fuscous-gray|pumpkin|chateau-green|scooter)-\d{2,3}/,
-      variants: ['hover', 'focus'], // Include hover and focus variants
-    },
-    {
-      pattern: /border-sc-(sandal|asparagus|gothic|trendy-pink|fuscous-gray|pumpkin|chateau-green|scooter)-\d{2,3}/,
-    },
-    {
-      pattern: /text-sc-(sandal|asparagus|gothic|trendy-pink|fuscous-gray|pumpkin|chateau-green|scooter)-\d{2,3}/,
-    },
-    {
-      pattern: /hover:border-sc-(sandal|asparagus|gothic|trendy-pink|fuscous-gray|pumpkin|chateau-green|scooter)-\d{2,3}/,
-    },
-  ],
+  safelist: [],
   variants: {
     extend: {},
   },

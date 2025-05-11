@@ -145,7 +145,7 @@ export default function AnimalDetailsPage() {
               <Image
                 src={images[0].imageUrl || '/placeholder-image.png'} // Access the first (and only) image's URL
                 alt={`${animal.name || 'Animal'} picture ${images[0].caption ? `- ${images[0].caption}` : ''}`}
-                layout="fill"
+                  fill
                 className="object-cover rounded-lg shadow-md"
                 priority // First and only image, so prioritize
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 40vw, 30vw" // Match sizes from slider

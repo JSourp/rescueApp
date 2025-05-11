@@ -12,7 +12,7 @@ namespace rescueApp.Models
         public string DocumentType { get; set; } = string.Empty;
         public string FileName { get; set; } = string.Empty; // Original filename
         public string BlobName { get; set; } = string.Empty; // Unique name in blob storage
-        public string ImageUrl { get; set; } = string.Empty; // Full base URL
+        public string BlobUrl { get; set; } = string.Empty; // Full base URL
         public string? Description { get; set; } // Nullable
         public DateTime DateUploaded { get; set; }
         public Guid? UploadedByUserId { get; set; }
