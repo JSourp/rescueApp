@@ -12,6 +12,9 @@ public class AppDbContext : DbContext
   public DbSet<User> Users { get; set; }
   public DbSet<AnimalDocument> AnimalDocuments { get; set; }
   public DbSet<AnimalImage> AnimalImages { get; set; }
+  public DbSet<FosterApplication> FosterApplications { get; set; }
+  public DbSet<FosterProfile> FosterProfiles { get; set; }
+
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -54,6 +57,13 @@ public class AppDbContext : DbContext
           .WithOne(ai => ai.Animal) // AnimalImage relates to one Animal
           .HasForeignKey(ai => ai.AnimalId) // Foreign key in AnimalImage
           .OnDelete(DeleteBehavior.Cascade); // If Animal deleted, delete related images
+
+  // Relationship to CurrentFoster
+  entity.HasOne(a => a.CurrentFoster)
+          .WithMany() // Assuming User doesn't have ICollection<AnimalsCurrentlyFostering>
+          .HasForeignKey(a => a.CurrentFosterUserId)
+          .IsRequired(false)
+          .OnDelete(DeleteBehavior.SetNull);
 
 });
 
@@ -206,6 +216,46 @@ public class AppDbContext : DbContext
                     .HasForeignKey(d => d.UploadedByUserId)
                     .IsRequired(false) // FK is nullable
                     .OnDelete(DeleteBehavior.SetNull); // Set null if user deleted
+    });
+
+    modelBuilder.Entity<FosterApplication>(entity =>
+        {
+          entity.ToTable("foster_applications", schema: "public");
+          entity.HasKey(e => e.Id);
+          entity.Property(e => e.Id).UseIdentityByDefaultColumn();
+          entity.Property(e => e.SubmissionDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
+          entity.Property(e => e.Status).HasDefaultValue("Pending Review");
+
+          entity.HasOne(e => e.ReviewedByUser)
+                .WithMany() // Assuming User doesn't have direct collection of applications reviewed
+                .HasForeignKey(e => e.ReviewedByUserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+    modelBuilder.Entity<FosterProfile>(entity =>
+    {
+      entity.ToTable("foster_profiles", schema: "public");
+      entity.HasKey(e => e.Id);
+      entity.Property(e => e.Id).UseIdentityByDefaultColumn();
+
+      entity.HasIndex(e => e.UserId).IsUnique(); // Ensure UserId is unique
+
+      entity.Property(e => e.ApprovalDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
+      entity.Property(e => e.IsActiveFoster).HasDefaultValue(true);
+      entity.Property(e => e.DateCreated).HasDefaultValueSql("CURRENT_TIMESTAMP");
+      entity.Property(e => e.DateUpdated).ValueGeneratedOnAddOrUpdate(); // For DB trigger
+
+      entity.HasOne(e => e.User)
+                .WithOne() // Assuming a User has at most one FosterProfile
+                .HasForeignKey<FosterProfile>(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+      entity.HasOne(e => e.FosterApplication)
+                .WithOne() // One application results in one profile
+                .HasForeignKey<FosterProfile>(e => e.FosterApplicationId)
+                .IsRequired(false) // Application link is optional
+                .OnDelete(DeleteBehavior.SetNull);
     });
 
 
