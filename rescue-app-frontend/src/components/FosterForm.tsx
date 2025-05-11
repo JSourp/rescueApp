@@ -1,7 +1,7 @@
 // src/components/FosterForm.tsx
 "use client";
 import React, { useState, useEffect } from 'react';
-import { useForm } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import { InformationCircleIcon, SuccessCheckmarkIcon } from "@/components/Icons";
@@ -126,34 +126,117 @@ export default function FosterForm({ onClose }: FosterFormProps) {
 				return;
 			}
 
-			const payload = {
-				...data,
-				foster_animal_types: data.foster_animal_types?.join(', '), // Convert array to string for submission
-				access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
-				from_name: "Rescue App Foster Application",
-				botcheck: undefined,
+			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+			if (!apiBaseUrl) {
+				throw new Error("API base URL is not configured.");
 			}
 
-			const response = await fetch("https://api.web3forms.com/submit", {
+			// --- Step 1: Save application to the database ---
+			// Map snake_case FosterFormData to camelCase for the backend DTO
+			const dbPayload = {
+				// Applicant Information
+				firstName: data.first_name,
+				lastName: data.last_name,
+				spousePartnerRoommate: data.spouse_partner_roommate,
+				streetAddress: data.street_address,
+				aptUnit: data.apt_unit,
+				city: data.city,
+				stateProvince: data.state_province,
+				zipPostalCode: data.zip_postal_code,
+				primaryPhone: data.primary_phone,
+				primaryPhoneType: data.primary_phone_type,
+				secondaryPhone: data.secondary_phone,
+				secondaryPhoneType: data.secondary_phone_type,
+				primaryEmail: data.primary_email,
+				secondaryEmail: data.secondary_email,
+				howHeard: data.how_heard,
+
+				// Household & Home Environment
+				adultsInHome: data.adults_in_home,
+				childrenInHome: data.children_in_home,
+				hasAllergies: data.has_allergies,
+				householdAwareFoster: data.household_aware_foster,
+				dwellingType: data.dwelling_type,
+				rentOrOwn: data.rent_or_own,
+				landlordPermission: data.landlord_permission,
+				yardType: data.yard_type,
+				separationPlan: data.separation_plan,
+
+				// Current Pet Information
+				hasCurrentPets: data.has_current_pets,
+				currentPetsDetails: data.current_pets_details,
+				currentPetsSpayedNeutered: data.current_pets_spayed_neutered,
+				currentPetsVaccinations: data.current_pets_vaccinations,
+				vetClinicName: data.vet_clinic_name,
+				vetPhone: data.vet_phone,
+
+				// Foster Experience & Preferences
+				hasFosteredBefore: data.has_fostered_before,
+				previousFosterDetails: data.previous_foster_details,
+				whyFoster: data.why_foster,
+				fosterAnimalTypes: data.foster_animal_types?.join(', '), // Join array to string
+				willingMedical: data.willing_medical,
+				willingBehavioral: data.willing_behavioral,
+				commitmentLength: data.commitment_length,
+				canTransport: data.can_transport,
+				transportExplanation: data.transport_explanation,
+				previousPetsDetails: data.previous_pets_details,
+			};
+
+			console.log("Submitting Foster Application to backend:", dbPayload);
+
+			const dbResponse = await fetch(`${apiBaseUrl}/foster-applications`, { // New endpoint
 				method: "POST",
-				headers: { "Content-Type": "application/json", Accept: "application/json" },
-				body: JSON.stringify(payload),
+				headers: { "Content-Type": "application/json" }, // No Auth token for public submission
+				body: JSON.stringify(dbPayload), // Send camelCase payload
 			});
 
-			const result = await response.json();
-			if (result.success) {
-				setIsSuccess(true);
-				setSubmitMessage("Thank you! Your foster application has been submitted. Our foster coordinator will be in touch soon!");
+			const dbResult = await dbResponse.json(); // Get dbResponse body
 
-				// Delay the form closure to let the user see the success message
-				setTimeout(() => {
-					onClose(); // Close the form after a delay
-					setIsSuccess(false); // Optionally reset the success state
-					setSubmitMessage(""); // Clear the success message
-				}, 5000); // Adjust the delay time (e.g., 5000ms = 5 seconds)
-			} else {
-				throw new Error(result.message || "Failed to send application.");
+			if (!dbResponse.ok) {
+				throw new Error(dbResult.error?.message || dbResult.message || "Failed to submit application to our database.");
 			}
+			console.log("Application successfully saved to database:", dbResult);
+
+			// --- Step 2: Send email notification via Web3Forms (only if DB save was successful) ---
+			try {
+				const web3formsPayload = {
+					...data, // Send original snake_case form data to web3forms
+					foster_animal_types: data.foster_animal_types?.join(', '), // Ensure array is stringified
+					access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
+					from_name: "Rescue App Foster Application", // Customize as needed
+					subject: `New Foster Application: ${data.first_name} ${data.last_name}`, // More specific subject
+					botcheck: undefined, // Remove honeypot data from email payload
+				};
+
+				console.log("Sending notification email via web3forms...");
+				const emailResponse = await fetch("https://api.web3forms.com/submit", {
+					method: "POST",
+					headers: { "Content-Type": "application/json", Accept: "application/json" },
+					body: JSON.stringify(web3formsPayload),
+				});
+
+				const emailResult = await emailResponse.json();
+				if (emailResult.success) {
+					console.log("Notification email sent successfully via web3forms.");
+				} else {
+					// Log the error but don't overwrite the primary success message for the user
+					console.error("Failed to send notification email via web3forms:", emailResult.message || "Unknown web3forms error");
+					// Optionally, you could inform admins through another channel if email fails
+				}
+			} catch (emailError) {
+				// Log the error but don't overwrite the primary success message
+				console.error("Error sending notification email via web3forms:", emailError);
+			}
+
+			// --- Overall Success (based on DB save) ---
+			setIsSuccess(true);
+			setSubmitMessage("Thank you! Your foster application has been submitted. Our foster coordinator will be in touch soon!");
+			reset(); // Reset form fields
+
+			setTimeout(() => {
+				onClose();
+			}, 3000);
 		} catch (error: any) {
 			setIsSuccess(false);
 			setSubmitMessage(error.message || "An unexpected error occurred. Please try again.");
