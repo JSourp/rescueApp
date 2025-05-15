@@ -49,6 +49,36 @@ export default function AdminAnimalDetailClientUI({
 	initialUserRole
 }: AdminAnimalDetailClientUIProps) {
 
+	const fetchAnimalData = async () => {
+		const token = await getAuth0AccessToken();
+		const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+		if (!token || !apiBaseUrl) return;
+
+		try {
+			const [animalResponse, documentsResponse] = await Promise.all([
+				fetch(`${apiBaseUrl}/animals/${animal.id}`, {
+					headers: { Authorization: `Bearer ${token}` },
+				}),
+				fetch(`${apiBaseUrl}/animals/${animal.id}/documents`, {
+					headers: { Authorization: `Bearer ${token}` },
+				}),
+			]);
+
+			if (animalResponse.ok) {
+				const updatedAnimal = await animalResponse.json();
+				setAnimal(updatedAnimal);
+			}
+
+			if (documentsResponse.ok) {
+				const updatedDocuments = await documentsResponse.json();
+				setDocuments(updatedDocuments);
+			}
+		} catch (error) {
+			console.error("Error fetching updated data:", error);
+		}
+	};
+
 	// Use initial data passed via props
 	const [animals, setAnimals] = useState<AnimalListItem[]>([]);
 	const [animal, setAnimal] = useState<Animal>(initialAnimal);
@@ -82,6 +112,7 @@ export default function AdminAnimalDetailClientUI({
 	useEffect(() => {
 		console.log("InitialDocuments prop updated, setting local state.");
 		setDocuments(initialDocuments);
+		fetchAnimalData();
 	}, [initialDocuments]);
 
 	const handleDataRefresh = () => {
@@ -260,7 +291,7 @@ export default function AdminAnimalDetailClientUI({
 
 	const handlePlacementSuccess = () => {
 		handleClosePlaceWithFosterModal();
-		router.refresh(); // Refresh the animal detail page
+		router.refresh();
 	};
 
 	// --- Calculate derived state ---
