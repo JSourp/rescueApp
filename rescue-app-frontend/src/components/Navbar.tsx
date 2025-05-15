@@ -83,7 +83,7 @@ export function Navbar() {
               <div className="relative group">
                 {/* User Avatar and Name */}
                 <button className="flex items-center space-x-2 px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md shadow-md hover:bg-gray-200 dark:hover:bg-gray-700 transition duration-300">
-                  {user.picture && (
+                  {/* {user.picture && (
                     <Image
                       src={user.picture}
                       alt={user.name || user.email || 'User'}
@@ -91,7 +91,7 @@ export function Navbar() {
                       height={32}
                       className="w-6 h-6 rounded-full"
                     />
-                  )}
+                  )} */}
                   <span>{user.name || user.nickname || user.email}</span>
                   <svg
                     className="w-4 h-4 text-gray-500 dark:text-gray-400"

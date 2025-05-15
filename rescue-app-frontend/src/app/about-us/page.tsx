@@ -10,7 +10,7 @@ export default function AboutUsPage() {
     "Chris Robinson",
     "Emilie Robinson",
     "Chanell Sourp",
-    "Jonathan Sourp",
+    "Jon Sourp",
   ];
 
   const ein = "33-5038937";

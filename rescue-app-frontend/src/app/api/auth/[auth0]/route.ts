@@ -1,4 +1,3 @@
-// src/app/api/auth/[auth0]/route.ts
 import { handleAuth, handleCallback, AfterCallback, Session } from '@auth0/nextjs-auth0'; // Import necessary handlers/types
 import { NextRequest } from 'next/server'; // Needed for typing req in AfterCallback
 
