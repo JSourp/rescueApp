@@ -90,7 +90,7 @@ export default function ReturnFromFosterModal({
 						Return {animal.name || 'Animal'} from Foster?
 					</h3>
 					<p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-						Confirm return from foster care with {fosterName}. Please select the animal's new status.
+						Confirm return from foster care with {fosterName}. Please select the animal&apos;s new status.
 					</p>
 				</div>
 			</div>
