@@ -51,6 +51,7 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
               src={typeof data.image === 'string' ? data.image : data.image.src}
               alt={data.name || 'Spotlight Animal'} // Use actual name for alt text
               fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className={"object-cover rounded-lg shadow-md"} // Added rounded corners/shadow
               // Add blurDataURL only if data.image is StaticImageData or handle separately
               blurDataURL={typeof data.image !== 'string' ? data.image.blurDataURL : undefined}

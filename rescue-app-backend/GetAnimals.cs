@@ -12,25 +12,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using rescueApp.Data;
 using rescueApp.Models;
+using rescueApp.Models.DTOs;
 
 namespace rescueApp
 {
-    public class AnimalListItemDto
-    {
-        public int Id { get; set; }
-        public string? Name { get; set; }
-        public string? AnimalType { get; set; }
-        public string? Breed { get; set; }
-        public string? Gender { get; set; }
-        public string? AdoptionStatus { get; set; }
-        public DateTime DateCreated { get; set; }
-        public DateTime DateUpdated { get; set; }
-        public DateTime? DateOfBirth { get; set; }
-        public decimal? Weight { get; set; }
-        public string? Story { get; set; }
-        public string? PrimaryImageUrl { get; set; } // URL of the main image
-    }
-
     public class GetAnimals
     {
         private readonly AppDbContext _dbContext;
@@ -59,6 +44,8 @@ namespace rescueApp
                 string? adoption_statusParam = queryParams["adoption_status"];
                 string? sortBy = queryParams["sortBy"];
                 string? limitParam = queryParams["limit"];
+                string? nameSearch = queryParams["name"];
+                string? isNotFosteredParam = queryParams["isNotFostered"];
 
                 IQueryable<Animal> query = _dbContext.Animals
                                           .Include(a => a.AnimalImages);
@@ -73,7 +60,7 @@ namespace rescueApp
                     if (desiredStatuses.Any())
                     {
                         logger.LogInformation("Filtering by adoption statuses: {Statuses}", string.Join(", ", desiredStatuses));
-                        query = query.Where(a => a.AdoptionStatus != null && desiredStatuses.Contains(a.AdoptionStatus.ToLower())); // Use ToLower() if that worked
+                        query = query.Where(a => a.AdoptionStatus != null && desiredStatuses.Contains(a.AdoptionStatus.ToLower()));
                     }
                 }
                 if (!string.IsNullOrEmpty(breed))
@@ -111,6 +98,17 @@ namespace rescueApp
                         logger.LogInformation("Filtering by gender: {Gender}", string.Join(", ", desiredGender));
                         query = query.Where(a => a.Gender != null && desiredGender.Contains(a.Gender.ToLower()));
                     }
+                }
+                if (!string.IsNullOrWhiteSpace(nameSearch))
+                {
+                    logger.LogInformation("Filtering by name (contains): {NameSearch}", nameSearch);
+                    query = query.Where(a => a.Name != null && EF.Functions.ILike(a.Name, $"%{nameSearch}%"));
+                }
+
+                if (bool.TryParse(isNotFosteredParam, out bool fetchOnlyNotFostered) && fetchOnlyNotFostered)
+                {
+                    logger.LogInformation("Filtering for animals not currently fostered.");
+                    query = query.Where(a => a.CurrentFosterUserId == null);
                 }
 
 
@@ -194,8 +192,8 @@ namespace rescueApp
 
 
                 // --- Execute Query ---
-                List<AnimalListItemDto> animalsDtoList = await query // query includes .Include(a => a.AnimalImages)
-                    .Select(animal => new AnimalListItemDto // Project to DTO
+                List<AnimalDetailDto> animalsDtoList = await query // query includes .Include(a => a.AnimalImages)
+                    .Select(animal => new AnimalDetailDto // Project to DTO
                     {
                         Id = animal.Id,
                         Name = animal.Name,
@@ -213,7 +211,9 @@ namespace rescueApp
                                             .OrderBy(img => !img.IsPrimary) // Primary first
                                             .ThenBy(img => img.DisplayOrder)// Then by display order
                                             .Select(img => img.ImageUrl)     // Select the correct URL property
-                                            .FirstOrDefault()               // Get first or null
+                                            .FirstOrDefault(),               // Get first or null
+                        CurrentFosterUserId = animal.CurrentFosterUserId,
+                        CurrentFosterName = animal.CurrentFoster != null ? $"{animal.CurrentFoster.FirstName} {animal.CurrentFoster.LastName}" : null,
                     })
                     .ToListAsync();
 

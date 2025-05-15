@@ -10,11 +10,11 @@ export interface Animal {
 	weight?: number | null;
 	story?: string | null;
 	adoptionStatus?: string | null;
-	dateCreated: string;             // (ISO Date String)
-	dateUpdated: string;             // (ISO Date String)
-	createdByUserId?: string | null; // (UUID as string)
-	updatedByUserId?: string | null; // (UUID as string)
-
-	// Collection of associated images - should be present for detail views
+	dateCreated: string;
+	dateUpdated: string;
+	createdByUserId?: string | null;
+	updatedByUserId?: string | null;
 	animalImages?: AnimalImage[] | null;
+	currentFosterUserId?: string | null;
+	currentFosterName?: string | null;
 }

@@ -1,15 +1,16 @@
 export interface AnimalListItem {
     id: number;
-    name?: string | null;            // camelCase
-    animalType?: string | null;      // camelCase
-    breed?: string | null;           // camelCase
-    gender?: string | null;          // camelCase
-    adoptionStatus?: string | null;  // camelCase
-    dateCreated: string;           // camelCase (ISO Date String)
-    dateUpdated: string;           // camelCase (ISO Date String)
+    currentFosterUserId?: string | null; // Nullable for animals not currently in foster care
+    name?: string | null;
+    animalType?: string | null;
+    breed?: string | null;
+    gender?: string | null;
+    adoptionStatus?: string | null;
+    dateCreated: string;
+    dateUpdated: string;
     // createdByUserId?: string | null; // Maybe not needed for list view?
     // updatedByUserId?: string | null; // Maybe not needed for list view?
 
     // Only the primary image URL
-    primaryImageUrl?: string | null; // camelCase
+    primaryImageUrl?: string | null;
 }

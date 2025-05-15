@@ -33,7 +33,8 @@ namespace rescueApp
 		public string? LastName { get; set; }
 
 		// Add other *editable* fields here if needed in the future
-		// public string? PhonePrimary { get; set; }
+		public string? PrimaryPhone { get; set; }
+		public string? PrimaryPhoneType { get; set; }
 	}
 
 	public class UpdateUserProfile
@@ -134,6 +135,16 @@ namespace rescueApp
 				if (updateData.LastName != null && userToUpdate.LastName != updateData.LastName)
 				{
 					userToUpdate.LastName = updateData.LastName;
+					changed = true;
+				}
+				if (updateData.PrimaryPhone != null && userToUpdate.PrimaryPhone != updateData.PrimaryPhone)
+				{
+					userToUpdate.PrimaryPhone = updateData.PrimaryPhone;
+					changed = true;
+				}
+				if (updateData.PrimaryPhoneType != null && userToUpdate.PrimaryPhoneType != updateData.PrimaryPhoneType)
+				{
+					userToUpdate.PrimaryPhoneType = updateData.PrimaryPhoneType;
 					changed = true;
 				}
 				// Add other editable fields like phone if needed

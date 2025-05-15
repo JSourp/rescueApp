@@ -21,6 +21,7 @@ CREATE TABLE public.dev_users AS SELECT * FROM public.users;
 
 -- Validate backups
 SELECT * FROM public.dev_foster_profiles;
+SELECT * FROM public.dev_foster_applications;
 SELECT * FROM public.dev_adoptionhistory;
 SELECT * FROM public.dev_animal_documents;
 SELECT * FROM public.dev_adopters;

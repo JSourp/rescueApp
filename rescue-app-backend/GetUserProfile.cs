@@ -28,6 +28,8 @@ namespace rescueApp
 		public string? ExternalProviderId { get; set; } // The Auth0 'sub' ID
 		public string FirstName { get; set; } = string.Empty;
 		public string LastName { get; set; } = string.Empty;
+		public string? PrimaryPhone { get; set; }
+		public string? PrimaryPhoneType { get; set; }
 		public string Email { get; set; } = string.Empty;
 		public string Role { get; set; } = string.Empty; // User's role in the app
 		public bool IsActive { get; set; }
@@ -209,6 +211,8 @@ namespace rescueApp
 					FirstName = user.FirstName,
 					LastName = user.LastName,
 					Email = user.Email,
+					PrimaryPhone = user.PrimaryPhone,
+					PrimaryPhoneType = user.PrimaryPhoneType,
 					Role = user.Role,
 					IsActive = user.IsActive,
 					DateCreated = user.DateCreated

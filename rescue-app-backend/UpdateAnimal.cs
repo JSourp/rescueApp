@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
@@ -17,39 +18,13 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using rescueApp.Data;
 using rescueApp.Models;
+using rescueApp.Models.DTOs;
+using rescueApp.Models.Requests;
 // Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
-    // DTO for the update request body - Only include fields that can be updated
-    // Properties are nullable to allow partial updates (PATCH-like behavior)
-    public class UpdateAnimalRequest
-    {
-        [MaxLength(100)]
-        public string? animal_type { get; set; }
-
-        [MaxLength(100)]
-        public string? name { get; set; }
-
-        [MaxLength(100)]
-        public string? breed { get; set; }
-
-        public DateTime? date_of_birth { get; set; }
-
-        [MaxLength(10)]
-        public string? gender { get; set; }
-
-        [Range(0.1, 300)]
-        public decimal? weight { get; set; }
-
-        public string? story { get; set; }
-
-        [MaxLength(50)]
-        public string? adoption_status { get; set; }
-    }
-
-
     public class UpdateAnimal
     {
         private readonly AppDbContext _dbContext;
@@ -161,39 +136,122 @@ namespace rescueApp
                 if (existingAnimal == null)
                 {
                     _logger.LogWarning("Animal not found for update. Animal ID: {animal_id}", id);
-                    return req.CreateResponse(HttpStatusCode.NotFound);
+                    return await CreateErrorResponse(req, HttpStatusCode.NotFound, "Animal not found.");
                 }
 
+                bool changed = false;
+
                 // Update properties comparing model to DTO
-                if (existingAnimal.AnimalType != updateData.animal_type) { existingAnimal.AnimalType = updateData.animal_type; }
-                if (existingAnimal.Name != updateData.name) { existingAnimal.Name = updateData.name; }
-                if (existingAnimal.Breed != updateData.breed) { existingAnimal.Breed = updateData.breed; }
+                if (updateData!.AnimalType != null && existingAnimal.AnimalType != updateData.AnimalType) { existingAnimal.AnimalType = updateData.AnimalType; changed = true; }
+                if (updateData!.Name != null && existingAnimal.Name != updateData.Name) { existingAnimal.Name = updateData.Name; changed = true; }
+                if (updateData!.Breed != null && existingAnimal.Breed != updateData.Breed) { existingAnimal.Breed = updateData.Breed; changed = true; }
                 // Use SpecifyKind for date again
-                DateTime? dobUtc = updateData.date_of_birth.HasValue ? DateTime.SpecifyKind(updateData.date_of_birth.Value, DateTimeKind.Utc) : null;
-                if (existingAnimal.DateOfBirth != dobUtc) { existingAnimal.DateOfBirth = dobUtc; }
-                if (existingAnimal.Gender != updateData.gender) { existingAnimal.Gender = updateData.gender; }
-                if (existingAnimal.Weight != updateData.weight) { existingAnimal.Weight = updateData.weight; }
-                if (existingAnimal.Story != updateData.story) { existingAnimal.Story = updateData.story; }
-                if (existingAnimal.AdoptionStatus != updateData.adoption_status) { existingAnimal.AdoptionStatus = updateData.adoption_status; }
+                DateTime? dobUtc = updateData.DateOfBirth.HasValue ? DateTime.SpecifyKind(updateData.DateOfBirth.Value, DateTimeKind.Utc) : null;
+                if (updateData!.DateOfBirth != null && existingAnimal.DateOfBirth != dobUtc) { existingAnimal.DateOfBirth = dobUtc; changed = true; }
+                if (updateData!.Gender != null && existingAnimal.Gender != updateData.Gender) { existingAnimal.Gender = updateData.Gender; changed = true; }
+                if (updateData!.Weight != null && existingAnimal.Weight != updateData.Weight) { existingAnimal.Weight = updateData.Weight; changed = true; }
+                if (updateData!.Story != null && existingAnimal.Story != updateData.Story) { existingAnimal.Story = updateData.Story; changed = true; }
+                if (updateData!.AdoptionStatus != null && existingAnimal.AdoptionStatus != updateData.AdoptionStatus) { existingAnimal.AdoptionStatus = updateData.AdoptionStatus; changed = true; }
 
                 // Always set the user performing the update if any profile data changed
                 existingAnimal.UpdatedByUserId = currentUser.Id;
 
-                // ---- Save if ANY changes were detected by EF Core ----
-                // (This includes changes to updated_by_user_id or any other field)
-                if (_dbContext.ChangeTracker.HasChanges())
+                // --- Logic for AdoptionStatus and CurrentFosterUserId ---
+                if (updateData.AdoptionStatus != null && existingAnimal.AdoptionStatus != updateData.AdoptionStatus)
                 {
-                    _logger.LogInformation("Saving updates for Animal ID: {animal_id} by User ID: {UserId}.", existingAnimal.Id, currentUser!.Id);
-                    await _dbContext.SaveChangesAsync(); // Save changes
+                    existingAnimal.AdoptionStatus = updateData.AdoptionStatus;
+                    changed = true;
+                    _logger.LogInformation("Animal ID {AnimalId} status changed to {NewStatus}", existingAnimal.Id, existingAnimal.AdoptionStatus);
+
+                    // If status indicates "In Foster", expect CurrentFosterUserId
+                    if (existingAnimal.AdoptionStatus.Contains("foster", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        if (updateData.CurrentFosterUserId.HasValue)
+                        {
+                            // Check if the provided foster user ID is valid (exists and is not a "Guest")
+                            var fosterUser = await _dbContext.Users.FirstOrDefaultAsync(u =>
+                                u.Id == updateData.CurrentFosterUserId.Value &&
+                                u.Role != "Guest");
+
+                            if (fosterUser != null)
+                            {
+                                if (existingAnimal.CurrentFosterUserId != updateData.CurrentFosterUserId.Value)
+                                {
+                                    existingAnimal.CurrentFosterUserId = updateData.CurrentFosterUserId.Value;
+                                    _logger.LogInformation("Animal ID {AnimalId} assigned to Foster User ID {FosterId} ({FosterRole})",
+                                        existingAnimal.Id, existingAnimal.CurrentFosterUserId, fosterUser.Role);
+                                }
+                            }
+                            else
+                            {
+                                _logger.LogWarning("Invalid or non-Foster User ID {FosterId} provided for foster placement of Animal ID {AnimalId}. CurrentFosterUserId will not be set.", updateData.CurrentFosterUserId.Value, existingAnimal.Id);
+                            }
+                        }
+                        else // Status implies foster, but no foster ID provided
+                        {
+                            _logger.LogWarning("Animal ID {AnimalId} status set to '{Status}' but no CurrentFosterUserId provided. Clearing existing foster if any.", existingAnimal.Id, existingAnimal.AdoptionStatus);
+                            if (existingAnimal.CurrentFosterUserId != null)
+                            {
+                                existingAnimal.CurrentFosterUserId = null; // Clear foster
+                            }
+                        }
+                    }
+                    else // Status does NOT indicate "In Foster"
+                    {
+                        if (existingAnimal.CurrentFosterUserId != null)
+                        {
+                            _logger.LogInformation("Animal ID {AnimalId} status changed away from foster status. Clearing CurrentFosterUserId.", existingAnimal.Id);
+                            existingAnimal.CurrentFosterUserId = null; // Clear foster
+                        }
+                    }
+                }
+                else if (updateData.CurrentFosterUserId.HasValue && existingAnimal.CurrentFosterUserId != updateData.CurrentFosterUserId.Value)
+                {
+                    // This handles direct change of foster parent without status necessarily changing,
+                    // OR initial assignment if status was already "In Foster".
+                    // Requires the status to already be a foster status or to be changing to one.
+                    if (existingAnimal.AdoptionStatus != null && existingAnimal.AdoptionStatus.Contains("foster", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var fosterUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == updateData.CurrentFosterUserId.Value && u.Role == "Foster");
+                        if (fosterUser != null)
+                        {
+                            existingAnimal.CurrentFosterUserId = updateData.CurrentFosterUserId.Value;
+                            changed = true;
+                            _logger.LogInformation("Animal ID {AnimalId} CurrentFosterUserId updated to {FosterId}", existingAnimal.Id, existingAnimal.CurrentFosterUserId);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Invalid or non-Foster User ID {FosterId} provided for direct foster assignment of Animal ID {AnimalId}.", updateData.CurrentFosterUserId.Value, existingAnimal.Id);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Attempted to set CurrentFosterUserId for Animal ID {AnimalId} but its status '{AnimalStatus}' is not a foster status.", existingAnimal.Id, existingAnimal.AdoptionStatus);
+                    }
+                }
+                else if (updateData.CurrentFosterUserId == null && existingAnimal.CurrentFosterUserId != null &&
+                    (updateData.AdoptionStatus == null || updateData.AdoptionStatus?.ToLower().Contains("foster", StringComparison.CurrentCultureIgnoreCase) == false))
+                {
+                    // Explicitly clearing foster (CurrentFosterUserId sent as null) AND status is not (or not becoming) a foster status
+                    _logger.LogInformation("CurrentFosterUserId explicitly cleared for Animal ID {AnimalId}.", existingAnimal.Id);
+                    existingAnimal.CurrentFosterUserId = null;
+                    changed = true;
+                }
+
+                if (changed)
+                {
+                    existingAnimal.UpdatedByUserId = currentUser!.Id; // Use non-null assertion after auth check
+                    // DateUpdated handled by DB trigger or EF config
+                    await _dbContext.SaveChangesAsync();
+                    _logger.LogInformation("Animal ID {AnimalId} updated successfully.", existingAnimal.Id);
                 }
                 else
                 {
-                    _logger.LogInformation("No changes detected by EF Core for Animal ID: {animal_id}", existingAnimal.Id);
+                    _logger.LogInformation("No changes detected for Animal ID {AnimalId}", id);
                 }
 
-                // --- 4. Return Response ---
-                var response = req.CreateResponse(HttpStatusCode.OK); // Return 200 OK
-                                                                      // Return the updated animal data (serialized with camelCase)
+                // --- Return Response ---
+                var response = req.CreateResponse(HttpStatusCode.OK);
                 var jsonResponse = JsonSerializer.Serialize(existingAnimal, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
                 await response.WriteStringAsync(jsonResponse);
                 return response;

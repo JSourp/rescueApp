@@ -20,6 +20,7 @@ namespace rescueApp.Models
         public Guid? CreatedByUserId { get; set; }
         public Guid? UpdatedByUserId { get; set; }
         public Guid? CurrentFosterUserId { get; set; }
+        //public string? CurrentFosterName { get; set; }
 
         public virtual ICollection<AdoptionHistory>? AdoptionHistories { get; set; }
         public virtual ICollection<AnimalDocument>? AnimalDocuments { get; set; }
@@ -32,7 +33,7 @@ namespace rescueApp.Models
         public virtual User? UpdatedByUser { get; set; }
 
         [ForeignKey("CurrentFosterUserId")]
-        public virtual User? CurrentFoster { get; set; } // User who is the foster
+        public virtual User? CurrentFoster { get; set; }
 
         public Animal()
         {

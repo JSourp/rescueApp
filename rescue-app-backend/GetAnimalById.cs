@@ -9,7 +9,8 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore; // Required for Include/ThenInclude
 using Microsoft.Extensions.Logging;
 using rescueApp.Data;
-using rescueApp.Models; // Assuming your models are here
+using rescueApp.Models;
+using rescueApp.Models.DTOs;
 
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
@@ -27,7 +28,7 @@ public class GetAnimalById
 
     [Function("GetAnimalById")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "animals/{id:int}")] HttpRequestData req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "animals/{id:int}")] HttpRequestData req,
         int id,
         FunctionContext executionContext)
     {
@@ -35,14 +36,17 @@ public class GetAnimalById
 
         try
         {
-            // Fetch the animal INCLUDING the ordered list of its images
-            var animal = await _dbContext.Animals
-                    .Include(a => a.AnimalImages // Eager load the AnimalImages collection
-                                    .OrderBy(img => img.DisplayOrder) // Order images by display_order
-                                    .ThenBy(img => img.Id)) // Consistent secondary sort
+            // Fetch the animal including the ordered list of its images
+            var animalEntity = await _dbContext.Animals
+                    .Include(a => a.AnimalImages
+                                .OrderBy(img => !img.IsPrimary) // Primary first
+                                .ThenBy(img => img.DisplayOrder)
+                                .ThenBy(img => img.Id))
+                    .Include(a => a.CurrentFoster)
+                    .AsNoTracking() // Good for read-only queries
                     .FirstOrDefaultAsync(a => a.Id == id); // Find animal by ID
 
-            if (animal == null)
+            if (animalEntity == null)
             {
                 _logger.LogWarning("Animal not found with ID: {id}", id);
                 var notFoundResponse = req.CreateResponse(HttpStatusCode.NotFound);
@@ -51,18 +55,54 @@ public class GetAnimalById
             }
 
             // Serialize the animal object to JSON
-            var jsonResponse = JsonSerializer.Serialize(animal, new JsonSerializerOptions
+            var jsonResponse = JsonSerializer.Serialize(animalEntity, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 WriteIndented = false,
                 ReferenceHandler = ReferenceHandler.IgnoreCycles
             });
 
-            // Create the HTTP response
-            var response = req.CreateResponse(HttpStatusCode.OK);
-            response.Headers.Add("Content-Type", "application/json");
-            await response.WriteStringAsync(jsonResponse);
+            // --- Project to DTO ---
+            var animalDetailDto = new AnimalDetailDto
+            {
+                Id = animalEntity.Id,
+                AnimalType = animalEntity.AnimalType,
+                Name = animalEntity.Name,
+                Breed = animalEntity.Breed,
+                DateOfBirth = animalEntity.DateOfBirth,
+                Gender = animalEntity.Gender,
+                Weight = animalEntity.Weight,
+                Story = animalEntity.Story,
+                AdoptionStatus = animalEntity.AdoptionStatus,
+                DateCreated = animalEntity.DateCreated,
+                DateUpdated = animalEntity.DateUpdated,
+                CreatedByUserId = animalEntity.CreatedByUserId,
+                UpdatedByUserId = animalEntity.UpdatedByUserId,
+                CurrentFosterUserId = animalEntity.CurrentFosterUserId,
+                CurrentFosterName = animalEntity.CurrentFoster != null
+                    ? $"{animalEntity.CurrentFoster.FirstName} {animalEntity.CurrentFoster.LastName}"
+                    : null,
+                AnimalImages = animalEntity.AnimalImages.Select(img => new AnimalImageDto
+                {
+                    Id = img.Id,
+                    FileName = img.BlobName,
+                    ImageUrl = img.ImageUrl,
+                    Caption = img.Caption,
+                    IsPrimary = img.IsPrimary,
+                    DisplayOrder = img.DisplayOrder,
+                    DateUploaded = img.DateUploaded
+                }).ToList()
+            };
 
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = false
+                // No ReferenceHandler needed for DTOs
+            };
+            var jsonString = JsonSerializer.Serialize(animalDetailDto, jsonOptions);
+            await response.WriteStringAsync(jsonString); // Serialize the DTO
             return response;
         }
         catch (Exception ex)

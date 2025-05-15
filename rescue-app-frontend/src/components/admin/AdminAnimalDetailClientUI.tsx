@@ -15,6 +15,7 @@ import {
 	LoadingSpinner, PencilSquareIcon, TrashIcon, SuccessCheckmarkIcon, ArrowUturnLeftIcon,
 	ExclamationTriangleIcon, DocumentArrowUpIcon, ArrowDownTrayIcon
 } from '@/components/Icons';
+import { HomeIcon } from '@heroicons/react/20/solid';
 import { calculateAge } from "@/components/data";
 import EditAnimalForm from '@/components/admin/EditAnimalForm';
 import ProcessReturnForm from '@/components/admin/ProcessReturnForm';
@@ -22,6 +23,7 @@ import FinalizeAdoptionForm from '@/components/admin/FinalizeAdoptionForm';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import DocumentUploadForm from '@/components/admin/DocumentUploadForm';
 import Modal from '@/components/Modal';
+import SelectFosterForAnimalModal from '@/components/admin/SelectFosterForAnimalModal';
 
 // Define props received from the Server Component page
 interface AdminAnimalDetailClientUIProps {
@@ -67,11 +69,11 @@ export default function AdminAnimalDetailClientUI({
 	const [isDeleting, setIsDeleting] = useState<boolean>(false);
 	const [isFetchingLink, setIsFetchingLink] = useState<number | null>(null); // Store ID of doc being fetched
 	const [linkError, setLinkError] = useState<string | null>(null);
-	// --- NEW State for Document Deletion ---
 	const [isDocDeleteConfirmOpen, setIsDocDeleteConfirmOpen] = useState<boolean>(false);
 	const [selectedDocument, setSelectedDocument] = useState<AnimalDocument | null>(null);
 	const [isDeletingDoc, setIsDeletingDoc] = useState<boolean>(false);
 	const [deleteDocError, setDeleteDocError] = useState<string | null>(null);
+	const [isPlaceWithFosterModalOpen, setIsPlaceWithFosterModalOpen] = useState(false);
 
 	// --- Data Refresh Function ---
 	const router = useRouter(); // Initialize router for refresh
@@ -244,6 +246,23 @@ export default function AdminAnimalDetailClientUI({
 		}
 	};
 
+	// Handle for Placing Animal with Foster
+	const handleOpenPlaceWithFosterModal = () => {
+		// animal state should already hold the current animal's details
+		if (animal) {
+			setIsPlaceWithFosterModalOpen(true);
+		}
+	};
+
+	const handleClosePlaceWithFosterModal = () => {
+		setIsPlaceWithFosterModalOpen(false);
+	};
+
+	const handlePlacementSuccess = () => {
+		handleClosePlaceWithFosterModal();
+		router.refresh(); // Refresh the animal detail page
+	};
+
 	// --- Calculate derived state ---
 	const daysWithUs = differenceInDays(new Date(), new Date(animal.dateCreated)); // Use correct field name
 	const daysLabel = daysWithUs === 1 ? "day" : "days";
@@ -264,6 +283,15 @@ export default function AdminAnimalDetailClientUI({
 			// maintain their existing relative order (from backend's display_order/id sort)
 			return (a.displayOrder ?? 99) - (b.displayOrder ?? 99);
 		}) ?? []; // Default to empty array if animalImages is null/undefined
+
+	// Determine if "Place with Foster" button should be shown
+	const canBePlacedInFoster = animal &&
+		!animal.currentFosterUserId && // Not already with a foster
+		['Available', 'Not Yet Available', 'Needs Assessment', 'Medical Evaluation', 'Behavioral Evaluation', 'Quarantine'].includes(animal.adoptionStatus ?? '');
+
+	// Determine if "Return from Foster" button should be shown (this is for returning the current animal)
+	const canBeReturnedFromFoster = animal && animal.currentFosterUserId && animal.adoptionStatus?.toLowerCase().includes('foster');
+
 
 	return (
 		<>
@@ -353,6 +381,30 @@ export default function AdminAnimalDetailClientUI({
 									</button>
 								)}
 
+								{/* Place with Foster Button - Conditional */}
+								{['Admin', 'Staff'].includes(currentUserRole ?? '') && (!animal.adoptionStatus?.toLowerCase().includes('foster')) && (
+									<button onClick={handleOpenPlaceWithFosterModal}
+										className="text-text-on-accent-alt bg-accent-alt-700 hover:bg-accent-alt-900 transition duration-300 rounded-md shadow py-3 px-6"
+										title="Place with Foster">
+										<span className="flex items-center space-x-2">
+											<HomeIcon className="w-5 h-5 inline" />
+											<span>Place with Foster</span>
+										</span>
+									</button>
+								)}
+
+								{/* Return from Foster Button - Conditional */}
+								{['Admin', 'Staff'].includes(currentUserRole ?? '') && (animal.adoptionStatus?.toLowerCase().includes('foster')) && (
+									<button onClick={() => handleReturnClick(animal)}
+										className="text-text-on-accent-alt bg-accent-alt-700 hover:bg-accent-alt-900 transition duration-300 rounded-md shadow py-3 px-6"
+										title="Return from Foster">
+										<span className="flex items-center space-x-2">
+											<ArrowUturnLeftIcon className="w-5 h-5 inline" />
+											<span>Return from Foster</span>
+										</span>
+									</button>
+								)}
+
 								{/* Process Return Button - Conditional */}
 								{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Adopted'].includes(animal.adoptionStatus ?? '') && (
 									<button onClick={() => handleReturnClick(animal)} className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow py-3 px-6" title="Process Return">
@@ -384,6 +436,21 @@ export default function AdminAnimalDetailClientUI({
 								)}
 							</div>
 						</div>
+
+						{/* Display Current Foster Info if applicable */}
+						{animal.currentFosterUserId && (
+							<div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+								<h3 className="text-md font-semibold text-blue-700 dark:text-blue-300">Foster Information</h3>
+								<p className="text-sm text-gray-600 dark:text-gray-400">
+									Currently with Foster: {animal.currentFosterName || `ID: ${animal.currentFosterUserId}`}
+									{animal.currentFosterUserId && (
+										<Link href={`/admin/fosters/${animal.currentFosterUserId}`} className="ml-2 text-text-link hover:underline text-xs">
+											(View Foster Profile)
+										</Link>
+									)}
+								</p>
+							</div>
+						)}
 
 						{/* Documents Section */}
 						<div>
@@ -530,6 +597,19 @@ export default function AdminAnimalDetailClientUI({
 					/>
 				</Modal>
 			)}
+
+			{/* --- Place Animal With Foster Modal --- */}
+			{isPlaceWithFosterModalOpen && animal && (
+				<Modal onClose={handleClosePlaceWithFosterModal} preventBackdropClickClose={true}>
+					<SelectFosterForAnimalModal
+						animalId={animal.id}
+						animalName={animal.name || null}
+						onClose={handleClosePlaceWithFosterModal}
+						onPlacementSuccess={handlePlacementSuccess}
+					/>
+				</Modal>
+			)}
+
 			{/* --- End Modals --- */}
 		</>
 	);

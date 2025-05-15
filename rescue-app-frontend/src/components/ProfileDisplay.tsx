@@ -128,6 +128,7 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
           <ProfileDetail label="First Name" value={profileData.firstName} />
           <ProfileDetail label="Last Name" value={profileData.lastName} />
           <ProfileDetail label="Email" value={profileData.email} />
+          <ProfileDetail label="Phone" value={`${profileData.primaryPhone} (${profileData.primaryPhoneType})`} />
           <ProfileDetail label="Role" value={profileData.role} />
           <ProfileDetail label="Account Status" value={profileData.isActive} />
           <ProfileDetail label="Member Since" value={format(new Date(profileData.dateCreated), 'MMMM do, yyyy')} />
@@ -137,8 +138,7 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
           <div className="pt-6 text-right">
             <button
               onClick={() => { setApiError(null); setIsEditing(true); }}
-              className="bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-5 rounded-md transition duration-300"
-            >
+              className="bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-5 rounded-md transition duration-300">
               Edit Profile
             </button>
           </div>

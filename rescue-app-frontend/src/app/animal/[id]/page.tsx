@@ -4,9 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Animal } from '@/types/animal';
 import Image from 'next/image';
+import Link from 'next/link';
 import { calculateAge } from "@/components/data";
 import Modal from '@/components/Modal';
 import AdoptionForm from '@/components/AdoptionForm';
+import { Container } from '@/components/Container';
 import { format, differenceInDays } from "date-fns";
 import Slider from "react-slick";
 
@@ -92,7 +94,12 @@ export default function AnimalDetailsPage() {
   }
 
   if (!animal) {
-    return <div>Animal not found.</div>; // Handle the case where the animal is not found
+    return (
+      <Container className="py-10 text-center">
+        <h1 className="text-2xl font-bold text-red-600">Animal Not Found</h1>
+        <Link href="/available-animals" className="mt-6 inline-block text-text-link hover:underline">Back to Available Animals</Link>
+      </Container>
+    );
   }
 
   // Format the intake date

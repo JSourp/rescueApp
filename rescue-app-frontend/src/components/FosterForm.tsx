@@ -303,11 +303,10 @@ export default function FosterForm({ onClose }: FosterFormProps) {
 							<input type="email" id="primary_email" {...register("primary_email", { required: "Email is required", pattern: { value: /^\S+@\S+$/i, message: "Invalid email format" } })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.primary_email)}`} />
 							{errors.primary_email && <p className={errorTextClasses}>{errors.primary_email.message}</p>}
 						</div>
-						{/* Secondary Email (Optional) */}
+						{/* Secondary Email (Optional, skip validation) */}
 						<div className="mb-4">
 							<label htmlFor="secondary_email" className={labelBaseClasses}>Secondary Email (Optional)</label>
-							<input type="email" id="secondary_email" {...register("secondary_email", { pattern: { value: /^\S+@\S+$/i, message: "Invalid email format" } })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.secondary_email)}`} />
-							{errors.secondary_email && <p className={errorTextClasses}>{errors.secondary_email.message}</p>}
+							<input type="email" id="secondary_email" className={`${inputBaseClasses}`} />
 						</div>
 						{/* Primary Phone */}
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -686,6 +685,7 @@ export default function FosterForm({ onClose }: FosterFormProps) {
 							<button
 								type="button"
 								onClick={onClose}
+								disabled={isSubmitting}
 								className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800"
 							>
 								Cancel

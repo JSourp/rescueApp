@@ -27,6 +27,12 @@ namespace rescueApp.Models
         [MaxLength(255)]
         public string Email { get; set; } = string.Empty;
 
+        [MaxLength(30)]
+        public string? PrimaryPhone { get; set; } // PascalCase
+
+        [MaxLength(10)]
+        public string? PrimaryPhoneType { get; set; } // PascalCase (e.g., "Cell", "Home")
+
         [Required]
         [MaxLength(50)]
         public string Role { get; set; } = string.Empty; // e.g., 'Admin', 'Staff', 'Volunteer', 'Guest'

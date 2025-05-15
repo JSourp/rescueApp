@@ -6,7 +6,6 @@ import { Animal } from '@/types/animal';
 import { UserProfile } from '@/types/userProfile';
 import { AnimalDocument } from '@/types/animalDocument';
 import Link from 'next/link';
-// Import the NEW Client Component we will create below
 import AdminAnimalDetailClientUI from '@/components/admin/AdminAnimalDetailClientUI';
 
 async function fetchAnimalDetails(id: number, accessToken: string | undefined): Promise<Animal | null> {
@@ -99,7 +98,7 @@ export default async function AdminAnimalDetailPage({ params }: { params: { id: 
       <Container className="py-10 text-center">
         <h1 className="text-2xl font-bold text-red-600">Animal Not Found</h1>
         <p className="mt-4 text-gray-600 dark:text-gray-400">Could not find details for animal with ID: {animalId}</p>
-        <Link href="/admin/manage-animals" className="mt-6 inline-block text-indigo-600 hover:underline">Back to Animal List</Link>
+        <Link href="/admin/manage-animals" className="mt-6 inline-block text-text-link hover:underline">Back to Animal List</Link>
       </Container>
     );
   }
