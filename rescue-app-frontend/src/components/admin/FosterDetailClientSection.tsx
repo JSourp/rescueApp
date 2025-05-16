@@ -6,7 +6,7 @@ import { FosteredAnimal } from '@/types/fosteredAnimal';
 import Modal from '@/components/Modal';
 import EditFosterProfileForm from './EditFosterProfileForm';
 import AssignAnimalToFosterModal from './AssignAnimalToFosterModal';
-import ReturnFromFosterModal from './ReturnFromFosterModal'; // Import this
+import ReturnFromFosterModal from './ReturnFromFosterModal';
 import { PencilSquareIcon, ArrowUturnLeftIcon } from '@/components/Icons';
 import { PlusCircleIcon } from '@heroicons/react/20/solid';
 import { useRouter } from 'next/navigation';
@@ -25,7 +25,6 @@ const DetailItem = ({ label, children, className = "" }: { label: string; childr
 		</div>
 	);
 };
-
 
 interface FosterDetailClientSectionProps {
 	fosterData: FosterDetailDto;

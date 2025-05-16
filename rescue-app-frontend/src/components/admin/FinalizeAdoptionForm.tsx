@@ -6,27 +6,7 @@ import { LoadingSpinner, SuccessCheckmarkIcon } from '@/components/Icons';
 import { getAuth0AccessToken } from '@/utils/auth'; // Shared helper
 import { Animal } from '@/types/animal';
 import { format } from 'date-fns'; // For default date
-
-interface FinalizeFormData {
-	// Adopter Info
-	adopter_first_name: string;
-	adopter_last_name: string;
-	adopter_email: string;
-	adopter_primary_phone: string;
-	adopter_primary_phone_type: 'Cell' | 'Home' | 'Work' | '';
-	adopter_secondary_phone?: string;
-	adopter_secondary_phone_type?: 'Cell' | 'Home' | 'Work' | '';
-	adopter_street_address: string;
-	adopter_apt_unit?: string;
-	adopter_city: string;
-	adopter_state_province: string;
-	adopter_zip_postal_code: string;
-	spouse_partner_roommate?: string;
-
-	// Adoption Info
-	adoption_date: string; // Input type="date" provides YYYY-MM-DD string
-	notes?: string;
-}
+import { FinalizeAdoptionFormDetail } from '@/types/finalizeAdoptionFormDetail';
 
 interface FinalizeAdoptionFormProps {
 	animal: Animal; // The animal being adopted
@@ -46,25 +26,25 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 		handleSubmit,
 		reset,
 		formState: { errors, isSubmitting },
-	} = useForm<FinalizeFormData>({
+	} = useForm<FinalizeAdoptionFormDetail>({
 		mode: 'onTouched',
 		defaultValues: {
 			// Pre-fill adoption date to today
-			adoption_date: format(new Date(), 'yyyy-MM-dd'),
+			adoptionDate: format(new Date(), 'yyyy-MM-dd'),
 			// Initialize other fields
-			adopter_first_name: '',
-			adopter_last_name: '',
-			adopter_email: '',
-			adopter_primary_phone: '',
-			adopter_primary_phone_type: '',
-			adopter_street_address: '',
-			adopter_city: '',
-			adopter_state_province: '',
-			adopter_zip_postal_code: '',
+			adopterFirstName: '',
+			adopterLastName: '',
+			adopterEmail: '',
+			adopterPrimaryPhone: '',
+			adopterPrimaryPhoneType: '',
+			adopterStreetAddress: '',
+			adopterCity: '',
+			adopterStateProvince: '',
+			adopterZipPostalCode: '',
 		},
 	});
 
-	const handleFinalize: SubmitHandler<FinalizeFormData> = async (formData) => {
+	const handleFinalize: SubmitHandler<FinalizeAdoptionFormDetail> = async (formData) => {
 		if (isProcessing) return;
 		setIsProcessing(true);
 		setApiError(null); // Clear previous errors
@@ -83,21 +63,21 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 
 		// Construct payload
 		const payload = {
-			animal_id: animal.id,
-			adopter_first_name: formData.adopter_first_name,
-			adopter_last_name: formData.adopter_last_name,
-			adopter_email: formData.adopter_email,
-			adopter_primary_phone: formData.adopter_primary_phone,
-			adopter_primary_phone_type: formData.adopter_primary_phone_type,
-			adopter_secondary_phone: formData.adopter_secondary_phone || null, // Send null if empty
-			adopter_secondary_phone_type: formData.adopter_secondary_phone_type || null, // Send null if empty
-			adopter_street_address: formData.adopter_street_address,
-			adopter_apt_unit: formData.adopter_apt_unit || null, // Send null if empty
-			adopter_city: formData.adopter_city,
-			adopter_state_province: formData.adopter_state_province,
-			adopter_zip_postal_code: formData.adopter_zip_postal_code,
-			spouse_partner_roommate: formData.spouse_partner_roommate || null,
-			adoption_date: formData.adoption_date ? new Date(formData.adoption_date).toISOString() : new Date().toISOString(), // Send as ISO string
+			animalId: animal.id,
+			adopterFirstName: formData.adopterFirstName,
+			adopterLastName: formData.adopterLastName,
+			adopterEmail: formData.adopterEmail,
+			adopterPrimaryPhone: formData.adopterPrimaryPhone,
+			adopterPrimaryPhoneType: formData.adopterPrimaryPhoneType,
+			adopterSecondaryPhone: formData.adopterSecondaryPhone || null, // Send null if empty
+			adopterSecondaryPhoneType: formData.adopterSecondaryPhoneType || null, // Send null if empty
+			adopterStreetAddress: formData.adopterStreetAddress,
+			adopterAptUnit: formData.adopterAptUnit || null, // Send null if empty
+			adopterCity: formData.adopterCity,
+			adopterStateProvince: formData.adopterStateProvince,
+			adopterZipPostalCode: formData.adopterZipPostalCode,
+			spousePartnerRoommate: formData.spousePartnerRoommate || null,
+			adoptionDate: formData.adoptionDate ? new Date(formData.adoptionDate).toISOString() : new Date().toISOString(), // Send as ISO string
 			notes: formData.notes || null,
 		};
 
@@ -194,55 +174,55 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 							{/* First Name */}
 							<div>
-								<label htmlFor="adopter_first_name" className={labelBaseClasses}>First Name *</label>
-								<input type="text" id="adopter_first_name" {...register("adopter_first_name", { required: "First name is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopter_first_name)}`} />
-								{errors.adopter_first_name && <p className={errorTextClasses}>{errors.adopter_first_name.message}</p>}
+								<label htmlFor="adopterFirstName" className={labelBaseClasses}>First Name *</label>
+								<input type="text" id="adopterFirstName" {...register("adopterFirstName", { required: "First name is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopterFirstName)}`} />
+								{errors.adopterFirstName && <p className={errorTextClasses}>{errors.adopterFirstName.message}</p>}
 							</div>
 							{/* Last Name */}
 							<div>
-								<label htmlFor="adopter_last_name" className={labelBaseClasses}>Last Name *</label>
-								<input type="text" id="adopter_last_name" {...register("adopter_last_name", { required: "Last name is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopter_last_name)}`} />
-								{errors.adopter_last_name && <p className={errorTextClasses}>{errors.adopter_last_name.message}</p>}
+								<label htmlFor="adopterLastName" className={labelBaseClasses}>Last Name *</label>
+								<input type="text" id="adopterLastName" {...register("adopterLastName", { required: "Last name is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopterLastName)}`} />
+								{errors.adopterLastName && <p className={errorTextClasses}>{errors.adopterLastName.message}</p>}
 							</div>
 						</div>
 						{/* Spouse/Partner (Optional) */}
 						<div className="mb-4">
-							<label htmlFor="spouse_partner_roommate" className={labelBaseClasses}>Spouse / Partner / Roommate Name(s) (Optional)</label>
-							<input type="text" id="spouse_partner_roommate" {...register("spouse_partner_roommate")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.spouse_partner_roommate)}`} />
+							<label htmlFor="spousePartnerRoommate" className={labelBaseClasses}>Spouse / Partner / Roommate Name(s) (Optional)</label>
+							<input type="text" id="spousePartnerRoommate" {...register("spousePartnerRoommate")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.spousePartnerRoommate)}`} />
 						</div>
 						{/* Primary Email */}
 						<div className="mb-4">
-							<label htmlFor="adopter_email" className={labelBaseClasses}>Email *</label>
-							<input type="email" id="adopter_email" {...register("adopter_email", { required: "Email is required", pattern: { value: /^\S+@\S+$/i, message: "Invalid email format" } })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopter_email)}`} />
-							{errors.adopter_email && <p className={errorTextClasses}>{errors.adopter_email.message}</p>}
+							<label htmlFor="adopterEmail" className={labelBaseClasses}>Email *</label>
+							<input type="email" id="adopterEmail" {...register("adopterEmail", { required: "Email is required", pattern: { value: /^\S+@\S+$/i, message: "Invalid email format" } })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopterEmail)}`} />
+							{errors.adopterEmail && <p className={errorTextClasses}>{errors.adopterEmail.message}</p>}
 						</div>
 						{/* Primary Phone */}
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 							<div>
-								<label htmlFor="adopter_primary_phone" className={labelBaseClasses}>Primary Phone *</label>
-								<input type="tel" id="adopter_primary_phone" {...register("adopter_primary_phone", { required: "Primary phone is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopter_primary_phone)}`} />
-								{errors.adopter_primary_phone && <p className={errorTextClasses}>{errors.adopter_primary_phone.message}</p>}
+								<label htmlFor="adopterPrimaryPhone" className={labelBaseClasses}>Primary Phone *</label>
+								<input type="tel" id="adopterPrimaryPhone" {...register("adopterPrimaryPhone", { required: "Primary phone is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopterPrimaryPhone)}`} />
+								{errors.adopterPrimaryPhone && <p className={errorTextClasses}>{errors.adopterPrimaryPhone.message}</p>}
 							</div>
 							<div>
-								<label htmlFor="adopter_primary_phone_type" className={labelBaseClasses}>Primary Phone Type *</label>
-								<select id="adopter_primary_phone_type" {...register("adopter_primary_phone_type", { required: "Select phone type" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopter_primary_phone_type)}`}>
+								<label htmlFor="adopterPrimaryPhoneType" className={labelBaseClasses}>Primary Phone Type *</label>
+								<select id="adopterPrimaryPhoneType" {...register("adopterPrimaryPhoneType", { required: "Select phone type" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopterPrimaryPhoneType)}`}>
 									<option value="">Select Type...</option>
 									<option value="Cell">Cell</option>
 									<option value="Home">Home</option>
 									<option value="Work">Work</option>
 								</select>
-								{errors.adopter_primary_phone_type && <p className={errorTextClasses}>{errors.adopter_primary_phone_type.message}</p>}
+								{errors.adopterPrimaryPhoneType && <p className={errorTextClasses}>{errors.adopterPrimaryPhoneType.message}</p>}
 							</div>
 						</div>
 						{/* Secondary Phone (Optional) */}
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 							<div>
-								<label htmlFor="adopter_secondary_phone" className={labelBaseClasses}>Secondary Phone (Optional)</label>
-								<input type="tel" id="adopter_secondary_phone" {...register("adopter_secondary_phone")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopter_secondary_phone)}`} />
+								<label htmlFor="adopterSecondaryPhone" className={labelBaseClasses}>Secondary Phone (Optional)</label>
+								<input type="tel" id="adopterSecondaryPhone" {...register("adopterSecondaryPhone")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopterSecondaryPhone)}`} />
 							</div>
 							<div>
-								<label htmlFor="adopter_secondary_phone_type" className={labelBaseClasses}>Secondary Phone Type</label>
-								<select id="adopter_secondary_phone_type" {...register("adopter_secondary_phone_type")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopter_secondary_phone_type)}`}>
+								<label htmlFor="adopterSecondaryPhoneType" className={labelBaseClasses}>Secondary Phone Type</label>
+								<select id="adopterSecondaryPhoneType" {...register("adopterSecondaryPhoneType")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopterSecondaryPhoneType)}`}>
 									<option value="">Select Type...</option>
 									<option value="Cell">Cell</option>
 									<option value="Home">Home</option>
@@ -258,32 +238,32 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 						</h4>
 						{/* Street Address */}
 						<div className="mb-4">
-							<label htmlFor="adopter_street_address" className={labelBaseClasses}>Street Address *</label>
-							<input type="text" id="adopter_street_address" {...register("adopter_street_address", { required: "Street address is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopter_street_address)}`} />
-							{errors.adopter_street_address && <p className={errorTextClasses}>{errors.adopter_street_address.message}</p>}
+							<label htmlFor="adopterStreetAddress" className={labelBaseClasses}>Street Address *</label>
+							<input type="text" id="adopterStreetAddress" {...register("adopterStreetAddress", { required: "Street address is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopterStreetAddress)}`} />
+							{errors.adopterStreetAddress && <p className={errorTextClasses}>{errors.adopterStreetAddress.message}</p>}
 						</div>
 						{/* Apt/Unit (Optional) */}
 						<div className="mb-4">
-							<label htmlFor="adopter_apt_unit" className={labelBaseClasses}>Apt/Unit # (Optional)</label>
-							<input type="text" id="adopter_apt_unit" {...register("adopter_apt_unit")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopter_apt_unit)}`} />
+							<label htmlFor="adopterAptUnit" className={labelBaseClasses}>Apt/Unit # (Optional)</label>
+							<input type="text" id="adopterAptUnit" {...register("adopterAptUnit")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopterAptUnit)}`} />
 						</div>
 						{/* City/State/Zip */}
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
 							<div>
-								<label htmlFor="adopter_city" className={labelBaseClasses}>City *</label>
-								<input type="text" id="adopter_city" {...register("adopter_city", { required: "City is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopter_city)}`} />
-								{errors.adopter_city && <p className={errorTextClasses}>{errors.adopter_city.message}</p>}
+								<label htmlFor="adopterCity" className={labelBaseClasses}>City *</label>
+								<input type="text" id="adopterCity" {...register("adopterCity", { required: "City is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopterCity)}`} />
+								{errors.adopterCity && <p className={errorTextClasses}>{errors.adopterCity.message}</p>}
 							</div>
 							<div>
-								<label htmlFor="adopter_state_province" className={labelBaseClasses}>State/Province *</label>
+								<label htmlFor="adopterStateProvince" className={labelBaseClasses}>State/Province *</label>
 								{/* Consider a dropdown for state if only serving specific areas */}
-								<input type="text" id="adopter_state_province" {...register("adopter_state_province", { required: "State/Province is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopter_state_province)}`} />
-								{errors.adopter_state_province && <p className={errorTextClasses}>{errors.adopter_state_province.message}</p>}
+								<input type="text" id="adopterStateProvince" {...register("adopterStateProvince", { required: "State/Province is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopterStateProvince)}`} />
+								{errors.adopterStateProvince && <p className={errorTextClasses}>{errors.adopterStateProvince.message}</p>}
 							</div>
 							<div>
-								<label htmlFor="adopter_zip_postal_code" className={labelBaseClasses}>Zip/Postal Code *</label>
-								<input type="text" id="adopter_zip_postal_code" {...register("adopter_zip_postal_code", { required: "Zip/Postal Code is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopter_zip_postal_code)}`} />
-								{errors.adopter_zip_postal_code && <p className={errorTextClasses}>{errors.adopter_zip_postal_code.message}</p>}
+								<label htmlFor="adopterZipPostalCode" className={labelBaseClasses}>Zip/Postal Code *</label>
+								<input type="text" id="adopterZipPostalCode" {...register("adopterZipPostalCode", { required: "Zip/Postal Code is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adopterZipPostalCode)}`} />
+								{errors.adopterZipPostalCode && <p className={errorTextClasses}>{errors.adopterZipPostalCode.message}</p>}
 							</div>
 						</div>
 
@@ -293,9 +273,9 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 						<h4 className={sectionTitleClasses}>Adoption Details</h4>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 							<div>
-								<label htmlFor="adoption_date" className={labelBaseClasses}>Adoption Date *</label>
-								<input type="date" id="adoption_date" {...register("adoption_date", { required: "Adoption date required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adoption_date)}`} />
-								{errors.adoption_date && <p className={errorTextClasses}>{errors.adoption_date.message}</p>}
+								<label htmlFor="adoptionDate" className={labelBaseClasses}>Adoption Date *</label>
+								<input type="date" id="adoptionDate" {...register("adoptionDate", { required: "Adoption date required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adoptionDate)}`} />
+								{errors.adoptionDate && <p className={errorTextClasses}>{errors.adoptionDate.message}</p>}
 							</div>
 						</div>
 						<div>

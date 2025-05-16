@@ -22,8 +22,7 @@ async function fetchFosterableAnimals(
 	const queryParams = new URLSearchParams();
 
 	// Define statuses that are considered "fosterable"
-	// Adjust these based on your actual adoption statuses
-	const fosterableStatuses = ['Available', 'Not Yet Available', 'Needs Assessment'];
+	const fosterableStatuses = ['Not Yet Available', 'Available', 'Adoption Pending'];
 	queryParams.append('adoption_status', fosterableStatuses.join(','));
 	queryParams.append('isNotFostered', 'true');
 	queryParams.append('sortBy', 'name_asc');

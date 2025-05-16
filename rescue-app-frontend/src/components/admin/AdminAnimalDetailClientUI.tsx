@@ -22,6 +22,7 @@ import ProcessReturnForm from '@/components/admin/ProcessReturnForm';
 import FinalizeAdoptionForm from '@/components/admin/FinalizeAdoptionForm';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import DocumentUploadForm from '@/components/admin/DocumentUploadForm';
+import ReturnFromFosterModal from './ReturnFromFosterModal';
 import Modal from '@/components/Modal';
 import SelectFosterForAnimalModal from '@/components/admin/SelectFosterForAnimalModal';
 
@@ -162,6 +163,9 @@ export default function AdminAnimalDetailClientUI({
 			// Success
 			setIsDeleteConfirmOpen(false);
 			setSelectedAnimal(null);
+
+			// Redirect to /admin/manage-animals
+			router.push('/admin/manage-animals');
 		} catch (err) {
 			console.error("Delete error:", err);
 			setErrorData(err instanceof Error ? err.message : 'Failed to delete animal');
@@ -318,11 +322,10 @@ export default function AdminAnimalDetailClientUI({
 	// Determine if "Place with Foster" button should be shown
 	const canBePlacedInFoster = animal &&
 		!animal.currentFosterUserId && // Not already with a foster
-		['Available', 'Not Yet Available', 'Needs Assessment', 'Medical Evaluation', 'Behavioral Evaluation', 'Quarantine'].includes(animal.adoptionStatus ?? '');
+		['Not Yet Available', 'Available', 'Adoption Pending'].includes(animal.adoptionStatus ?? '');
 
 	// Determine if "Return from Foster" button should be shown (this is for returning the current animal)
 	const canBeReturnedFromFoster = animal && animal.currentFosterUserId && animal.adoptionStatus?.toLowerCase().includes('foster');
-
 
 	return (
 		<>
@@ -413,7 +416,7 @@ export default function AdminAnimalDetailClientUI({
 								)}
 
 								{/* Place with Foster Button - Conditional */}
-								{['Admin', 'Staff'].includes(currentUserRole ?? '') && (!animal.adoptionStatus?.toLowerCase().includes('foster')) && (
+								{['Admin', 'Staff'].includes(currentUserRole ?? '') && canBePlacedInFoster && (
 									<button onClick={handleOpenPlaceWithFosterModal}
 										className="text-text-on-accent-alt bg-accent-alt-700 hover:bg-accent-alt-900 transition duration-300 rounded-md shadow py-3 px-6"
 										title="Place with Foster">
@@ -457,7 +460,7 @@ export default function AdminAnimalDetailClientUI({
 								)}
 
 								{/* Delete Button - Conditional */}
-								{currentUserRole === 'Admin' && (
+								{currentUserRole === 'Admin' && ['Not Yet Available'].includes(animal.adoptionStatus ?? '') && (
 									<button onClick={() => handleDeleteClick(animal)} className="text-text-on-accent bg-accent-700 hover:bg-accent-900 transition duration-300 rounded-md shadow py-3 px-6" title="Delete">
 										<span className="flex items-center space-x-2">
 											<TrashIcon className="w-5 h-5 inline" />
