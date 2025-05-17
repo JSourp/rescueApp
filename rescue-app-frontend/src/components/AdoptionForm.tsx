@@ -5,6 +5,40 @@ import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import { InformationCircleIcon, SuccessCheckmarkIcon } from "@/components/Icons";
 
+const ADOPTION_AGREEMENT_TEXT = `
+Adoption Agreement & Waiver of Liability
+
+I, the undersigned ("Adopter"), in consideration of being allowed to adopt an animal from Second Chance Animal Rescue & Sanctuary ("SCARS"), located in Arizona, understand and agree to the following terms and conditions. I acknowledge that this agreement applies to the animal I am applying to adopt, and will apply to any animal I ultimately adopt from SCARS.
+
+**1. Adopter's Responsibilities & Commitments:**
+    a.  I am at least 18 years of age and have the legal capacity to enter into this agreement. All information I have provided in my adoption application is true and complete to the best of my knowledge.
+    b.  I will provide the adopted animal with humane care, including proper and sufficient food, fresh water at all times, clean and safe shelter from the elements, regular exercise, and kind, compassionate companionship.
+    c.  I will provide the adopted animal with all necessary veterinary care, including routine preventative care (vaccinations, parasite control, dental care as recommended by a veterinarian) and prompt treatment for any illness or injury. I understand I am fully responsible for all veterinary expenses incurred after the adoption is finalized. SCARS recommends a wellness visit with my veterinarian within 7-14 days post-adoption.
+    d.  I will ensure the adopted animal wears a collar with current identification tags (including my contact information and any required rabies or license tags) at all times. I will keep any microchip registration information current.
+    e.  I will provide a safe and secure environment for the adopted animal, taking precautions to prevent escape, injury, or theft. I will not allow the animal to roam unsupervised or violate any local leash laws or animal control ordinances.
+    f.  I will not use the adopted animal for fighting, experimentation, or any illegal or unethical purposes. I will not subject the animal to cruelty, abuse, or neglect.
+    g.  If I am renting or live in a community with pet restrictions, I confirm that I have permission from my landlord or HOA to have an animal of this type, breed (if known), and size, and I agree to comply with any and all pet policies.
+
+**2. SCARS's Disclosures:**
+    a.  I understand that any animal I adopt from SCARS is adopted "as-is." While SCARS will provide all known history regarding the animal's health and behavior (based on information available to SCARS), SCARS makes no explicit or implicit guarantees or warranties regarding the animal's future health, temperament, or behavior.
+    b.  I acknowledge that SCARS has made me aware of any known medical conditions or treatments the animal has received while in SCARS's care, and any known behavioral issues observed.
+
+**3. Terms of Adoption:**
+    a.  I agree that if the animal is not already spayed/neutered at the time of adoption (e.g., due to age or medical condition), I will comply with all SCARS requirements and legal obligations to have the animal sterilized by the agreed-upon date and will provide SCARS with proof of such sterilization.
+    b.  **Return Obligation:** I understand that SCARS is committed to the lifelong welfare of the animals it places. If, at any time in the future, I am unable or unwilling to continue to care for the adopted animal, I **MUST** contact SCARS immediately to arrange for the animal's return to SCARS. I agree that I will **NOT** sell, trade, give away, abandon, surrender to another shelter or pound, or otherwise dispose of the animal without the prior express written consent of SCARS.
+    c.  **Right to Reclaim:** I understand and agree that SCARS retains the right to reclaim the animal if I am found to be in breach of any terms of this Agreement, or if SCARS, in its reasonable discretion, determines that the animal is being neglected, abused, is at risk, or is not receiving adequate care.
+    d.  **Contact Information:** I agree to notify SCARS of any change in my address or primary phone number for the lifetime of the animal.
+    e.  **Lost Animal:** If the adopted animal becomes lost, I agree to make immediate and diligent efforts to locate the animal and to notify SCARS and local animal control authorities within 24 hours of the animal going missing.
+
+**4. Waiver of Liability & Indemnification:**
+    a.  I understand that animals, regardless of their known history or behavior in the shelter/foster environment, can be unpredictable. I acknowledge and assume all risks associated with owning and caring for the adopted animal, including but not limited to the risk of bites, scratches, disease transmission, or property damage.
+    b.  I hereby release, discharge, and agree to hold harmless SCARS, its directors, officers, employees, volunteers, and agents from any and all claims, lawsuits, demands, causes of action, losses, damages, liabilities, costs, and expenses (including but not limited to attorney's fees and veterinary expenses) of any kind whatsoever, whether known or unknown, which may arise from or be connected in any way with the adoption, ownership, care, behavior, or condition of the adopted animal.
+    c.  I agree to indemnify, defend, and hold SCARS harmless from and against any and all third-party claims, lawsuits, damages, losses, liabilities, costs, and expenses (including reasonable attorney's fees) arising out of or related to my ownership, possession, or control of the adopted animal, or any act or omission of the adopted animal while in my care.
+
+**5. Agreement:**
+    I acknowledge that I have read this Adoption Agreement & Waiver of Liability in its entirety, I fully understand its terms and conditions, and I agree to be bound by them. I enter into this agreement voluntarily and with full knowledge of its significance. My typed name below will constitute my electronic signature and will be as legally binding as a handwritten signature.
+`;
+
 // Define the shape of your form data
 interface AdoptionFormData {
   // Applicant Information
@@ -57,6 +91,10 @@ interface AdoptionFormData {
 
   // Additional Information
   how_heard?: string;
+
+  // Waiver
+  waiver_agreed: boolean;
+  e_signature_name: string;
 
   // Submission related
   subject: string;
@@ -112,6 +150,8 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
       current_pets_vaccinations: '',
       hours_alone_per_day: '',
       prepared_for_costs: '',
+      waiver_agreed: false,
+      e_signature_name: '',
     }
   });
 
@@ -130,6 +170,18 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
     // Add any additional frontend validation if needed
     if (data.rent_or_own === 'Rent' && !data.landlord_permission) {
       setSubmitMessage("Please confirm you have landlord permission if you are renting.");
+      return;
+    }
+
+    // --- Client-side validation for waiver ---
+    if (!data.waiver_agreed) {
+      setSubmitMessage("You must agree to the waiver terms to submit the application.");
+      document.getElementById("waiver_agreed")?.focus();
+      return;
+    }
+    if (data.waiver_agreed && (!data.e_signature_name || data.e_signature_name.trim() === '')) {
+      setSubmitMessage("Please type your full name as your electronic signature to agree to the waiver.");
+      document.getElementById("e_signature_name")?.focus();
       return;
     }
 
@@ -609,6 +661,57 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
             <div className="mb-4">
               <label htmlFor="how_heard" className={labelBaseClasses}>How did you hear about us? (Optional)</label>
               <input type="text" id="how_heard" {...register("how_heard")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.how_heard)}`} />
+            </div>
+
+            {/* --- Waiver Section --- */}
+            <hr className="my-6 border-gray-300 dark:border-gray-600" />
+            <h4 className={sectionTitleClasses}>
+              Adoption Agreement & Waiver
+              <TooltipButton content="Please read and agree to the terms to become an adopter." label="More info about adoption agreement" />
+            </h4>
+            <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-md border border-gray-300 dark:border-gray-600">
+              <h5 className="font-semibold mb-2 text-gray-800 dark:text-gray-200">Waiver and Liability Agreement:</h5>
+              <div className="prose prose-sm dark:prose-invert max-h-60 overflow-y-auto p-2 border dark:border-gray-500 rounded bg-white dark:bg-gray-700/50 mb-3">
+                <pre className="whitespace-pre-wrap font-sans">{ADOPTION_AGREEMENT_TEXT}</pre>
+              </div>
+
+              <div className="mb-4">
+                <label htmlFor="waiver_agreed" className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id="waiver_agreed"
+                    {...register("waiver_agreed", { required: "You must agree to the terms." })}
+                    className={`${checkboxInputClasses} ${errors.waiver_agreed ? 'border-red-500' : ''}`}
+                  />
+                  <span className={`${checkboxLabelClasses} ml-2`}>
+                    I have read, understand, and agree to the Adopter Agreement and Waiver of Liability terms stated above. *
+                  </span>
+                </label>
+                {errors.waiver_agreed && <p className={errorTextClasses}>{errors.waiver_agreed.message}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="e_signature_name" className={labelBaseClasses}>
+                  Electronic Signature (Type Full Name) *
+                  <TooltipButton content="Typing your full name here acts as your electronic signature, confirming your agreement." label="More info about electronic signature" />
+                </label>
+                <input
+                  type="text"
+                  id="e_signature_name"
+                  {...register("e_signature_name", {
+                    required: "Please type your full name as your signature.",
+                    validate: (value, formValues) => {
+                      if (formValues.waiver_agreed && (!value || value.trim() === '')) {
+                        return "Signature is required if waiver is agreed.";
+                      }
+                      return true;
+                    }
+                  })}
+                  className={`${inputBaseClasses} ${inputBorderClasses(!!errors.e_signature_name)}`}
+                  placeholder="Type your full legal name"
+                />
+                {errors.e_signature_name && <p className={errorTextClasses}>{errors.e_signature_name.message}</p>}
+              </div>
             </div>
 
             {/* Submit/Cancel Buttons */}

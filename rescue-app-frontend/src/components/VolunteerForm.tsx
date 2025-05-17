@@ -5,6 +5,43 @@ import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import { InformationCircleIcon, SuccessCheckmarkIcon } from "@/components/Icons";
 
+const VOLUNTEER_WAIVER_TEXT = `
+Volunteer Agreement, Code of Conduct, & Waiver of Liability
+
+I, the undersigned ("Volunteer"), wish to offer my services as a volunteer to Second Chance Animal Rescue & Sanctuary ("SCARS"), a non-profit animal welfare organization located in Arizona. I understand that my services are provided on a voluntary basis, without pay or compensation, and with a commitment to supporting SCARS's mission.
+
+In consideration of being allowed to participate as a volunteer, I understand and agree to the following terms and conditions:
+
+**1. Volunteer Role & Responsibilities:**
+    a.  I agree to perform my volunteer duties to the best of my ability and to follow the guidance, policies, and procedures set forth by SCARS staff and designated representatives.
+    b.  I understand that volunteer activities may include, but are not limited to: animal care (feeding, grooming, cleaning enclosures), animal socialization and enrichment, dog walking, assisting with adoption events, fundraising activities, administrative tasks, facility maintenance, and other duties as assigned.
+    c.  I will attend any required orientation and training sessions related to my volunteer role(s) and will ask for clarification if I am unsure about any task or procedure.
+
+**2. Code of Conduct:**
+    a.  I will conduct myself in a professional, courteous, and respectful manner at all times when representing SCARS, interacting with staff, other volunteers, potential adopters, and the public.
+    b.  I will treat all animals in SCARS's care with kindness, patience, and respect, adhering to humane handling techniques as instructed.
+    c.  I will maintain the confidentiality of sensitive information I may become privy to regarding animals, adopters, donors, staff, other volunteers, or SCARS operations.
+    d.  I will adhere to my agreed-upon volunteer schedule and notify my SCARS contact in a timely manner if I am unable to fulfill a commitment.
+
+**3. Assumption of Risk:**
+    a.  I understand that working with and around animals involves inherent risks, regardless of the animal's known temperament or training. These risks include, but are not limited to: bites, scratches, kicks, stings, allergic reactions, slips, trips, falls, and potential exposure to zoonotic diseases (diseases transmissible from animals to humans).
+    b.  I acknowledge that SCARS will make reasonable efforts to provide a safe environment and disclose known risks associated with specific animals or tasks, but cannot guarantee that no injury or illness will occur.
+    c.  I knowingly and voluntarily assume all risks associated with my participation in volunteer activities for SCARS.
+
+**4. Waiver of Liability & Indemnification:**
+    a.  To the fullest extent permitted by law, I hereby release, discharge, and agree to hold harmless SCARS, its directors, officers, employees, other volunteers, and agents from any and all claims, demands, actions, causes of action, losses, damages, liabilities, costs, and expenses (including but not limited to attorney's fees and medical expenses) of any kind or nature whatsoever, whether known or unknown, which may arise from or be connected in any way with my volunteer activities, including any personal injury, illness, or property damage I may sustain. This release applies even if such injury or damage is caused by the negligence of SCARS (unless due to its gross negligence or willful misconduct).
+    b.  I agree to indemnify, defend, and hold SCARS harmless from and against any and all third-party claims, lawsuits, damages, losses, liabilities, costs, and expenses (including reasonable attorney's fees) arising out of or related to my actions or omissions as a volunteer.
+
+**5. Emergency Medical Treatment:**
+    In the event of an injury or medical emergency while I am performing volunteer duties, if I am unable to consent, I authorize SCARS to seek and obtain necessary emergency medical treatment on my behalf. I understand that I am solely responsible for any and all medical expenses incurred as a result of such treatment.
+
+**6. Photo/Media Release (Optional Clause - Include if desired):**
+    I grant SCARS permission to use my likeness in photographs, video recordings, or other media taken during my volunteer activities for SCARS's promotional, fundraising, or educational purposes, without payment or other consideration. (You may want a separate checkbox for this if you want it to be truly optional).
+
+**7. Termination of Volunteer Relationship:**
+    I understand that my volunteer relationship with SCARS is "at-will," meaning that either I or SCARS may terminate the relationship at any time, with or without cause or notice.
+`;
+
 // Reusable Tooltip Trigger
 const TooltipButton = ({ content, label }: { content: string, label: string }) => (
   <Tippy content={content} placement="top" animation="shift-away-subtle" interactive={true}>
@@ -47,6 +84,10 @@ interface VolunteerFormData {
   crime_conviction_check: 'Yes' | 'No' | ''; // Required Yes/No
   policy_acknowledgement: boolean; // Required Checkbox
 
+  // Waiver
+  waiver_agreed: boolean;
+  e_signature_name: string;
+
   // Submission related
   subject: string;
   botcheck?: string;
@@ -75,6 +116,8 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
       location_acknowledgement: false, volunteer_reason: '',
       emergency_contact_name: '', emergency_contact_phone: '',
       crime_conviction_check: '', policy_acknowledgement: false,
+      waiver_agreed: false,
+      e_signature_name: '',
     }
   });
 
@@ -109,6 +152,17 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
       // return;
     }
 
+    // --- Client-side validation for waiver ---
+    if (!data.waiver_agreed) {
+      setSubmitMessage("You must agree to the waiver terms to submit the application.");
+      document.getElementById("waiver_agreed")?.focus();
+      return;
+    }
+    if (data.waiver_agreed && (!data.e_signature_name || data.e_signature_name.trim() === '')) {
+      setSubmitMessage("Please type your full name as your electronic signature to agree to the waiver.");
+      document.getElementById("e_signature_name")?.focus();
+      return;
+    }
 
     try {
       if (data.botcheck) {
@@ -437,6 +491,56 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
               <input type="text" id="how_heard" {...register("how_heard")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.how_heard)}`} />
             </div>
 
+            {/* --- Waiver Section --- */}
+            <hr className="my-6 border-gray-300 dark:border-gray-600" />
+            <h4 className={sectionTitleClasses}>
+              Volunteer Agreement & Waiver
+              <TooltipButton content="Please read and agree to the terms to become a volunteer." label="More info about volunteer agreement" />
+            </h4>
+            <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-md border border-gray-300 dark:border-gray-600">
+              <h5 className="font-semibold mb-2 text-gray-800 dark:text-gray-200">Waiver and Liability Agreement:</h5>
+              <div className="prose prose-sm dark:prose-invert max-h-60 overflow-y-auto p-2 border dark:border-gray-500 rounded bg-white dark:bg-gray-700/50 mb-3">
+                <pre className="whitespace-pre-wrap font-sans">{VOLUNTEER_WAIVER_TEXT}</pre>
+              </div>
+
+              <div className="mb-4">
+                <label htmlFor="waiver_agreed" className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id="waiver_agreed"
+                    {...register("waiver_agreed", { required: "You must agree to the terms." })}
+                    className={`${checkboxInputClasses} ${errors.waiver_agreed ? 'border-red-500' : ''}`}
+                  />
+                  <span className={`${checkboxLabelClasses} ml-2`}>
+                    I have read, understand, and agree to the Volunteer Agreement and Waiver of Liability terms stated above. *
+                  </span>
+                </label>
+                {errors.waiver_agreed && <p className={errorTextClasses}>{errors.waiver_agreed.message}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="e_signature_name" className={labelBaseClasses}>
+                  Electronic Signature (Type Full Name) *
+                  <TooltipButton content="Typing your full name here acts as your electronic signature, confirming your agreement." label="More info about electronic signature" />
+                </label>
+                <input
+                  type="text"
+                  id="e_signature_name"
+                  {...register("e_signature_name", {
+                    required: "Please type your full name as your signature.",
+                    validate: (value, formValues) => {
+                      if (formValues.waiver_agreed && (!value || value.trim() === '')) {
+                        return "Signature is required if waiver is agreed.";
+                      }
+                      return true;
+                    }
+                  })}
+                  className={`${inputBaseClasses} ${inputBorderClasses(!!errors.e_signature_name)}`}
+                  placeholder="Type your full legal name"
+                />
+                {errors.e_signature_name && <p className={errorTextClasses}>{errors.e_signature_name.message}</p>}
+              </div>
+            </div>
 
             {/* Submit/Cancel Buttons */}
             <div className="flex justify-end gap-3 pt-6 border-t border-gray-300 dark:border-gray-700 mt-8">
