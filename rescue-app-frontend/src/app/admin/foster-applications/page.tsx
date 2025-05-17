@@ -404,6 +404,9 @@ export default function AdminFosterApplicationsPage() {
 								<p>Previous Pets: {applicationDetail.previousPetsDetails || 'N/A'}</p>
 								<p>Heard via: {applicationDetail.howHeard || 'N/A'}</p>
 
+								<h4 className="font-semibold mt-3 pt-2 border-t">Waver</h4>
+								{applicationDetail.waiverAgreed && <p>Waver Signed By: {applicationDetail.eSignatureName}</p>}
+
 								<h4 className="font-semibold mt-3 pt-2 border-t">Admin Review</h4>
 								<p>Status: {applicationDetail.status}</p>
 								<p>Reviewed By: {applicationDetail.reviewedByName || 'N/A'}</p>

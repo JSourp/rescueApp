@@ -53,5 +53,11 @@ namespace rescueApp.Models.Requests
         [Required][MaxLength(10)] public string? CanTransport { get; set; }
         public string? TransportExplanation { get; set; }
         public string? PreviousPetsDetails { get; set; }
+
+        // Foster Waver
+        [Required(ErrorMessage = "You must agree to the waiver terms to submit the application.")]
+        public bool WaiverAgreed { get; set; }
+        [MaxLength(255)]
+        public string? ESignatureName { get; set; }
     }
 }

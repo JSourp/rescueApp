@@ -1,10 +1,34 @@
-// src/components/FosterForm.tsx
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm, SubmitHandler } from "react-hook-form";
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import { InformationCircleIcon, SuccessCheckmarkIcon } from "@/components/Icons";
+
+const FOSTER_WAIVER_TEXT = `
+Foster Parent Agreement and Waiver of Liability
+
+I, the undersigned, wish to provide temporary foster care for an animal(s) from Second Chance Animal Rescue & Sanctuary ("SCARS").
+In consideration of being allowed to foster an animal, I agree to the following terms and conditions:
+
+1. Care of Animal: I will provide the foster animal(s) with humane care, including adequate food, water, shelter, and exercise,
+   and will follow all specific care instructions provided by SCARS.
+2. Veterinary Care: All veterinary care must be authorized by SCARS prior to treatment, except in cases of extreme emergency.
+   SCARS will be responsible for pre-approved veterinary expenses.
+3. Safety: I will keep the foster animal(s) in a safe and secure environment, and will not allow them to roam freely.
+   I will take all necessary precautions to prevent escape, injury, or illness.
+4. Return of Animal: I understand that the foster animal(s) remain the property of SCARS and I agree to return them to SCARS
+   upon request, or when a permanent adoptive home is found.
+5. Liability: I understand that animals can be unpredictable and may bite, scratch, or cause other injury or damage.
+   I agree to assume all risks associated with fostering an animal and release SCARS, its volunteers, employees, and agents
+   from any and all liability for any injury, illness, damage, or loss I or my property may sustain as a result of fostering.
+   This includes, but is not limited to, injuries or damages caused by the foster animal(s) to myself, members of my household,
+   my own pets, or any third parties or their property.
+6. Indemnification: I agree to indemnify and hold harmless SCARS from any claims, damages, costs, or expenses (including
+   attorney's fees) arising out of or related to my foster care activities.
+
+I have read this agreement carefully and fully understand its terms. I sign this agreement voluntarily and with full knowledge of its significance.
+`;
 
 // Define the shape of your foster form data
 interface FosterFormData {
@@ -56,6 +80,10 @@ interface FosterFormData {
 	previous_pets_details?: string;
 	transport_explanation?: string;
 
+	// Waiver
+	waiver_agreed: boolean;
+	e_signature_name: string;
+
 	// Submission related
 	subject: string;
 	botcheck?: string;
@@ -92,6 +120,8 @@ export default function FosterForm({ onClose }: FosterFormProps) {
 			current_pets_spayed_neutered: '', current_pets_vaccinations: '',
 			has_fostered_before: '', willing_medical: '', willing_behavioral: '',
 			commitment_length: '', can_transport: '', foster_animal_types: [],
+			waiver_agreed: false,
+			e_signature_name: '',
 		}
 	});
 
@@ -117,6 +147,18 @@ export default function FosterForm({ onClose }: FosterFormProps) {
 		if (!data.foster_animal_types || data.foster_animal_types.length === 0) {
 			setSubmitMessage("Please select at least one type of animal you are interested in fostering.");
 			return; // Or set focus to the field
+		}
+
+		// --- Client-side validation for waiver ---
+		if (!data.waiver_agreed) {
+			setSubmitMessage("You must agree to the waiver terms to submit the application.");
+			document.getElementById("waiver_agreed")?.focus();
+			return;
+		}
+		if (data.waiver_agreed && (!data.e_signature_name || data.e_signature_name.trim() === '')) {
+			setSubmitMessage("Please type your full name as your electronic signature to agree to the waiver.");
+			document.getElementById("e_signature_name")?.focus();
+			return;
 		}
 
 		try {
@@ -181,6 +223,10 @@ export default function FosterForm({ onClose }: FosterFormProps) {
 				canTransport: data.can_transport,
 				transportExplanation: data.transport_explanation,
 				previousPetsDetails: data.previous_pets_details,
+
+				// Waiver
+				waiverAgreed: data.waiver_agreed,
+				eSignatureName: data.e_signature_name,
 			};
 
 			console.log("Submitting Foster Application to backend:", dbPayload);
@@ -203,6 +249,8 @@ export default function FosterForm({ onClose }: FosterFormProps) {
 				const web3formsPayload = {
 					...data, // Send original snake_case form data to web3forms
 					foster_animal_types: data.foster_animal_types?.join(', '), // Ensure array is stringified
+					waiver_agreed: data.waiver_agreed ? 'Yes' : 'No',
+					e_signature_name: data.e_signature_name,
 					access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
 					from_name: "Rescue App Foster Application", // Customize as needed
 					subject: `New Foster Application: ${data.first_name} ${data.last_name}`, // More specific subject
@@ -677,6 +725,58 @@ export default function FosterForm({ onClose }: FosterFormProps) {
 						<div className="mb-4">
 							<label htmlFor="how_heard" className={labelBaseClasses}>How did you hear about our foster program? (Optional)</label>
 							<input type="text" id="how_heard" {...register("how_heard")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.how_heard)}`} />
+						</div>
+
+
+						{/* --- Waiver Section --- */}
+						<hr className="my-6 border-gray-300 dark:border-gray-600" />
+						<h4 className={sectionTitleClasses}>
+							Foster Agreement & Waiver
+							<TooltipButton content="Please read and agree to the terms to become a foster." label="More info about foster agreement" />
+						</h4>
+						<div className="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-md border border-gray-300 dark:border-gray-600">
+							<h5 className="font-semibold mb-2 text-gray-800 dark:text-gray-200">Waiver and Liability Agreement:</h5>
+							<div className="prose prose-sm dark:prose-invert max-h-60 overflow-y-auto p-2 border dark:border-gray-500 rounded bg-white dark:bg-gray-700/50 mb-3">
+								<pre className="whitespace-pre-wrap font-sans">{FOSTER_WAIVER_TEXT}</pre>
+							</div>
+
+							<div className="mb-4">
+								<label htmlFor="waiver_agreed" className="flex items-center cursor-pointer">
+									<input
+										type="checkbox"
+										id="waiver_agreed"
+										{...register("waiver_agreed", { required: "You must agree to the terms." })}
+										className={`${checkboxInputClasses} ${errors.waiver_agreed ? 'border-red-500' : ''}`}
+									/>
+									<span className={`${checkboxLabelClasses} ml-2`}>
+										I have read, understand, and agree to the Foster Agreement and Waiver of Liability terms stated above. *
+									</span>
+								</label>
+								{errors.waiver_agreed && <p className={errorTextClasses}>{errors.waiver_agreed.message}</p>}
+							</div>
+
+							<div>
+								<label htmlFor="e_signature_name" className={labelBaseClasses}>
+									Electronic Signature (Type Full Name) *
+									<TooltipButton content="Typing your full name here acts as your electronic signature, confirming your agreement." label="More info about electronic signature" />
+								</label>
+								<input
+									type="text"
+									id="e_signature_name"
+									{...register("e_signature_name", {
+										required: "Please type your full name as your signature.",
+										validate: (value, formValues) => {
+											if (formValues.waiver_agreed && (!value || value.trim() === '')) {
+												return "Signature is required if waiver is agreed.";
+											}
+											return true;
+										}
+									})}
+									className={`${inputBaseClasses} ${inputBorderClasses(!!errors.e_signature_name)}`}
+									placeholder="Type your full legal name"
+								/>
+								{errors.e_signature_name && <p className={errorTextClasses}>{errors.e_signature_name.message}</p>}
+							</div>
 						</div>
 
 

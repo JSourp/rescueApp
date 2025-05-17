@@ -56,9 +56,21 @@ namespace rescueApp
 
                 if (!isValid || appRequest == null)
                 {
-                    string errors = string.Join("; ", validationResults.Select(vr => $"{ (vr.MemberNames.Any() ? vr.MemberNames.First() : "Request")}: {vr.ErrorMessage}"));
+                    string errors = string.Join("; ", validationResults.Select(vr => $"{(vr.MemberNames.Any() ? vr.MemberNames.First() : "Request")}: {vr.ErrorMessage}"));
                     _logger.LogWarning("Foster application DTO validation failed. Errors: [{ValidationErrors}]. Body: {BodyPreview}", errors, requestBody.Substring(0, Math.Min(requestBody.Length, 500)));
                     return await CreateErrorResponse(req, HttpStatusCode.BadRequest, $"Invalid application data: {errors}");
+                }
+
+                // Specific check for waiver agreement
+                if (!appRequest!.WaiverAgreed)
+                {
+                    _logger.LogWarning("Foster application submission rejected: Waiver not agreed to. Email: {Email}", appRequest.PrimaryEmail);
+                    return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "You must agree to the waiver terms to submit the application.");
+                }
+                if (appRequest.WaiverAgreed && string.IsNullOrWhiteSpace(appRequest.ESignatureName))
+                {
+                    _logger.LogWarning("Foster application submission rejected: E-signature name missing despite waiver agreement. Email: {Email}", appRequest.PrimaryEmail);
+                    return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Please provide your full name as an electronic signature if you agree to the waiver.");
                 }
             }
             catch (JsonException jsonEx)
@@ -77,9 +89,6 @@ namespace rescueApp
             // Map DTO to Entity (using PascalCase for C# Model properties)
             var newApplication = new FosterApplication
             {
-                SubmissionDate = DateTime.UtcNow,
-                Status = "Pending Review", // Default status
-
                 FirstName = appRequest.FirstName!,
                 LastName = appRequest.LastName!,
                 SpousePartnerRoommate = appRequest.SpousePartnerRoommate,
@@ -119,8 +128,14 @@ namespace rescueApp
                 CommitmentLength = appRequest.CommitmentLength!,
                 CanTransport = appRequest.CanTransport!,
                 TransportExplanation = appRequest.TransportExplanation,
-                PreviousPetsDetails = appRequest.PreviousPetsDetails
-                // reviewed_by_user_id and review_date will be set by admin later
+                PreviousPetsDetails = appRequest.PreviousPetsDetails,
+                // --- Waiver agreement
+                WaiverAgreed = appRequest.WaiverAgreed,
+                ESignatureName = appRequest.ESignatureName,
+                WaiverAgreementTimestamp = appRequest.WaiverAgreed ? DateTime.UtcNow : (DateTime?)null,
+                // --- Submission tracking
+                SubmissionDate = DateTime.UtcNow,
+                Status = "Pending Review", // Default status
             };
 
             try

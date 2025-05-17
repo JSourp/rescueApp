@@ -61,6 +61,13 @@ namespace rescueApp.Models
 		public string? TransportExplanation { get; set; }
 		public string? PreviousPetsDetails { get; set; }
 
+		// Foster Waver
+		[Required] // Should always have a value, even if false initially
+		public bool WaiverAgreed { get; set; } = false;
+		[MaxLength(255)]
+		public string? ESignatureName { get; set; } // Name typed as signature
+		public DateTime? WaiverAgreementTimestamp { get; set; } // When they agreed
+
 		// Admin Review Fields
 		public Guid? ReviewedByUserId { get; set; }
 		public DateTime? ReviewDate { get; set; }

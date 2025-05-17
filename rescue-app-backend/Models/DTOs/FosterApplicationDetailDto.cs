@@ -57,6 +57,10 @@ namespace rescueApp.Models.DTOs
         public string? TransportExplanation { get; set; }
         public string? PreviousPetsDetails { get; set; }
 
+        // Foster Waiver
+        public bool WaiverAgreed { get; set; }
+        public string? ESignatureName { get; set; }
+
         // Admin Review Fields
         public Guid? ReviewedByUserId { get; set; }
         public string? ReviewedByName { get; set; } // For display

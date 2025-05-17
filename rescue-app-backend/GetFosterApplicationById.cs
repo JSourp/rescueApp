@@ -21,28 +21,28 @@ using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
-    public class GetFosterApplicationById
-    {
-        private readonly AppDbContext _dbContext;
-        private readonly ILogger<GetFosterApplicationById> _logger;
+	public class GetFosterApplicationById
+	{
+		private readonly AppDbContext _dbContext;
+		private readonly ILogger<GetFosterApplicationById> _logger;
 		private readonly string _auth0Domain = Environment.GetEnvironmentVariable("AUTH0_ISSUER_BASE_URL") ?? string.Empty;
 		private readonly string _auth0Audience = Environment.GetEnvironmentVariable("AUTH0_AUDIENCE") ?? string.Empty;
 		private static ConfigurationManager<OpenIdConnectConfiguration>? _configManager;
 		private static TokenValidationParameters? _validationParameters;
 
-        public GetFosterApplicationById(AppDbContext dbContext, ILogger<GetFosterApplicationById> logger)
-        {
+		public GetFosterApplicationById(AppDbContext dbContext, ILogger<GetFosterApplicationById> logger)
+		{
 			_dbContext = dbContext;
 			_logger = logger;
 			if (string.IsNullOrEmpty(_auth0Domain) || string.IsNullOrEmpty(_auth0Audience)) { _logger.LogError("Auth0 Domain/Audience not configured for GetFosterApplicationById."); }
-        }
+		}
 
-        [Function("GetFosterApplicationById")]
-        public async Task<AzureFuncHttp.HttpResponseData> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "foster-applications/{applicationId:int}")] AzureFuncHttp.HttpRequestData req,
-            int applicationId)
-        {
-            _logger.LogInformation("C# HTTP trigger function processed GetFosterApplicationById request for ID: {ApplicationId}.", applicationId);
+		[Function("GetFosterApplicationById")]
+		public async Task<AzureFuncHttp.HttpResponseData> Run(
+			[HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "foster-applications/{applicationId:int}")] AzureFuncHttp.HttpRequestData req,
+			int applicationId)
+		{
+			_logger.LogInformation("C# HTTP trigger function processed GetFosterApplicationById request for ID: {ApplicationId}.", applicationId);
 
 			User? currentUser;
 			ClaimsPrincipal? principal;
@@ -95,81 +95,83 @@ namespace rescueApp
 			}
 
 			// --- Get ---
-            try
-            {
-                var application = await _dbContext.FosterApplications
-                    .Include(app => app.ReviewedByUser) // Include user who reviewed it
-                    .FirstOrDefaultAsync(app => app.Id == applicationId); // Use PascalCase model property
+			try
+			{
+				var application = await _dbContext.FosterApplications
+					.Include(app => app.ReviewedByUser) // Include user who reviewed it
+					.FirstOrDefaultAsync(app => app.Id == applicationId); // Use PascalCase model property
 
-                if (application == null)
-                {
-                    return await CreateErrorResponse(req, HttpStatusCode.NotFound, $"Foster application with ID {applicationId} not found.");
-                }
+				if (application == null)
+				{
+					return await CreateErrorResponse(req, HttpStatusCode.NotFound, $"Foster application with ID {applicationId} not found.");
+				}
 
-                // Map Entity to DTO
-                var applicationDetailDto = new FosterApplicationDetailDto
-                {
-                    Id = application.Id,
-                    SubmissionDate = application.SubmissionDate,
-                    Status = application.Status,
-                    FirstName = application.FirstName,
-                    LastName = application.LastName,
-                    SpousePartnerRoommate = application.SpousePartnerRoommate,
-                    StreetAddress = application.StreetAddress,
-                    AptUnit = application.AptUnit,
-                    City = application.City,
-                    StateProvince = application.StateProvince,
-                    ZipPostalCode = application.ZipPostalCode,
-                    PrimaryPhone = application.PrimaryPhone,
-                    PrimaryPhoneType = application.PrimaryPhoneType,
-                    SecondaryPhone = application.SecondaryPhone,
-                    SecondaryPhoneType = application.SecondaryPhoneType,
-                    PrimaryEmail = application.PrimaryEmail,
-                    SecondaryEmail = application.SecondaryEmail,
-                    HowHeard = application.HowHeard,
-                    AdultsInHome = application.AdultsInHome,
-                    ChildrenInHome = application.ChildrenInHome,
-                    HasAllergies = application.HasAllergies,
-                    HouseholdAwareFoster = application.HouseholdAwareFoster,
-                    DwellingType = application.DwellingType,
-                    RentOrOwn = application.RentOrOwn,
-                    LandlordPermission = application.LandlordPermission,
-                    YardType = application.YardType,
-                    SeparationPlan = application.SeparationPlan,
-                    HasCurrentPets = application.HasCurrentPets,
-                    CurrentPetsDetails = application.CurrentPetsDetails,
-                    CurrentPetsSpayedNeutered = application.CurrentPetsSpayedNeutered,
-                    CurrentPetsVaccinations = application.CurrentPetsVaccinations,
-                    VetClinicName = application.VetClinicName,
-                    VetPhone = application.VetPhone,
-                    HasFosteredBefore = application.HasFosteredBefore,
-                    PreviousFosterDetails = application.PreviousFosterDetails,
-                    WhyFoster = application.WhyFoster,
-                    FosterAnimalTypes = application.FosterAnimalTypes,
-                    WillingMedical = application.WillingMedical,
-                    WillingBehavioral = application.WillingBehavioral,
-                    CommitmentLength = application.CommitmentLength,
-                    CanTransport = application.CanTransport,
-                    TransportExplanation = application.TransportExplanation,
-                    PreviousPetsDetails = application.PreviousPetsDetails,
-                    ReviewedByUserId = application.ReviewedByUserId,
-                    ReviewedByName = application.ReviewedByUser != null ? $"{application.ReviewedByUser.FirstName} {application.ReviewedByUser.LastName}" : null,
-                    ReviewDate = application.ReviewDate,
-                    InternalNotes = application.InternalNotes
-                };
+				// Map Entity to DTO
+				var applicationDetailDto = new FosterApplicationDetailDto
+				{
+					Id = application.Id,
+					SubmissionDate = application.SubmissionDate,
+					Status = application.Status,
+					FirstName = application.FirstName,
+					LastName = application.LastName,
+					SpousePartnerRoommate = application.SpousePartnerRoommate,
+					StreetAddress = application.StreetAddress,
+					AptUnit = application.AptUnit,
+					City = application.City,
+					StateProvince = application.StateProvince,
+					ZipPostalCode = application.ZipPostalCode,
+					PrimaryPhone = application.PrimaryPhone,
+					PrimaryPhoneType = application.PrimaryPhoneType,
+					SecondaryPhone = application.SecondaryPhone,
+					SecondaryPhoneType = application.SecondaryPhoneType,
+					PrimaryEmail = application.PrimaryEmail,
+					SecondaryEmail = application.SecondaryEmail,
+					HowHeard = application.HowHeard,
+					AdultsInHome = application.AdultsInHome,
+					ChildrenInHome = application.ChildrenInHome,
+					HasAllergies = application.HasAllergies,
+					HouseholdAwareFoster = application.HouseholdAwareFoster,
+					DwellingType = application.DwellingType,
+					RentOrOwn = application.RentOrOwn,
+					LandlordPermission = application.LandlordPermission,
+					YardType = application.YardType,
+					SeparationPlan = application.SeparationPlan,
+					HasCurrentPets = application.HasCurrentPets,
+					CurrentPetsDetails = application.CurrentPetsDetails,
+					CurrentPetsSpayedNeutered = application.CurrentPetsSpayedNeutered,
+					CurrentPetsVaccinations = application.CurrentPetsVaccinations,
+					VetClinicName = application.VetClinicName,
+					VetPhone = application.VetPhone,
+					HasFosteredBefore = application.HasFosteredBefore,
+					PreviousFosterDetails = application.PreviousFosterDetails,
+					WhyFoster = application.WhyFoster,
+					FosterAnimalTypes = application.FosterAnimalTypes,
+					WillingMedical = application.WillingMedical,
+					WillingBehavioral = application.WillingBehavioral,
+					CommitmentLength = application.CommitmentLength,
+					CanTransport = application.CanTransport,
+					TransportExplanation = application.TransportExplanation,
+					PreviousPetsDetails = application.PreviousPetsDetails,
+					WaiverAgreed = application.WaiverAgreed,
+					ESignatureName = application.ESignatureName,
+					ReviewedByUserId = application.ReviewedByUserId,
+					ReviewedByName = application.ReviewedByUser != null ? $"{application.ReviewedByUser.FirstName} {application.ReviewedByUser.LastName}" : null,
+					ReviewDate = application.ReviewDate,
+					InternalNotes = application.InternalNotes
+				};
 
 				// --- Return Response ---
 				var response = req.CreateResponse(HttpStatusCode.OK); // Return 200 OK
 				var jsonResponse = JsonSerializer.Serialize(applicationDetailDto, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 				await response.WriteStringAsync(jsonResponse);
 				return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error fetching foster application ID {ApplicationId}.", applicationId);
-                return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An error occurred.");
-            }
-        }
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Error fetching foster application ID {ApplicationId}.", applicationId);
+				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An error occurred.");
+			}
+		}
 
 		// --- Token Validation Logic shared helper/service ---
 		private async Task<ClaimsPrincipal?> ValidateTokenAndGetPrincipal(AzureFuncHttp.HttpRequestData req)
