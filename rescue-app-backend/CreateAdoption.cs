@@ -188,7 +188,19 @@ namespace rescueApp
                 }
 
 
-                // 7. Create AdoptionHistory Record
+                // 7. Update Animal's Status and Clear Foster ---
+                animalToAdopt.AdoptionStatus = "Adopted"; // Set to Adopted
+                if (animalToAdopt.CurrentFosterUserId != null)
+                {
+                    _logger.LogInformation("Animal ID {AnimalId} is being adopted. Clearing CurrentFosterUserId {FosterId}.",
+                        animalToAdopt.Id, animalToAdopt.CurrentFosterUserId);
+                    animalToAdopt.CurrentFosterUserId = null; // Clear foster ID
+                }
+                animalToAdopt.UpdatedByUserId = currentUser!.Id; // Audit who finalized adoption
+                animalToAdopt.DateUpdated = DateTime.UtcNow; // Or rely on DB trigger
+
+
+                // 8. Create AdoptionHistory Record
                 var utcNow = DateTime.UtcNow;
                 var newAdoptionRecord = new AdoptionHistory
                 {
@@ -205,10 +217,6 @@ namespace rescueApp
                     UpdatedByUserId = currentUser!.Id,
                 };
                 _dbContext.AdoptionHistories.Add(newAdoptionRecord);
-
-
-                // 8. Update Animal
-                animalToAdopt.AdoptionStatus = "Adopted";
 
 
                 // 9. Save ALL Changes ONCE

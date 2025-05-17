@@ -9,19 +9,19 @@ import { format } from 'date-fns'; // For default date
 import { adoptionStatuses } from '@/constants/adoptionStatuses'; // Import list of statuses
 
 // Define the shape of the form data
-interface ProcessReturnFormData {
+interface ProcessAdoptionReturnFormData {
 	return_date: string; // Input type="date" provides YYYY-MM-DD string
 	adoption_status: string;
 	notes?: string;
 }
 
-interface ProcessReturnFormProps {
+interface ProcessAdoptionReturnFormProps {
 	animal: Animal; // The animal being returned
 	onClose: () => void;
 	onReturnComplete: () => void; // Callback on success
 }
 
-export default function ProcessReturnForm({ animal, onClose, onReturnComplete }: ProcessReturnFormProps) {
+export default function ProcessAdoptionReturnForm({ animal, onClose, onReturnComplete }: ProcessAdoptionReturnFormProps) {
 	const [apiError, setApiError] = useState<string | null>(null);
 	const [isSuccess, setIsSuccess] = useState<boolean>(false);
 	const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -31,7 +31,7 @@ export default function ProcessReturnForm({ animal, onClose, onReturnComplete }:
 		handleSubmit,
 		reset,
 		formState: { errors, isSubmitting }, // Use isSubmitting from RHF
-	} = useForm<ProcessReturnFormData>({
+	} = useForm<ProcessAdoptionReturnFormData>({
 		mode: 'onTouched',
 		defaultValues: {
 			return_date: format(new Date(), 'yyyy-MM-dd'), // Default to today
@@ -40,7 +40,7 @@ export default function ProcessReturnForm({ animal, onClose, onReturnComplete }:
 		},
 	});
 
-	const handleProcessReturn: SubmitHandler<ProcessReturnFormData> = async (formData) => {
+	const handleProcessReturn: SubmitHandler<ProcessAdoptionReturnFormData> = async (formData) => {
 		if (isProcessing) return; // Use manual flag if preferred, but isSubmitting works too
 		setIsProcessing(true); // Indicate processing
 		setApiError(null);

@@ -7,7 +7,7 @@ import { format } from 'date-fns'; // For formatting dates
 import { Container } from '@/components/Container';
 import AddAnimalForm from '@/components/admin/AddAnimalForm';
 import EditAnimalForm from '@/components/admin//EditAnimalForm';
-import ProcessReturnForm from '@/components/admin/ProcessReturnForm';
+import ProcessAdoptionReturnForm from '@/components/admin/ProcessAdoptionReturnForm';
 import FinalizeAdoptionForm from '@/components/admin/FinalizeAdoptionForm';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import Modal from '@/components/Modal';
@@ -121,7 +121,7 @@ export default function AdminAnimalsPage() {
 	const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
 	const [animalIdToEdit, setAnimalIdToEdit] = useState<number | null>(null); // Stores only the ID
 	const [animalNameToEdit, setAnimalNameToEdit] = useState<string | null>(null); // Stores name for modal title
-	const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+	const [isAdoptionReturnModalOpen, setisAdoptionReturnModalOpen] = useState(false);
 	const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
 	const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState<boolean>(false);
 	const [isDeleting, setIsDeleting] = useState<boolean>(false); // Loading state for delete
@@ -246,16 +246,16 @@ export default function AdminAnimalsPage() {
 		setAnimalNameToEdit(null);
 	};
 
-	const handleReturnCompletion = () => {
+	const handleAdoptionReturnSuccess = () => {
 		console.log("Return finalized, closing modal and refreshing list.");
-		setIsReturnModalOpen(false); // Close the return modal
+		setisAdoptionReturnModalOpen(false); // Close the return modal
 		setSelectedAnimal(null); // Clear the selected animal
 		loadAnimals(); // Refresh the animal list
 	};
 
-	const handleReturnClick = (animal: AnimalListItem) => {
+	const handleOpenAdoptionReturnModal = (animal: AnimalListItem) => {
 		setSelectedAnimal(animal);
-		setIsReturnModalOpen(true);
+		setisAdoptionReturnModalOpen(true);
 	};
 
 	const handleFinalizeClick = (animal: AnimalListItem) => {
@@ -485,7 +485,7 @@ export default function AdminAnimalsPage() {
 												)}
 												{/* Process Return Button - Conditional */}
 												{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Adopted'].includes(animalItem.adoptionStatus ?? '') && (
-													<button onClick={() => handleReturnClick(animalItem)} className="text-green-600 hover:text-green-900 ..." title="Process Return">
+													<button onClick={() => handleOpenAdoptionReturnModal(animalItem)} className="text-green-600 hover:text-green-900 ..." title="Process Return">
 														<ArrowUturnLeftIcon className="w-5 h-5 inline" />
 													</button>
 												)}
@@ -535,12 +535,12 @@ export default function AdminAnimalsPage() {
 				</Modal>
 			)}
 
-			{isReturnModalOpen && selectedAnimal && (
-				<Modal onClose={() => { setIsReturnModalOpen(false); setSelectedAnimal(null); }}>
-					<ProcessReturnForm
+			{isAdoptionReturnModalOpen && selectedAnimal && (
+				<Modal onClose={() => { setisAdoptionReturnModalOpen(false); setSelectedAnimal(null); }}>
+					<ProcessAdoptionReturnForm
 						animal={selectedAnimal}
-						onClose={() => { setIsReturnModalOpen(false); setSelectedAnimal(null); }}
-						onReturnComplete={handleReturnCompletion}
+						onClose={() => { setisAdoptionReturnModalOpen(false); setSelectedAnimal(null); }}
+						onReturnComplete={handleAdoptionReturnSuccess}
 					/>
 				</Modal>
 			)}

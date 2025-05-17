@@ -18,7 +18,7 @@ import {
 import { HomeIcon } from '@heroicons/react/20/solid';
 import { calculateAge } from "@/components/data";
 import EditAnimalForm from '@/components/admin/EditAnimalForm';
-import ProcessReturnForm from '@/components/admin/ProcessReturnForm';
+import ProcessAdoptionReturnForm from '@/components/admin/ProcessAdoptionReturnForm';
 import FinalizeAdoptionForm from '@/components/admin/FinalizeAdoptionForm';
 import ConfirmDeleteModal from '@/components/admin/ConfirmDeleteModal';
 import DocumentUploadForm from '@/components/admin/DocumentUploadForm';
@@ -91,7 +91,8 @@ export default function AdminAnimalDetailClientUI({
 	const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
 	const [animalIdToEdit, setAnimalIdToEdit] = useState<number | null>(null); // Stores only the ID
 	const [animalNameToEdit, setAnimalNameToEdit] = useState<string | null>(null); // Stores name for modal title
-	const [isReturnModalOpen, setIsReturnModalOpen] = useState<boolean>(false);
+	const [isAdoptionReturnModalOpen, setIsAdoptionReturnModalOpen] = useState<boolean>(false);
+	const [animalForAdoptionReturn, setAnimalForAdoptionReturn] = useState<Animal | null>(null);
 	const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState<boolean>(false);
 	const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 	const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState<boolean>(false);
@@ -105,6 +106,7 @@ export default function AdminAnimalDetailClientUI({
 	const [isDeletingDoc, setIsDeletingDoc] = useState<boolean>(false);
 	const [deleteDocError, setDeleteDocError] = useState<string | null>(null);
 	const [isPlaceWithFosterModalOpen, setIsPlaceWithFosterModalOpen] = useState(false);
+	const [isCurrentFosterReturnModalOpen, setIsCurrentFosterReturnModalOpen] = useState(false);
 
 	// --- Data Refresh Function ---
 	const router = useRouter(); // Initialize router for refresh
@@ -133,12 +135,36 @@ export default function AdminAnimalDetailClientUI({
 		setAnimalNameToEdit(null);
 	};
 	const handleAnimalUpdated = () => { setIsEditModalOpen(false); setSelectedAnimal(null); handleDataRefresh(); };
-	const handleReturnClick = (animal: Animal) => { setSelectedAnimal(animal); setIsReturnModalOpen(true); };
-	const handleReturnCompletion = () => { setIsReturnModalOpen(false); setSelectedAnimal(null); handleDataRefresh(); };
 	const handleFinalizeClick = (animal: Animal) => { setSelectedAnimal(animal); setIsFinalizeModalOpen(true); };
 	const handleAdoptionComplete = () => { setIsFinalizeModalOpen(false); setSelectedAnimal(null); handleDataRefresh(); };
 	const handleDeleteClick = (animal: Animal) => { setSelectedAnimal(animal); setIsDeleteConfirmOpen(true); };
 	const handleCloseDeleteConfirm = () => { setIsDeleteConfirmOpen(false); setSelectedAnimal(null); };
+
+	const handleOpenAdoptionReturnModal = (animal: Animal) => {
+		setAnimalForAdoptionReturn(animal);
+		setIsAdoptionReturnModalOpen(true);
+	};
+	const handleCloseAdoptionReturnModal = () => {
+		setAnimalForAdoptionReturn(null);
+		setIsAdoptionReturnModalOpen(false);
+	};
+	const handleAdoptionReturnSuccess = () => {
+		handleCloseAdoptionReturnModal();
+		router.refresh();
+	};
+
+	const handleOpenCurrentFosterReturnModal = () => {
+		if (animal) {
+			setIsCurrentFosterReturnModalOpen(true);
+		}
+	};
+	const handleCloseCurrentFosterReturnModal = () => {
+		setIsCurrentFosterReturnModalOpen(false);
+	};
+	const handleCurrentFosterReturnSuccess = () => {
+		handleCloseCurrentFosterReturnModal();
+		router.refresh();
+	};
 
 	const handleConfirmDelete = async (animalId: number) => {
 		if (!animal || animalId !== animal.id) return;
@@ -325,7 +351,7 @@ export default function AdminAnimalDetailClientUI({
 		['Not Yet Available', 'Available', 'Adoption Pending'].includes(animal.adoptionStatus ?? '');
 
 	// Determine if "Return from Foster" button should be shown (this is for returning the current animal)
-	const canBeReturnedFromFoster = animal && animal.currentFosterUserId && animal.adoptionStatus?.toLowerCase().includes('foster');
+	const isCurrentlyFostered = animal && animal.currentFosterUserId && animal.adoptionStatus?.toLowerCase().includes('foster');
 
 	return (
 		<>
@@ -428,10 +454,11 @@ export default function AdminAnimalDetailClientUI({
 								)}
 
 								{/* Return from Foster Button - Conditional */}
-								{['Admin', 'Staff'].includes(currentUserRole ?? '') && (animal.adoptionStatus?.toLowerCase().includes('foster')) && (
-									<button onClick={() => handleReturnClick(animal)}
+								{['Admin', 'Staff'].includes(currentUserRole ?? '') && isCurrentlyFostered && (
+									<button
+										onClick={handleOpenCurrentFosterReturnModal}
 										className="text-text-on-accent-alt bg-accent-alt-700 hover:bg-accent-alt-900 transition duration-300 rounded-md shadow py-3 px-6"
-										title="Return from Foster">
+										title={`Return from Foster`}>
 										<span className="flex items-center space-x-2">
 											<ArrowUturnLeftIcon className="w-5 h-5 inline" />
 											<span>Return from Foster</span>
@@ -439,12 +466,15 @@ export default function AdminAnimalDetailClientUI({
 									</button>
 								)}
 
-								{/* Process Return Button - Conditional */}
+								{/* Process Adoption Return Button - Conditional */}
 								{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Adopted'].includes(animal.adoptionStatus ?? '') && (
-									<button onClick={() => handleReturnClick(animal)} className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow py-3 px-6" title="Process Return">
+									<button
+										onClick={() => handleOpenAdoptionReturnModal(animal)}
+										className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow py-3 px-6"
+										title="Process Return from Adoption">
 										<span className="flex items-center space-x-2">
 											<ArrowUturnLeftIcon className="w-5 h-5 inline" />
-											<span>Process Return</span>
+											<span>Process Adoption Return</span>
 										</span>
 									</button>
 								)}
@@ -560,13 +590,10 @@ export default function AdminAnimalDetailClientUI({
 			</Container>
 
 			{/* --- Modals --- */}
-			{isEditModalOpen && animalIdToEdit !== null && ( // Ensure animalIdToEdit is not null
+			{isEditModalOpen && animalIdToEdit !== null && (
 				<Modal onClose={handleCloseEditModal}>
-					{/* Create EditAnimalForm component below */}
 					<EditAnimalForm
-						animalId={animalIdToEdit} // Pass the ID
-						// Pass the initial name for display purposes in the form's header
-						// The EditAnimalForm will then fetch its own full data
+						animalId={animalIdToEdit}
 						initialAnimalName={animalNameToEdit}
 						onClose={() => { setIsEditModalOpen(false); setSelectedAnimal(null); }}
 						onAnimalUpdated={handleAnimalUpdated}
@@ -574,19 +601,29 @@ export default function AdminAnimalDetailClientUI({
 				</Modal>
 			)}
 
-			{isReturnModalOpen && selectedAnimal && (
-				<Modal onClose={() => { setIsReturnModalOpen(false); setSelectedAnimal(null); }}>
-					<ProcessReturnForm
-						animal={selectedAnimal}
-						onClose={() => { setIsReturnModalOpen(false); setSelectedAnimal(null); }}
-						onReturnComplete={handleReturnCompletion}
+			{isAdoptionReturnModalOpen && animalForAdoptionReturn && (
+				<Modal onClose={handleCloseAdoptionReturnModal} preventBackdropClickClose={true}>
+					<ProcessAdoptionReturnForm
+						animal={animalForAdoptionReturn}
+						onClose={handleCloseAdoptionReturnModal}
+						onReturnComplete={handleAdoptionReturnSuccess}
+					/>
+				</Modal>
+			)}
+
+			{isCurrentFosterReturnModalOpen && animal && (
+				<Modal onClose={handleCloseCurrentFosterReturnModal} preventBackdropClickClose={true}>
+					<ReturnFromFosterModal
+						animal={{ id: animal.id, name: animal.name, animalType: animal.animalType, adoptionStatus: animal.adoptionStatus }}
+						fosterName={animal.currentFosterName || "their current foster"}
+						onClose={handleCloseCurrentFosterReturnModal}
+						onReturnSuccess={handleCurrentFosterReturnSuccess}
 					/>
 				</Modal>
 			)}
 
 			{isFinalizeModalOpen && selectedAnimal && (
 				<Modal onClose={() => { setIsFinalizeModalOpen(false); setSelectedAnimal(null); }}>
-					{/* Create FinalizeAdoptionForm component below */}
 					<FinalizeAdoptionForm
 						animal={selectedAnimal}
 						onClose={() => { setIsFinalizeModalOpen(false); setSelectedAnimal(null); }}
@@ -597,13 +634,12 @@ export default function AdminAnimalDetailClientUI({
 
 			{isDeleteConfirmOpen && selectedAnimal && (
 				<Modal onClose={handleCloseDeleteConfirm}>
-					{/* Create ConfirmDeleteModal component below */}
 					<ConfirmDeleteModal
 						itemType='animal'
 						itemName={selectedAnimal.name ?? 'this animal'}
 						onClose={handleCloseDeleteConfirm}
 						onConfirmDelete={() => handleConfirmDelete(selectedAnimal.id)}
-						isDeleting={isDeleting} // Pass deletion state
+						isDeleting={isDeleting}
 					/>
 				</Modal>
 			)}
@@ -612,7 +648,7 @@ export default function AdminAnimalDetailClientUI({
 				<Modal onClose={() => setIsUploadModalOpen(false)}>
 					<DocumentUploadForm
 						animalId={animal.id}
-						animalName={animal.name ?? undefined} // Pass name for display
+						animalName={animal.name ?? undefined}
 						onClose={() => setIsUploadModalOpen(false)}
 						onUploadComplete={handleDocumentUploaded}
 					/>
@@ -623,16 +659,15 @@ export default function AdminAnimalDetailClientUI({
 				<Modal onClose={handleCloseDocDeleteConfirm}>
 					<ConfirmDeleteModal
 						itemType='document'
-						itemName={selectedDocument.fileName ?? 'this document'} // Use file_name
+						itemName={selectedDocument.fileName ?? 'this document'}
 						onClose={handleCloseDocDeleteConfirm}
-						onConfirmDelete={handleConfirmDocDelete} // Call the new handler
-						isDeleting={isDeletingDoc} // Pass the specific deleting state
-						errorMessage={deleteDocError} // Pass error message to display in modal
+						onConfirmDelete={handleConfirmDocDelete}
+						isDeleting={isDeletingDoc}
+						errorMessage={deleteDocError}
 					/>
 				</Modal>
 			)}
 
-			{/* --- Place Animal With Foster Modal --- */}
 			{isPlaceWithFosterModalOpen && animal && (
 				<Modal onClose={handleClosePlaceWithFosterModal} preventBackdropClickClose={true}>
 					<SelectFosterForAnimalModal
