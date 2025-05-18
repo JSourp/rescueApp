@@ -18,7 +18,7 @@ async function fetchSingleFosterApplication(applicationId: number, accessToken: 
 		console.error("fetchSingleFosterApplication: Missing API base URL or access token.");
 		return null;
 	}
-	const url = `${apiBaseUrl}/foster-applications/${applicationId}`; // Matches backend GetFosterApplicationById
+	const url = `${apiBaseUrl}/foster-applications/${applicationId}`;
 	try {
 		const response = await fetch(url, {
 			headers: { 'Authorization': `Bearer ${accessToken}` },

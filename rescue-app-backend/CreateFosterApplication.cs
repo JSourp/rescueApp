@@ -145,9 +145,6 @@ namespace rescueApp
                 _logger.LogInformation("New foster application submitted successfully. ID: {AppId}", newApplication.Id);
 
                 var response = req.CreateResponse(HttpStatusCode.Created);
-                // Return the created application DTO (or a summary DTO)
-                // For now, just return the input DTO to confirm what was processed.
-                // Serialize with CamelCase for frontend
                 await response.WriteAsJsonAsync(appRequest);
                 return response;
             }

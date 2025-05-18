@@ -192,39 +192,125 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
         return;
       }
 
-      const payload = {
-        ...data,
-        landlord_permission: data.rent_or_own === 'Rent' ? data.landlord_permission : undefined, // Only send if relevant
-        access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
-        from_name: "Rescue App Adoption Application",
-        ...(animalName && { inquiry_for_animal_name: animalName }),
-        ...(animal_id && { inquiry_for_animal_id: animal_id }),
-        botcheck: undefined,
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+      if (!apiBaseUrl) {
+        throw new Error("API base URL is not configured.");
       }
 
-      const response = await fetch("https://api.web3forms.com/submit", {
+      // --- Step 1: Save application to the database ---
+      const dbPayload = {
+        // Applicant Information
+        firstName: data.first_name,
+        lastName: data.last_name,
+        spousePartnerRoommate: data.spouse_partner_roommate,
+        primaryEmail: data.primary_email,
+        secondaryEmail: data.secondary_email,
+        primaryPhone: data.primary_phone,
+        primaryPhoneType: data.primary_phone_type,
+        secondaryPhone: data.secondary_phone,
+        secondaryPhoneType: data.secondary_phone_type,
+
+        // Animal Information
+        whichAnimal: data.which_animal,
+
+        // Home & Household
+        streetAddress: data.street_address,
+        aptUnit: data.apt_unit,
+        city: data.city,
+        stateProvince: data.state_province,
+        zipPostalCode: data.zip_postal_code,
+        dwellingType: data.dwelling_type,
+        rentOrOwn: data.rent_or_own,
+        landlordPermission: data.landlord_permission,
+        yardType: data.yard_type,
+        adultsInHome: data.adults_in_home,
+        childrenInHome: data.children_in_home,
+        hasAllergies: data.has_allergies,
+        householdAware: data.household_aware,
+
+        // Pet Experience
+        hasCurrentPets: data.has_current_pets,
+        currentPetsDetails: data.current_pets_details,
+        currentPetsSpayedNeutered: data.current_pets_spayed_neutered,
+        currentPetsVaccinations: data.current_pets_vaccinations,
+        hasPreviousPets: data.has_previous_pets,
+        previousPetsDetails: data.previous_pets_details,
+        vetClinicName: data.vet_clinic_name,
+        vetPhone: data.vet_phone,
+
+        // Lifestyle & Care Plan
+        whyAdopt: data.why_adopt,
+        primaryCaregiver: data.primary_caregiver,
+        hoursAlonePerDay: data.hours_alone_per_day,
+        petAloneLocation: data.pet_alone_location,
+        petSleepLocation: data.pet_sleep_location,
+        movingPlan: data.moving_plan,
+        preparedForCosts: data.prepared_for_costs,
+
+        // Additional Information
+        howHeard: data.how_heard,
+
+        // Waiver
+        waiverAgreed: data.waiver_agreed,
+        eSignatureName: data.e_signature_name,
+
+        // Submission related
+        subject: data.subject,
+      }
+
+      console.log("Submitting Adoption Application to backend:", dbPayload);
+
+      const dbResponse = await fetch(`${apiBaseUrl}/adoption-applications`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/json" }, // No Auth token for public submission
+        body: JSON.stringify(dbPayload), // Send camelCase payload
       });
 
-      const result = await response.json();
-      if (result.success) {
-        setIsSuccess(true);
-        setSubmitMessage("Thank you! Your adoption application has been submitted. Someone from our team will follow up with you shortly.");
+      const dbResult = await dbResponse.json(); // Get dbResponse body
 
-        // Delay the form closure to let the user see the success message
-        setTimeout(() => {
-          onClose(); // Close the form after a delay
-          setIsSuccess(false); // Optionally reset the success state
-          setSubmitMessage(""); // Clear the success message
-        }, 5000); // Adjust the delay time (e.g., 5000ms = 5 seconds)
-      } else {
-        throw new Error(result.message || "Failed to send application.");
+      if (!dbResponse.ok) {
+        throw new Error(dbResult.error?.message || dbResult.message || "Failed to submit application to our database.");
       }
+      console.log("Application successfully saved to database:", dbResult);
+
+      // --- Step 2: Send email notification via Web3Forms (only if DB save was successful) ---
+      try {
+        const web3formsPayload = {
+          ...data, // Send original snake_case form data to web3forms
+          access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
+          from_name: "Rescue App Adoption Application", // Customize as needed
+          subject: `New Adoption Application: ${data.first_name} ${data.last_name}`,
+          botcheck: undefined, // Don't send honeypot data in email
+        };
+
+        console.log("Sending notification email via web3forms...");
+        const emailResponse = await fetch("https://api.web3forms.com/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(web3formsPayload),
+        });
+
+        const emailResult = await emailResponse.json();
+        if (emailResult.success) {
+          console.log("Notification email sent successfully via web3forms.");
+        } else {
+          // Log the error but don't overwrite the primary success message for the user
+          console.error("Failed to send notification email via web3forms:", emailResult.message || "Unknown web3forms error");
+          // Optionally, you could inform admins through another channel if email fails
+        }
+      } catch (emailError) {
+        // Log the error but don't overwrite the primary success message
+        console.error("Error sending notification email via web3forms:", emailError);
+      }
+
+      // --- Overall Success (based on DB save) ---
+      setIsSuccess(true);
+      setSubmitMessage("Thank you! Your adoption application has been submitted. Our adoption coordinator will be in touch soon!");
+      reset(); // Reset form fields
+
+      setTimeout(() => {
+        onClose();
+      }, 3000);
     } catch (error: any) {
       setIsSuccess(false);
       setSubmitMessage(error.message || "An unexpected error occurred. Please try again.");
@@ -294,8 +380,7 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
             {/* Secondary Email (Optional) */}
             <div className="mb-4">
               <label htmlFor="secondary_email" className={labelBaseClasses}>Secondary Email (Optional)</label>
-              <input type="email" id="secondary_email" {...register("secondary_email", { pattern: { value: /^\S+@\S+$/i, message: "Invalid email format" } })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.secondary_email)}`} />
-              {errors.secondary_email && <p className={errorTextClasses}>{errors.secondary_email.message}</p>}
+              <input type="email" id="secondary_email" className={`${inputBaseClasses}`} />
             </div>
             {/* Primary Phone */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

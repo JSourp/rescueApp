@@ -9,21 +9,16 @@ interface PartnershipSponsorshipFormData {
 	// Contact Info
 	first_name: string;
 	last_name: string;
-	spouse_partner_roommate?: string; // Optional
-	street_address: string;
-	apt_unit?: string; // Optional
-	city: string;
-	state_province: string;
-	zip_postal_code: string;
+	organization_name?: string; // Optional
+	contact_title?: string; // Optional
+	website_url?: string; // Optional
 	primary_phone: string;
 	primary_phone_type: 'Cell' | 'Home' | 'Work' | ''; // Enum-like type
-	secondary_phone?: string; // Optional
-	secondary_phone_type?: 'Cell' | 'Home' | 'Work' | ''; // Optional
 	primary_email: string;
-	secondary_email?: string; // Optional
 	how_heard?: string; // Optional text/select
 
 	// Partnership/Sponsorship Specific
+	interest_type?: string; // Optional select
 	details_of_interest?: string; // Textarea
 
 	// Submission related (hidden/internal)
@@ -58,14 +53,12 @@ export default function PartnershipSponsorshipForm({ onClose }: PartnershipSpons
 		defaultValues: {
 			subject: prefilledSubject,
 			primary_phone_type: '', // Set initial default for selects
-			secondary_phone_type: '',
 		}
 	});
 
 	const [isSuccess, setIsSuccess] = useState(false);
 	const [submitMessage, setSubmitMessage] = useState("");
 
-	// Re-use the onSubmit logic, adjusting the payload for web3forms
 	const onSubmit = async (data: PartnershipSponsorshipFormData) => {
 		setIsSuccess(false);
 		setSubmitMessage("");
@@ -78,31 +71,83 @@ export default function PartnershipSponsorshipForm({ onClose }: PartnershipSpons
 				return;
 			}
 
-			// Prepare data for web3forms (flatten array, etc.)
-			const payload = {
-				...data,
-				access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
-				from_name: "Rescue App Partnership/Sponsorship Application",
-				botcheck: undefined,
+			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+			if (!apiBaseUrl) {
+				throw new Error("API base URL is not configured.");
 			}
 
-			const response = await fetch("https://api.web3forms.com/submit", {
+			// --- Step 1: Save application to the database ---
+			const dbPayload = {
+				// Contact Info
+				firstName: data.first_name,
+				lastName: data.last_name,
+				organizationName: data.organization_name,
+				contactTitle: data.contact_title,
+				primaryPhone: data.primary_phone,
+				primaryPhoneType: data.primary_phone_type,
+				primaryEmail: data.primary_email,
+				websiteUrl: data.website_url,
+				howHeard: data.how_heard,
+				interestType: data.interest_type,
+				detailsOfInterest: data.details_of_interest,
+
+				// Submission related
+				subject: data.subject,
+			}
+
+			console.log("Submitting Partnership/Sponsorship Application to backend:", dbPayload);
+
+			const dbResponse = await fetch(`${apiBaseUrl}/partnership-sponsorship-applications`, {
 				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Accept: "application/json",
-				},
-				body: JSON.stringify(payload),
+				headers: { "Content-Type": "application/json" }, // No Auth token for public submission
+				body: JSON.stringify(dbPayload), // Send camelCase payload
 			});
 
-			const result = await response.json();
-			if (result.success) {
-				setIsSuccess(true);
-				setSubmitMessage("Thank you! Your partnership/sponsorship application has been submitted. Someone from our team will follow up with you shortly.");
-				reset(); // Reset form fields after successful submission
-			} else {
-				throw new Error(result.message || "Failed to send application.");
+			const dbResult = await dbResponse.json(); // Get dbResponse body
+
+			if (!dbResponse.ok) {
+				throw new Error(dbResult.error?.message || dbResult.message || "Failed to submit application to our database.");
 			}
+			console.log("Application successfully saved to database:", dbResult);
+
+			// --- Step 2: Send email notification via Web3Forms (only if DB save was successful) ---
+			try {
+				const web3formsPayload = {
+					...data, // Send original snake_case form data to web3forms
+					access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
+					from_name: "Rescue App Partnership/Sponsorship Application", // Customize as needed
+					subject: `New Partnership/Sponsorship Application: ${data.first_name} ${data.last_name} of ${data.organization_name || "N/A"}`,
+					botcheck: undefined, // Don't send honeypot data in email
+				};
+
+				console.log("Sending notification email via web3forms...");
+				const emailResponse = await fetch("https://api.web3forms.com/submit", {
+					method: "POST",
+					headers: { "Content-Type": "application/json", Accept: "application/json" },
+					body: JSON.stringify(web3formsPayload),
+				});
+
+				const emailResult = await emailResponse.json();
+				if (emailResult.success) {
+					console.log("Notification email sent successfully via web3forms.");
+				} else {
+					// Log the error but don't overwrite the primary success message for the user
+					console.error("Failed to send notification email via web3forms:", emailResult.message || "Unknown web3forms error");
+					// Optionally, you could inform admins through another channel if email fails
+				}
+			} catch (emailError) {
+				// Log the error but don't overwrite the primary success message
+				console.error("Error sending notification email via web3forms:", emailError);
+			}
+
+			// --- Overall Success (based on DB save) ---
+			setIsSuccess(true);
+			setSubmitMessage("Thank you! Your application has been submitted. We will be in touch soon!");
+			reset(); // Reset form fields
+
+			setTimeout(() => {
+				onClose();
+			}, 3000);
 		} catch (error: any) {
 			setIsSuccess(false);
 			setSubmitMessage(error.message || "An unexpected error occurred. Please try again.");
@@ -140,7 +185,7 @@ export default function PartnershipSponsorshipForm({ onClose }: PartnershipSpons
 						<input type="hidden" {...register("subject")} />
 
 						{/* --- Inquiry About Partnership/Sponsorship Section --- */}
-						<h4 className="text-lg font-medium mb-3 text-gray-800 dark:text-gray-200">
+						<h4 className={sectionTitleClasses}>
 							Inquiry About Partnership/Sponsorship
 							<TooltipButton content="Basic contact details allow us to follow up on your inquiry." label="More info about applicant information" />
 						</h4>
@@ -158,28 +203,32 @@ export default function PartnershipSponsorshipForm({ onClose }: PartnershipSpons
 								{errors.last_name && <p className={errorTextClasses}>{errors.last_name.message}</p>}
 							</div>
 						</div>
-						{/* Spouse/Partner (Optional) */}
+						{/* Organization Name (Optional) */}
 						<div className="mb-4">
-							<label htmlFor="spouse_partner_roommate" className={labelBaseClasses}>Spouse / Partner / Roommate Name(s) (Optional)</label>
-							<input type="text" id="spouse_partner_roommate" {...register("spouse_partner_roommate")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.spouse_partner_roommate)}`} />
+							<label htmlFor="organization_name" className={labelBaseClasses}>Organization Name (Optional)</label>
+							<input type="text" id="organization_name" {...register("organization_name")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.organization_name)}`} />
+						</div>
+						{/* Contact Title (Optional) */}
+						<div className="mb-4">
+							<label htmlFor="contact_title" className={labelBaseClasses}>Contact Title (Optional)</label>
+							<input type="text" id="contact_title" {...register("contact_title")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.contact_title)}`} />
+						</div>
+						{/* Website (Optional) */}
+						<div className="mb-4">
+							<label htmlFor="website_url" className={labelBaseClasses}>Website (Optional)</label>
+							<input type="text" id="website_url" {...register("website_url")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.website_url)}`} />
 						</div>
 						{/* Primary Email */}
 						<div className="mb-4">
-							<label htmlFor="primary_email" className={labelBaseClasses}>Primary Email *</label>
+							<label htmlFor="primary_email" className={labelBaseClasses}>Email *</label>
 							<input type="email" id="primary_email" {...register("primary_email", { required: "Email is required", pattern: { value: /^\S+@\S+$/i, message: "Invalid email format" } })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.primary_email)}`} />
 							{errors.primary_email && <p className={errorTextClasses}>{errors.primary_email.message}</p>}
-						</div>
-						{/* Secondary Email (Optional) */}
-						<div className="mb-4">
-							<label htmlFor="secondary_email" className={labelBaseClasses}>Secondary Email (Optional)</label>
-							<input type="email" id="secondary_email" {...register("secondary_email", { pattern: { value: /^\S+@\S+$/i, message: "Invalid email format" } })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.secondary_email)}`} />
-							{errors.secondary_email && <p className={errorTextClasses}>{errors.secondary_email.message}</p>}
 						</div>
 						{/* Primary Phone */}
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 							<div>
-								<label htmlFor="primary_phone" className={labelBaseClasses}>Primary Phone *</label>
-								<input type="tel" id="primary_phone" {...register("primary_phone", { required: "Primary phone is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.primary_phone)}`} />
+								<label htmlFor="primary_phone" className={labelBaseClasses}>Phone *</label>
+								<input type="tel" id="primary_phone" {...register("primary_phone", { required: "Phone is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.primary_phone)}`} />
 								{errors.primary_phone && <p className={errorTextClasses}>{errors.primary_phone.message}</p>}
 							</div>
 							<div>
@@ -193,22 +242,6 @@ export default function PartnershipSponsorshipForm({ onClose }: PartnershipSpons
 								{errors.primary_phone_type && <p className={errorTextClasses}>{errors.primary_phone_type.message}</p>}
 							</div>
 						</div>
-						{/* Secondary Phone (Optional) */}
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-							<div>
-								<label htmlFor="secondary_phone" className={labelBaseClasses}>Secondary Phone (Optional)</label>
-								<input type="tel" id="secondary_phone" {...register("secondary_phone")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.secondary_phone)}`} />
-							</div>
-							<div>
-								<label htmlFor="secondary_phone_type" className={labelBaseClasses}>Secondary Phone Type</label>
-								<select id="secondary_phone_type" {...register("secondary_phone_type")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.secondary_phone_type)}`}>
-									<option value="">Select Type...</option>
-									<option value="Cell">Cell</option>
-									<option value="Home">Home</option>
-									<option value="Work">Work</option>
-								</select>
-							</div>
-						</div>
 
 						{/* How Heard About Us */}
 						<div className="mb-4">
@@ -217,6 +250,18 @@ export default function PartnershipSponsorshipForm({ onClose }: PartnershipSpons
 						</div>
 
 						{/* --- Partnership/Sponsorship Specific Section --- */}
+						{/* Interest Type */}
+						<div className="mb-4">
+							<label htmlFor="interest_type" className={labelBaseClasses}>Interest Type</label>
+							<select id="interest_type" {...register("interest_type")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.interest_type)}`}>
+								<option value="">Select Type...</option>
+								<option value="In-kind Donation">In-kind Donation</option>
+								<option value="Corporate Partnership">Corporate Partnership</option>
+								<option value="Program Sponsorship">Program Sponsorship</option>
+								<option value="Event Sponsorship">Event Sponsorship</option>
+							</select>
+						</div>
+
 						{/* Details of Interest */}
 						<div className="mb-4">
 							<label htmlFor="details_of_interest" className={labelBaseClasses}>Please tell us a bit more about your interest or how you envision supporting us.</label>
@@ -233,8 +278,8 @@ export default function PartnershipSponsorshipForm({ onClose }: PartnershipSpons
 							<button
 								type="button"
 								onClick={onClose}
-								className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800"
-							>
+								disabled={isSubmitting}
+								className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800">
 								Cancel
 							</button>
 							<button

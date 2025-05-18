@@ -14,7 +14,9 @@ public class AppDbContext : DbContext
   public DbSet<AnimalImage> AnimalImages { get; set; }
   public DbSet<FosterApplication> FosterApplications { get; set; }
   public DbSet<FosterProfile> FosterProfiles { get; set; }
-
+  public DbSet<VolunteerApplication> VolunteerApplications { get; set; }
+  public DbSet<PartnershipSponsorshipApplication> PartnershipSponsorshipApplications { get; set; }
+  public DbSet<AdoptionApplication> AdoptionApplications { get; set; }
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -256,6 +258,63 @@ public class AppDbContext : DbContext
                 .HasForeignKey<FosterProfile>(e => e.FosterApplicationId)
                 .IsRequired(false) // Application link is optional
                 .OnDelete(DeleteBehavior.SetNull);
+    });
+
+    modelBuilder.Entity<VolunteerApplication>(entity =>
+    {
+      entity.ToTable("volunteer_applications", schema: "public");
+      entity.HasKey(e => e.Id);
+      entity.Property(e => e.Id).UseIdentityByDefaultColumn();
+      entity.Property(e => e.SubmissionDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
+      entity.Property(e => e.Status).HasDefaultValue("Pending Review");
+      entity.Property(e => e.LocationAcknowledgement).HasDefaultValue(false);
+      entity.Property(e => e.PolicyAcknowledgement).HasDefaultValue(false);
+      entity.Property(e => e.WaiverAgreed).HasDefaultValue(false);
+
+      entity.HasOne(e => e.ReviewedByUser)
+            .WithMany()
+            .HasForeignKey(e => e.ReviewedByUserId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
+    });
+
+    modelBuilder.Entity<PartnershipSponsorshipApplication>(entity =>
+    {
+      entity.ToTable("partnership_sponsorship_applications", schema: "public");
+      entity.HasKey(e => e.Id);
+      entity.Property(e => e.Id).UseIdentityByDefaultColumn();
+
+      entity.Property(e => e.SubmissionDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
+      entity.Property(e => e.Status).HasDefaultValue("Pending Review");
+
+      entity.HasOne(e => e.ReviewedByUser)
+            .WithMany() // Assuming User doesn't have a direct collection of these
+            .HasForeignKey(e => e.ReviewedByUserId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
+    });
+
+    modelBuilder.Entity<AdoptionApplication>(entity =>
+    {
+      entity.ToTable("adoption_applications", schema: "public");
+      entity.HasKey(e => e.Id);
+      entity.Property(e => e.Id).UseIdentityByDefaultColumn();
+
+      entity.Property(e => e.SubmissionDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
+      entity.Property(e => e.Status).HasDefaultValue("Pending Review");
+      entity.Property(e => e.WaiverAgreed).HasDefaultValue(false);
+
+      entity.HasOne(e => e.Animal) // Navigation property in AdoptionApplication
+            .WithMany() // Assuming Animal doesn't have a direct collection of AdoptionApplications
+            .HasForeignKey(e => e.AnimalId)
+            .IsRequired(false) // AnimalId is nullable
+            .OnDelete(DeleteBehavior.SetNull); // If animal is deleted, keep application but nullify link
+
+      entity.HasOne(e => e.ReviewedByUser)
+            .WithMany() // Assuming User doesn't have direct collection of applications reviewed
+            .HasForeignKey(e => e.ReviewedByUserId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
     });
 
 

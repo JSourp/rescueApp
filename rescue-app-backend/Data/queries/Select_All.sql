@@ -1,3 +1,4 @@
+SELECT * FROM public.volunteer_applications;
 SELECT * FROM public.foster_profiles;
 SELECT * FROM public.foster_applications;
 SELECT * FROM public.adoptionhistory;

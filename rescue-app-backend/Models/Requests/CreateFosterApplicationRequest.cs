@@ -18,7 +18,7 @@ namespace rescueApp.Models.Requests
         [MaxLength(30)] public string? SecondaryPhone { get; set; }
         [MaxLength(10)] public string? SecondaryPhoneType { get; set; }
         [Required][MaxLength(255)][EmailAddress] public string? PrimaryEmail { get; set; }
-        [MaxLength(255)][EmailAddress] public string? SecondaryEmail { get; set; }
+        [MaxLength(255)] public string? SecondaryEmail { get; set; }
         public string? HowHeard { get; set; }
 
         // Household & Home Environment

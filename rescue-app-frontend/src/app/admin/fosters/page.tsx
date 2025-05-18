@@ -137,7 +137,13 @@ export default function AdminFostersPage() {
 	const thClasses = "px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800";
 	const tdClasses = "px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700";
 
-	if (isAuthLoading || isLoadingRole) return <Container className="text-center py-10"><LoadingSpinner /> Loading Access...</Container>;
+	if (isAuthLoading || isLoadingRole) return
+	<Container className="text-center py-10">
+		<div className="flex flex-col items-center">
+			<LoadingSpinner className="mb-4" />
+			<span>Loading Access...</span>
+		</div>
+	</Container>;
 	if (!currentUserRole || !['Admin', 'Staff'].includes(currentUserRole)) {
 		return <Container className="text-center py-10 text-red-500">Access Denied. You must be an Admin or Staff to view this page.</Container>;
 	}

@@ -171,44 +171,113 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
         return;
       }
 
-      const payload = {
-        ...data,
-        areas_of_interest: data.areas_of_interest?.join(', '), // Convert array
-        access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
-        from_name: "Rescue App Volunteer Application",
-        botcheck: undefined,
-        // Ensure boolean values are sent correctly
-        location_acknowledgement: data.location_acknowledgement === true ? 'Yes' : data.location_acknowledgement,
-        policy_acknowledgement: data.policy_acknowledgement ? 'Yes' : 'No',
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+      if (!apiBaseUrl) {
+        throw new Error("API base URL is not configured.");
       }
 
-      const response = await fetch("https://api.web3forms.com/submit", {
+      // --- Step 1: Save application to the database ---
+      // Map snake_case FosterFormData to camelCase for the backend DTO
+      const dbPayload = {
+        // Contact Info
+        firstName: data.first_name,
+        lastName: data.last_name,
+        spousePartnerRoommate: data.spouse_partner_roommate,
+        streetAddress: data.street_address,
+        aptUnit: data.apt_unit,
+        city: data.city,
+        stateProvince: data.state_province,
+        zipPostalCode: data.zip_postal_code,
+        primaryPhone: data.primary_phone,
+        primaryPhoneType: data.primary_phone_type,
+        secondaryPhone: data.secondary_phone,
+        secondaryPhoneType: data.secondary_phone_type,
+        primaryEmail: data.primary_email,
+        secondaryEmail: data.secondary_email,
+        howHeard: data.how_heard,
+
+        // Volunteer Specific
+        ageConfirmation: data.age_confirmation,
+        previousVolunteerExperience: data.previous_volunteer_experience,
+        previousExperienceDetails: data.previous_experience_details,
+        comfortLevelSpecialNeeds: data.comfort_level_special_needs,
+        areasOfInterest: data.areas_of_interest?.join(', '),
+        otherSkills: data.other_skills,
+        locationAcknowledgement: data.location_acknowledgement,
+        volunteerReason: data.volunteer_reason,
+        emergencyContactName: data.emergency_contact_name,
+        emergencyContactPhone: data.emergency_contact_phone,
+        crimeConvictionCheck: data.crime_conviction_check,
+        policyAcknowledgement: data.policy_acknowledgement,
+
+        // Waiver
+        waiverAgreed: data.waiver_agreed,
+        eSignatureName: data.e_signature_name,
+
+        // Submission related
+        subject: data.subject,
+      }
+
+      console.log("Submitting Volunteer Application to backend:", dbPayload);
+
+      const dbResponse = await fetch(`${apiBaseUrl}/volunteer-applications`, { // New endpoint
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/json" }, // No Auth token for public submission
+        body: JSON.stringify(dbPayload), // Send camelCase payload
       });
 
-      const result = await response.json();
+      const dbResult = await dbResponse.json(); // Get dbResponse body
 
-      if (result.success) {
-        setIsSuccess(true);
-        setSubmitMessage("Thank you! Your volunteer application has been submitted. We'll review it and be in touch regarding orientation!");
-
-        // Delay the form closure to let the user see the success message
-        setTimeout(() => {
-          onClose(); // Close the form after a delay
-          setIsSuccess(false); // Optionally reset the success state
-          setSubmitMessage(""); // Clear the success message
-        }, 5000); // Adjust the delay time (e.g., 5000ms = 5 seconds)
-      } else {
-        throw new Error(result.message || "Failed to send application.");
+      if (!dbResponse.ok) {
+        throw new Error(dbResult.error?.message || dbResult.message || "Failed to submit application to our database.");
       }
+      console.log("Application successfully saved to database:", dbResult);
+
+      // --- Step 2: Send email notification via Web3Forms (only if DB save was successful) ---
+      try {
+        const web3formsPayload = {
+          ...data, // Send original snake_case form data to web3forms
+          areas_of_interest: data.areas_of_interest?.join(', '),
+          location_acknowledgement: data.location_acknowledgement ? 'Yes' : 'No',
+          policy_acknowledgement: data.policy_acknowledgement ? 'Yes' : 'No',
+          waiver_agreed: data.waiver_agreed ? 'Yes' : 'No',
+          access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
+          from_name: "Rescue App Volunteer Application", // Customize as needed
+          subject: `New Volunteer Application: ${data.first_name} ${data.last_name}`,
+          botcheck: undefined, // Don't send honeypot data in email
+        };
+
+        console.log("Sending notification email via web3forms...");
+        const emailResponse = await fetch("https://api.web3forms.com/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(web3formsPayload),
+        });
+
+        const emailResult = await emailResponse.json();
+        if (emailResult.success) {
+          console.log("Notification email sent successfully via web3forms.");
+        } else {
+          // Log the error but don't overwrite the primary success message for the user
+          console.error("Failed to send notification email via web3forms:", emailResult.message || "Unknown web3forms error");
+          // Optionally, you could inform admins through another channel if email fails
+        }
+      } catch (emailError) {
+        // Log the error but don't overwrite the primary success message
+        console.error("Error sending notification email via web3forms:", emailError);
+      }
+
+      // --- Overall Success (based on DB save) ---
+      setIsSuccess(true);
+      setSubmitMessage("Thank you! Your volunteer application has been submitted. Our volunteer coordinator will be in touch soon!");
+      reset(); // Reset form fields
+
+      setTimeout(() => {
+        onClose();
+      }, 3000);
     } catch (error: any) {
       setIsSuccess(false);
-      setSubmitMessage(error.message || "An unexpected error occurred.");
+      setSubmitMessage(error.message || "An unexpected error occurred. Please try again.");
       console.error("Form Submission Error:", error);
     }
   };
@@ -275,8 +344,7 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
             {/* Secondary Email (Optional) */}
             <div className="mb-4">
               <label htmlFor="secondary_email" className={labelBaseClasses}>Secondary Email (Optional)</label>
-              <input type="email" id="secondary_email" {...register("secondary_email", { pattern: { value: /^\S+@\S+$/i, message: "Invalid email format" } })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.secondary_email)}`} />
-              {errors.secondary_email && <p className={errorTextClasses}>{errors.secondary_email.message}</p>}
+              <input type="email" id="secondary_email" className={`${inputBaseClasses} `} />
             </div>
             {/* Primary Phone */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -310,6 +378,43 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
                   <option value="Home">Home</option>
                   <option value="Work">Work</option>
                 </select>
+              </div>
+            </div>
+
+            {/* --- Household & Home Environment Section --- */}
+            <hr className="my-6 border-gray-300 dark:border-gray-600" />
+            <h4 className={sectionTitleClasses}>
+              Home & Household
+              <TooltipButton content="Helps us understand the potential foster environment to ensure it's safe and suitable for temporary care." label="More info about home and household questions" />
+            </h4>
+            {/* Street Address */}
+            <div className="mb-4">
+              <label htmlFor="street_address" className={labelBaseClasses}>Street Address *</label>
+              <input type="text" id="street_address" {...register("street_address", { required: "Street address is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.street_address)}`} />
+              {errors.street_address && <p className={errorTextClasses}>{errors.street_address.message}</p>}
+            </div>
+            {/* Apt/Unit (Optional) */}
+            <div className="mb-4">
+              <label htmlFor="apt_unit" className={labelBaseClasses}>Apt/Unit # (Optional)</label>
+              <input type="text" id="apt_unit" {...register("apt_unit")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.apt_unit)}`} />
+            </div>
+            {/* City/State/Zip */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label htmlFor="city" className={labelBaseClasses}>City *</label>
+                <input type="text" id="city" {...register("city", { required: "City is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.city)}`} />
+                {errors.city && <p className={errorTextClasses}>{errors.city.message}</p>}
+              </div>
+              <div>
+                <label htmlFor="state_province" className={labelBaseClasses}>State/Province *</label>
+                {/* Consider a dropdown for state if only serving specific areas */}
+                <input type="text" id="state_province" {...register("state_province", { required: "State/Province is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.state_province)}`} />
+                {errors.state_province && <p className={errorTextClasses}>{errors.state_province.message}</p>}
+              </div>
+              <div>
+                <label htmlFor="zip_postal_code" className={labelBaseClasses}>Zip/Postal Code *</label>
+                <input type="text" id="zip_postal_code" {...register("zip_postal_code", { required: "Zip/Postal Code is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.zip_postal_code)}`} />
+                {errors.zip_postal_code && <p className={errorTextClasses}>{errors.zip_postal_code.message}</p>}
               </div>
             </div>
 
@@ -446,12 +551,12 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
               <label className={labelBaseClasses}>Have you ever been convicted of a crime involving animal cruelty, neglect, or violence? *</label>
               <div className="flex flex-wrap gap-x-4 gap-y-2 mt-1">
                 <label className="inline-flex items-center">
-                  <input type="radio" value="No" {...register("crime_conviction_check", { required: "Please answer this question" })} className={radioInputClasses} />
-                  <span className={radioLabelClasses}>No</span>
-                </label>
-                <label className="inline-flex items-center">
                   <input type="radio" value="Yes" {...register("crime_conviction_check", { required: "Please answer this question" })} className={radioInputClasses} />
                   <span className={radioLabelClasses}>Yes</span>
+                </label>
+                <label className="inline-flex items-center">
+                  <input type="radio" value="No" {...register("crime_conviction_check", { required: "Please answer this question" })} className={radioInputClasses} />
+                  <span className={radioLabelClasses}>No</span>
                 </label>
               </div>
               {errors.crime_conviction_check && <p className={errorTextClasses}>{errors.crime_conviction_check.message}</p>}
@@ -547,12 +652,13 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
               <button
                 type="button"
                 onClick={onClose}
+                disabled={isSubmitting}
                 className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800">Cancel</button>
               <button
                 type="submit"
                 disabled={isSubmitting}
                 className="px-4 py-2 text-white bg-primary rounded-md hover:bg-primary-700 focus:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800 disabled:opacity-50">
-                {isSubmitting ? "Submitting..." : "Submit Application"}
+                {isSubmitting ? "Submitting..." : "Submit Volunteer Application"}
               </button>
             </div>
           </form>
@@ -566,7 +672,11 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
           </div>
         )}
         {/* Display submission error message */}
-        {!isSuccess && submitMessage && (<p className="mt-4 text-center text-red-500 dark:text-red-400">{submitMessage}</p>)}
+        {!isSuccess && submitMessage && (
+          <p className="mt-4 text-center text-red-500 dark:text-red-400">
+            {submitMessage}
+          </p>
+        )}
       </div>
     </div>
   );

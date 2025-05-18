@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Container } from '@/components/Container';
 import Modal from '@/components/Modal'; // Your existing Modal component
 import { LoadingSpinner } from '@/components/Icons'; // Add relevant icons
+import { UserGroupIcon } from '@heroicons/react/20/solid';
 import { FosterApplicationListItem } from '@/types/fosterApplicationListItem';
 import { FosterApplicationDetail } from '@/types/fosterApplicationDetail';
 import { UserProfile } from '@/types/userProfile'; // Assuming you have this
@@ -264,8 +265,18 @@ export default function AdminFosterApplicationsPage() {
 		}
 	};
 
+	// Styling classes
+	const thClasses = "px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800";
+	const tdClasses = "px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700";
+
 	// --- Render Logic ---
-	if (isAuthLoading || isLoadingRole) return <Container className="text-center py-10"><LoadingSpinner /> Loading Access...</Container>;
+	if (isAuthLoading || isLoadingRole) return
+	<Container className="text-center py-10">
+		<div className="flex flex-col items-center">
+			<LoadingSpinner className="mb-4" />
+			<span>Loading Access...</span>
+		</div>
+	</Container>;
 	if (!currentUserRole || !['Admin', 'Staff'].includes(currentUserRole ?? '')) {
 		return <Container className="text-center py-10 text-red-500">Access Denied. You must be an Admin or Staff to view this page.</Container>;
 	}
@@ -275,6 +286,7 @@ export default function AdminFosterApplicationsPage() {
 			<Container className="py-10">
 				{/* Main Title - Centered */}
 				<div className="text-center mb-4">
+					<UserGroupIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
 					<h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
 						Manage Foster Applications
 					</h1>
@@ -305,35 +317,34 @@ export default function AdminFosterApplicationsPage() {
 				{!isLoadingData && !errorData && (
 					<div className="shadow border-b border-gray-200 dark:border-gray-700 sm:rounded-lg overflow-x-auto">
 						<table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-							{/* ... Table Head (thClasses) ... */}
 							<thead>
 								<tr>
-									<th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Applicant</th>
-									<th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Submitted</th>
-									<th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-									<th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Reviewed By</th>
-									<th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+									<th className={thClasses}>Applicant</th>
+									<th className={thClasses}>Submitted</th>
+									<th className={thClasses}>Status</th>
+									<th className={thClasses}>Reviewed By</th>
+									<th className={thClasses}>Actions</th>
 								</tr>
 							</thead>
 							<tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
 								{applications.length > 0 ? applications.map((app, index) => (
 									<tr key={app.id} className={index % 2 === 0 ? "bg-white dark:bg-gray-800/50" : "bg-gray-50 dark:bg-gray-900/50"}>
-										<td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+										<td className={tdClasses}>
 											<div>{app.applicantName}</div>
 											<div className="text-xs text-gray-500 dark:text-gray-400">{app.primaryEmail}</div>
 											<div className="text-xs text-gray-500 dark:text-gray-400">{app.primaryPhone}</div>
 										</td>
-										<td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{format(new Date(app.submissionDate), 'P p')}</td>
-										<td className="px-4 py-2 whitespace-nowrap text-sm">
+										<td className={tdClasses}>{format(new Date(app.submissionDate), 'P p')}</td>
+										<td className={tdClasses}>
 											<span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${app.status === 'Approved' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : app.status === 'Rejected' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'}`}>
 												{app.status}
 											</span>
 										</td>
-										<td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+										<td className={tdClasses}>
 											{app.reviewedBy || 'N/A'}
 											{app.reviewDate && <div className="text-xs">({format(new Date(app.reviewDate), 'P')})</div>}
 										</td>
-										<td className="px-4 py-2 whitespace-nowrap text-sm font-medium">
+										<td className={tdClasses}>
 											<button onClick={() => handleReviewClick(app)} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
 												View/Review
 											</button>
