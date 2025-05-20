@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Container } from '@/components/Container';
-import Modal from '@/components/Modal'; // Your existing Modal component
-import { LoadingSpinner } from '@/components/Icons'; // Add relevant icons
+import Modal from '@/components/Modal';
+import { LoadingSpinner } from '@/components/Icons';
 import { UserGroupIcon } from '@heroicons/react/20/solid';
 import { FosterApplicationListItem } from '@/types/fosterApplicationListItem';
 import { FosterApplicationDetail } from '@/types/fosterApplicationDetail';
-import { UserProfile } from '@/types/userProfile'; // Assuming you have this
+import { UserProfile } from '@/types/userProfile';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { getAuth0AccessToken } from '@/utils/auth';
 import { format } from 'date-fns';

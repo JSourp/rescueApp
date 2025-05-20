@@ -1,7 +1,12 @@
+// rescueApp/SyncUser.cs
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -9,18 +14,37 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using rescueApp.Data;
 using rescueApp.Models;
+using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
-	// Request model matching the payload sent from Next.js afterCallback
-	// Ensure this namespace is correct too, or define it inline
-	// namespace rescueApp.Models.Requests { ... }
+	// DTO for the incoming request from the frontend after Auth0 login
+	// Properties should match the claims sent from Auth0 profile/token
 	public class SyncUserRequest
 	{
-		public string ExternalProviderId { get; set; } = string.Empty;
-		public string Email { get; set; } = string.Empty;
+		[Required]
+		[JsonPropertyName("sub")] // Matches Auth0 'sub' claim
+		public string? Auth0UserId { get; set; }
+
+		[Required]
+		[EmailAddress]
+		[JsonPropertyName("email")] // Matches Auth0 'email' claim
+		public string? Email { get; set; }
+
+		[JsonPropertyName("given_name")] // Matches Auth0 'given_name'
 		public string? FirstName { get; set; }
+
+		[JsonPropertyName("family_name")] // Matches Auth0 'family_name'
 		public string? LastName { get; set; }
+
+		[JsonPropertyName("name")] // Fallback for full name if given/family not present
+		public string? FullName { get; set; }
+
+		// Assuming roles are in a custom claim like "https://rescueapp/roles"
+		// The frontend might parse this from the ID token or Access Token and send it.
+		// Adjust the JsonPropertyName if claim name is different.
+		[JsonPropertyName("roles")]
+		public List<string>? Roles { get; set; } // e.g., ["Admin", "Foster"]
 	}
 
 	public class SyncUser
@@ -36,134 +60,223 @@ namespace rescueApp
 
 		[Function("SyncUser")]
 		public async Task<HttpResponseData> Run(
-			[HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "users/sync")] HttpRequestData req)
+			[HttpTrigger(AuthorizationLevel.Anonymous, "POST", Route = "users/sync")] HttpRequestData req)
 		{
 			_logger.LogInformation("C# HTTP trigger function processed SyncUser request.");
 
 			string requestBody = string.Empty;
 			SyncUserRequest? syncRequest;
 
-			// --- Deserialize Request Body ---
+			// --- Deserialize & Validate Request Body ---
+			// The request body itself contains the authenticated user's claims from Auth0
 			try
 			{
 				requestBody = await new StreamReader(req.Body).ReadToEndAsync();
 				if (string.IsNullOrEmpty(requestBody))
-				{
-					return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Request body cannot be empty.");
-				}
+					return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Request body is required.");
+
 				syncRequest = JsonSerializer.Deserialize<SyncUserRequest>(requestBody,
 					new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-				if (syncRequest == null || string.IsNullOrWhiteSpace(syncRequest.ExternalProviderId) || string.IsNullOrWhiteSpace(syncRequest.Email))
+				var validationResults = new List<ValidationResult>();
+				bool isValid = Validator.TryValidateObject(syncRequest!, new ValidationContext(syncRequest!), validationResults, true);
+
+				if (!isValid || syncRequest == null || string.IsNullOrWhiteSpace(syncRequest.Auth0UserId) || string.IsNullOrWhiteSpace(syncRequest.Email))
 				{
-					_logger.LogWarning("SyncUser request missing required fields (ExternalProviderId, Email). Body: {Body}", requestBody);
-					return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Missing required fields: externalProviderId and email.");
+					string errors = string.Join("; ", validationResults.Select(vr => $"{(vr.MemberNames.Any() ? vr.MemberNames.First() : "Request")}: {vr.ErrorMessage}"));
+					if (string.IsNullOrWhiteSpace(syncRequest?.Auth0UserId)) errors += " Auth0UserId (sub) is required;";
+					if (string.IsNullOrWhiteSpace(syncRequest?.Email)) errors += " Email is required;";
+					_logger.LogWarning("SyncUser request DTO validation failed. Errors: [{ValidationErrors}]", errors);
+					return await CreateErrorResponse(req, HttpStatusCode.BadRequest, $"Invalid user data for sync: {errors}");
 				}
 			}
-			catch (Exception ex) // Catch broader exception during parsing/reading
+			catch (JsonException jsonEx)
 			{
-				_logger.LogError(ex, "Error reading/deserializing request body for SyncUser. Body: {Body}", requestBody ?? "<empty>");
-				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Could not read or parse request body.");
-			}
-			// Ensure syncRequest is not null after try-catch for safety
-			if (syncRequest == null) { return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request data."); }
-
-			try
-			{
-				var utcNow = DateTime.UtcNow;
-
-				// --- Find or Create User ---
-				var existingUser = await _dbContext.Users
-										 .FirstOrDefaultAsync(u => u.ExternalProviderId == syncRequest.ExternalProviderId);
-
-				User? userToReturn;
-
-				if (existingUser != null)
-				{
-					_logger.LogInformation("User found in local DB. ExternalProviderId: {ExternalId}, UserId: {UserId}", syncRequest.ExternalProviderId, existingUser.Id);
-					userToReturn = existingUser;
-					bool profileDataUpdated = false;
-
-					// Update profile info if changed
-					if (existingUser.FirstName != syncRequest.FirstName && !string.IsNullOrWhiteSpace(syncRequest.FirstName))
-					{
-						existingUser.FirstName = syncRequest.FirstName; profileDataUpdated = true;
-					}
-					if (existingUser.LastName != syncRequest.LastName && !string.IsNullOrWhiteSpace(syncRequest.LastName))
-					{
-						existingUser.LastName = syncRequest.LastName; profileDataUpdated = true;
-					}
-					if (existingUser.Email != syncRequest.Email && !string.IsNullOrWhiteSpace(syncRequest.Email))
-					{ // Ensure email isn't empty/whitespace if updating
-						existingUser.Email = syncRequest.Email; profileDataUpdated = true;
-					}
-
-					// Always update last_login_date
-					existingUser.LastLoginDate = utcNow;
-
-					// --- Conditionally set date_updated ONLY if profile data changed ---
-					//if (profileDataUpdated)
-					//{
-					//	existingUser.date_updated = utcNow;
-					//	_logger.LogInformation("Profile data fields require update for UserId: {UserId}", existingUser.id);
-					//}
-
-					// --- Always Save Changes if the entity is tracked and potentially modified ---
-					// EF Core Change Tracker will detect if last_login_date or any profile field changed.
-					// The database trigger (if exists) will handle date_updated on UPDATE regardless of profileDataUpdated flag.
-					// If relying purely on C# for date_updated, the profileDataUpdated flag ensures it's only set then.
-					try
-					{
-						await _dbContext.SaveChangesAsync(); // Save any tracked changes (login date, profile fields, updated date)
-						_logger.LogInformation("SaveChangesAsync completed for UserId: {UserId}. ProfileDataUpdatedFlag: {ProfileUpdated}", existingUser.Id, profileDataUpdated);
-					}
-					catch (DbUpdateConcurrencyException ex)
-					{
-						// Handle potential concurrency issues if needed
-						_logger.LogError(ex, "Concurrency error saving user update for UserId: {UserId}", existingUser.Id);
-						// Decide how to handle - potentially reload and retry or return error
-						throw; // Re-throw for outer catch block or handle specifically
-					}
-				}
-				else
-				{
-					_logger.LogInformation("User not found in local DB, creating new user. ExternalProviderId: {ExternalId}", syncRequest.ExternalProviderId);
-					var newUser = new User
-					{
-						Id = Guid.NewGuid(),
-						ExternalProviderId = syncRequest.ExternalProviderId,
-						Email = syncRequest.Email,
-						FirstName = syncRequest.FirstName ?? "Unknown",
-						LastName = syncRequest.LastName ?? "User",
-						Role = "Guest", // Default role
-						IsActive = true,
-						LastLoginDate = utcNow
-					};
-					_dbContext.Users.Add(newUser);
-					await _dbContext.SaveChangesAsync(); // Save the new user
-					_logger.LogInformation("Created new user with ID: {UserId}", newUser.Id);
-					userToReturn = newUser;
-				}
-
-				// --- Return Success Response ---
-				var response = req.CreateResponse(HttpStatusCode.OK);
-				var jsonResponse = JsonSerializer.Serialize(userToReturn, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-				await response.WriteStringAsync(jsonResponse); // Write serialized JSON string to response
-				return response;
-
+				_logger.LogError(jsonEx, "Error deserializing SyncUser request body. Body: {BodyPreview}", requestBody.Substring(0, Math.Min(requestBody.Length, 200)));
+				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid JSON format in request body.");
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "Error syncing user data for ExternalProviderId: {ExternalId}", syncRequest.ExternalProviderId);
-				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An error occurred while syncing user data.");
+				_logger.LogError(ex, "Error processing SyncUser request body.");
+				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request data.");
+			}
+
+			User? userEntity = null; // Use PascalCase for C# model properties
+			bool isNewUser = false;
+			DateTime utcNow = DateTime.UtcNow;
+
+			// Find user by ExternalProviderId (Auth0 sub)
+			userEntity = await _dbContext.Users.FirstOrDefaultAsync(u => u.ExternalProviderId == syncRequest.Auth0UserId);
+
+			if (userEntity != null) // Existing user found by Auth0 ID
+			{
+				_logger.LogInformation("Existing user found by ExternalProviderId: {UserId} for Auth0 Sub: {Auth0Sub}", userEntity.Id, syncRequest.Auth0UserId);
+				// User found by Auth0 ID, update their details
+				userEntity.Email = syncRequest.Email!; // Email can change in Auth0
+				userEntity.FirstName = syncRequest.FirstName ?? userEntity.FirstName;
+				userEntity.LastName = syncRequest.LastName ?? userEntity.LastName;
+				userEntity.LastLoginDate = utcNow;
+				userEntity.IsActive = true; // Ensure active on login
+				userEntity.DateUpdated = utcNow;
+
+				// Role synchronization:
+				// Get the primary role from the token (e.g., the first one, or based on priority)
+				// Be careful not to downgrade an Admin/Staff if they also have a "Foster" role from Auth0.
+				string? roleFromToken = syncRequest.Roles?.FirstOrDefault(); // Simplistic: takes the first role
+				string[] privilegedRoles = { "Admin", "Staff" };
+
+				if (!string.IsNullOrWhiteSpace(roleFromToken) &&
+					!privilegedRoles.Any(pr => pr.Equals(userEntity.Role, StringComparison.OrdinalIgnoreCase)))
+				{
+					// Only update role if current role is not privileged, or if new role is privileged
+					if (privilegedRoles.Contains(roleFromToken) || !privilegedRoles.Contains(userEntity.Role ?? ""))
+					{
+						if (userEntity.Role != roleFromToken)
+						{
+							_logger.LogInformation("Updating role for User {UserId} from '{OldRole}' to '{NewRole}' based on token.", userEntity.Id, userEntity.Role, roleFromToken);
+							userEntity.Role = roleFromToken;
+						}
+					}
+				}
+				_dbContext.Users.Update(userEntity);
+			}
+			else // No user found by Auth0 ID, check for local-only or create new
+			{
+				// User not found by ExternalProviderId, try finding by Email where ExternalProviderId is NULL
+				// This links a "local-only" user (e.g., created when an application was approved) to their new Auth0 login
+				_logger.LogInformation("User not found by ExternalProviderId. Attempting to find local-only user by email: {Email}", syncRequest.Email);
+
+				string emailToCompare = syncRequest.Email!.ToLowerInvariant(); // Convert incoming email to lower once
+				userEntity = await _dbContext.Users
+									.FirstOrDefaultAsync(u => u.Email.ToLower() == emailToCompare && u.ExternalProviderId == null);
+
+				if (userEntity != null)
+				{
+					_logger.LogInformation("Found existing local-only user record (ID: {UserId}) for email {Email}. Linking to Auth0 Sub: {Auth0Sub}",
+						userEntity.Id, syncRequest.Email, syncRequest.Auth0UserId);
+
+					userEntity.ExternalProviderId = syncRequest.Auth0UserId; // Link to Auth0
+					userEntity.FirstName = syncRequest.FirstName ?? userEntity.FirstName; // Update if Auth0 has it
+					userEntity.LastName = syncRequest.LastName ?? userEntity.LastName;   // Update if Auth0 has it
+					userEntity.LastLoginDate = utcNow;
+					userEntity.IsActive = true; // Activate on first real login
+					userEntity.DateUpdated = utcNow;
+
+					// Role: If local user had a role (e.g., "Foster"), and token has roles, decide priority.
+					// For now, let's assume if local user had a role, we keep it unless Auth0 provides a higher one.
+					string? roleFromToken = syncRequest.Roles?.FirstOrDefault();
+					string[] privilegedRoles = { "Admin", "Staff" };
+
+					if (!string.IsNullOrWhiteSpace(roleFromToken) &&
+						!privilegedRoles.Any(pr => pr.Equals(userEntity.Role, StringComparison.OrdinalIgnoreCase)))
+					{
+						if (privilegedRoles.Contains(roleFromToken) || !privilegedRoles.Contains(userEntity.Role ?? ""))
+						{
+							if (userEntity.Role != roleFromToken)
+							{
+								_logger.LogInformation("Updating role for linked User {UserId} from '{OldRole}' to '{NewRole}' based on token.", userEntity.Id, userEntity.Role, roleFromToken);
+								userEntity.Role = roleFromToken;
+							}
+						}
+					}
+					_dbContext.Users.Update(userEntity);
+				}
+				else // Create brand new user
+				{
+					// User not found by ExternalProviderId or as local-only by Email. Create new user.
+					_logger.LogInformation("No existing user found. Creating new user for Auth0 Sub: {Auth0Sub}, Email: {Email}",
+						syncRequest.Auth0UserId, syncRequest.Email);
+					isNewUser = true;
+
+					string? finalFirstName = syncRequest.FirstName;
+					string? finalLastName = syncRequest.LastName;
+
+					if (string.IsNullOrWhiteSpace(finalFirstName) && !string.IsNullOrWhiteSpace(syncRequest.FullName))
+					{
+						var nameParts = syncRequest.FullName.Split(new[] { ' ' }, 2);
+						finalFirstName = nameParts.FirstOrDefault();
+						if (nameParts.Length > 1 && string.IsNullOrWhiteSpace(finalLastName))
+						{
+							finalLastName = nameParts.LastOrDefault();
+						}
+					}
+					// Ensure FirstName is not null for DB constraint
+					if (string.IsNullOrWhiteSpace(finalFirstName))
+					{
+						finalFirstName = syncRequest.Email!.Split('@')[0]; // Fallback to part of email
+						_logger.LogWarning("FirstName was null for new user, using email prefix as fallback for Auth0 Sub: {Auth0Sub}", syncRequest.Auth0UserId);
+					}
+
+					userEntity = new User
+					{
+						ExternalProviderId = syncRequest.Auth0UserId,
+						Email = syncRequest.Email!,
+						FirstName = finalFirstName,
+						LastName = finalLastName!, // Can be null
+						Role = syncRequest.Roles?.FirstOrDefault() ?? "Guest",
+						IsActive = true,
+						DateCreated = utcNow,
+						DateUpdated = utcNow,
+						LastLoginDate = utcNow
+					};
+					_dbContext.Users.Add(userEntity);
+				}
+			}
+
+			try
+			{
+				await _dbContext.SaveChangesAsync();
+				_logger.LogInformation("User sync successful for User ID: {UserId} (IsNew: {IsNewUser})", userEntity.Id, isNewUser);
+
+				var response = req.CreateResponse(isNewUser ? HttpStatusCode.Created : HttpStatusCode.OK);
+				// Return the synced/created user (or a DTO of it)
+				await response.WriteAsJsonAsync(userEntity);
+				return response;
+			}
+			catch (DbUpdateException dbEx)
+			{
+				_logger.LogError(dbEx, "Database error during user sync. Auth0 Sub: {Auth0Sub}", syncRequest.Auth0UserId);
+				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Database error during user sync.");
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Unexpected error during user sync. Auth0 Sub: {Auth0Sub}", syncRequest.Auth0UserId);
+				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Unexpected error during user sync.");
 			}
 		}
 
-		// Helper for creating consistent error responses
-		private async Task<HttpResponseData> CreateErrorResponse(HttpRequestData req, HttpStatusCode statusCode, string message)
+		// Helper for creating error responses
+		private async Task<AzureFuncHttp.HttpResponseData> CreateErrorResponse(
+			AzureFuncHttp.HttpRequestData req,
+			HttpStatusCode statusCode,
+			string message)
 		{
+			// Log the error message
+			_logger.LogWarning("Creating error response. StatusCode: {StatusCode}, Message: {Message}", statusCode, message);
+
+			// Create the response object
 			var response = req.CreateResponse(statusCode);
-			await response.WriteAsJsonAsync(new { message = message }, statusCode);
+
+			// Set the content type to JSON
+			response.Headers.Add("Content-Type", "application/json");
+
+			// Build the error response body
+			var errorResponse = new
+			{
+				error = new
+				{
+					code = statusCode.ToString(),
+					message
+				}
+			};
+
+			// Serialize the error response to JSON and write it to the response body
+			await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
+			{
+				PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
+				WriteIndented = true // Optional: Pretty-print the JSON
+			}));
+
 			return response;
 		}
 	}

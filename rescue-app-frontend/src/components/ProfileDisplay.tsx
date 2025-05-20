@@ -10,6 +10,8 @@ import { getAuth0AccessToken } from '@/utils/auth';
 interface ProfileFormData {
   firstName: string;
   lastName: string;
+  primaryPhone: string;
+  primaryPhoneType: string;
   // Add corresponding fields here if you make more fields editable
 }
 
@@ -68,6 +70,8 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
       reset({ // reset updates the form's default values AND current values
         firstName: profileData.firstName,
         lastName: profileData.lastName,
+        primaryPhone: profileData.primaryPhone,
+        primaryPhoneType: profileData.primaryPhoneType,
       });
     }
   }, [profileData, reset, isEditing]); // Rerun if isEditing changes
@@ -134,7 +138,6 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
           <ProfileDetail label="Member Since" value={format(new Date(profileData.dateCreated), 'MMMM do, yyyy')} />
           {/* Add other details from profileData */}
 
-          {/* This works but is commented out for now, because any name change is reset if logged in using a different provider, like Google.
           <div className="pt-6 text-right">
             <button
               onClick={() => { setApiError(null); setIsEditing(true); }}
@@ -142,7 +145,6 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
               Edit Profile
             </button>
           </div>
-          */}
         </dl>
       ) : (
           // --- Edit Mode ---
@@ -174,7 +176,25 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
                 {errors.lastName && <p className={errorTextClasses}>{errors.lastName.message}</p>}
               </div>
 
-              {/* Add inputs for other editable fields here (e.g., phone) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                {/* Phone Input */}
+                <div>
+                  <label htmlFor="primaryPhone" className={labelBaseClasses}>Phone *</label>
+                  <input type="tel" id="primaryPhone" {...register("primaryPhone", { required: "Primary phone is required" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.primaryPhone)}`} />
+                  {errors.primaryPhone && <p className={errorTextClasses}>{errors.primaryPhone.message}</p>}
+                </div>
+                {/* Phone Type Select */}
+                <div>
+                  <label htmlFor="primaryPhoneType" className={labelBaseClasses}>Phone Type *</label>
+                  <select id="primaryPhoneType" {...register("primaryPhoneType", { required: "Select phone type" })} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.primaryPhoneType)}`}>
+                    <option value="">Select Type...</option>
+                    <option value="Cell">Cell</option>
+                    <option value="Home">Home</option>
+                    <option value="Work">Work</option>
+                  </select>
+                  {errors.primaryPhoneType && <p className={errorTextClasses}>{errors.primaryPhoneType.message}</p>}
+                </div>
+              </div>
 
               {/* Non-Editable fields can be displayed as text */}
               <ProfileDetail label="Email" value={profileData.email} />
@@ -195,8 +215,7 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
                 type="submit"
                 // Disable if submitting OR if form hasn't changed from original values
                 disabled={isSubmitting || !isDirty}
-                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50"
-              >
+                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50">
                 {isSubmitting ? 'Saving...' : 'Save Changes'}
               </button>
             </div>

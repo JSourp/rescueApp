@@ -1,4 +1,6 @@
 -- If taking a fresh backup, drop the previously backed up tables
+DROP TABLE IF EXISTS public.dev_adoption_applications;
+DROP TABLE IF EXISTS public.dev_partnership_sponsorship_applications;
 DROP TABLE IF EXISTS public.dev_volunteer_applications;
 DROP TABLE IF EXISTS public.dev_foster_profiles;
 DROP TABLE IF EXISTS public.dev_foster_applications;
@@ -11,6 +13,8 @@ DROP TABLE IF EXISTS public.dev_users;
 
 
 -- Create Backups
+CREATE TABLE public.dev_adoption_applications AS SELECT * FROM public.adoption_applications;
+CREATE TABLE public.dev_partnership_sponsorship_applications AS SELECT * FROM public.partnership_sponsorship_applications;
 CREATE TABLE public.dev_volunteer_applications AS SELECT * FROM public.volunteer_applications;
 CREATE TABLE public.dev_foster_profiles AS SELECT * FROM public.foster_profiles;
 CREATE TABLE public.dev_foster_applications AS SELECT * FROM public.foster_applications;
@@ -22,6 +26,8 @@ CREATE TABLE public.dev_animals AS SELECT * FROM public.animals;
 CREATE TABLE public.dev_users AS SELECT * FROM public.users;
 
 -- Validate backups
+SELECT * FROM public.dev_adoption_applications;
+SELECT * FROM public.dev_partnership_sponsorship_applications;
 SELECT * FROM public.dev_volunteer_applications;
 SELECT * FROM public.dev_foster_profiles;
 SELECT * FROM public.dev_foster_applications;
@@ -33,6 +39,8 @@ SELECT * FROM public.dev_animals;
 SELECT * FROM public.dev_users;
 
 -- Drop Tables
+DROP TABLE IF EXISTS public.adoption_applications;
+DROP TABLE IF EXISTS public.partnership_sponsorship_applications;
 DROP TABLE IF EXISTS public.volunteer_applications;
 DROP TABLE IF EXISTS public.foster_profiles;
 DROP TABLE IF EXISTS public.foster_applications;
@@ -56,6 +64,8 @@ INSERT INTO public.adoptionhistory SELECT * FROM public.dev_adoptionhistory;
 INSERT INTO public.foster_applications SELECT * FROM public.dev_foster_applications;
 INSERT INTO public.foster_profiles SELECT * FROM public.dev_foster_profiles;
 INSERT INTO public.volunteer_applications SELECT * FROM public.dev_volunteer_applications;
+INSERT INTO public.partnership_sponsorship_applications SELECT * FROM public.dev_partnership_sponsorship_applications;
+INSERT INTO public.adoption_applications SELECT * FROM public.dev_adoption_applications;
 
 -- Reset sequence
 SELECT setval('public.animals_id_seq', COALESCE((SELECT MAX(id) FROM public.animals), 1));
@@ -65,9 +75,13 @@ SELECT setval('public.adoptionhistory_id_seq', COALESCE((SELECT MAX(id) FROM pub
 SELECT setval('public.foster_applications_id_seq', COALESCE((SELECT MAX(id) FROM public.foster_applications), 1));
 SELECT setval('public.foster_profiles_id_seq', COALESCE((SELECT MAX(id) FROM public.foster_profiles), 1));
 SELECT setval('public.volunteer_applications_id_seq', COALESCE((SELECT MAX(id) FROM public.volunteer_applications), 1));
+SELECT setval('public.partnership_sponsorship_applications_id_seq', COALESCE((SELECT MAX(id) FROM public.partnership_sponsorship_applications), 1));
+SELECT setval('public.adoption_applications_id_seq', COALESCE((SELECT MAX(id) FROM public.adoption_applications), 1));
 
 
 -- Validate new tables
+SELECT * FROM public.adoption_applications;
+SELECT * FROM public.partnership_sponsorship_applications;
 SELECT * FROM public.volunteer_applications;
 SELECT * FROM public.foster_profiles;
 SELECT * FROM public.foster_applications;
