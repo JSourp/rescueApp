@@ -1,6 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.IdentityModel.Tokens.Jwt; // Ensure this is included
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Net;
 using System.Security.Claims;
@@ -15,14 +15,14 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using rescueApp.Data;
 using rescueApp.Models;
+
 // Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
     // DTO (Data Transfer Object) for the request body
-    // Uses PascalCase for C# naming conventions. System.Text.Json can map
-    // incoming camelCase JSON to this using PropertyNameCaseInsensitive = true.
+    // TODO: Consider moving this to Models/Requests folder
     public class CreateAnimalRequest
     {
         [Required(AllowEmptyStrings = false)]
@@ -70,7 +70,7 @@ namespace rescueApp
 
         [Function("CreateAnimal")]
         public async Task<AzureFuncHttp.HttpResponseData> Run(
-            // TODO: Change AuthorizationLevel from Anonymous after testing/implementing real auth
+            // Security is handled by internal Auth0 Bearer token validation and role-based authorization.
             [HttpTrigger(AuthorizationLevel.Anonymous, "POST", Route = "animals")]
             AzureFuncHttp.HttpRequestData req)
         {
@@ -152,7 +152,11 @@ namespace rescueApp
                 _logger.LogError(ex, "Error deserializing or validating CreateAnimal request body.");
                 return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request format or data.");
             }
-            if (createData == null) { /* Should be caught above, but defensive check */ return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request data."); }
+            if (createData == null)
+            {
+                /* Should be caught above, but defensive check */
+                return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request data.");
+            }
 
 
             // --- 3. Create and Save Animal ---
@@ -174,15 +178,15 @@ namespace rescueApp
                     Breed = createData.Breed!,
                     DateOfBirth = dateOfBirthUtc,
                     Gender = createData.Gender!,
-                    Weight = createData.Weight, // Nullable decimal?
-                    Story = createData.Story, // Nullable string
+                    Weight = createData.Weight,
+                    Story = createData.Story,
                     AdoptionStatus = createData.adoption_status!, // Use status from request
                     CreatedByUserId = currentUser.Id,
                     UpdatedByUserId = currentUser.Id
                 };
 
                 _dbContext.Animals.Add(newAnimal);
-                await _dbContext.SaveChangesAsync(); // Should now save DOB correctly
+                await _dbContext.SaveChangesAsync();
 
                 _logger.LogInformation("Successfully created new Animal with ID: {animal_id} by User ID: {UserId}", newAnimal.Id, currentUser!.Id); // Use currentUser safely
 
@@ -316,7 +320,7 @@ namespace rescueApp
             await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-                WriteIndented = true // Optional: Pretty-print the JSON
+                WriteIndented = true // Pretty-print the JSON
             }));
 
             return response;

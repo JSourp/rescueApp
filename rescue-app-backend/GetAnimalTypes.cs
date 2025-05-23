@@ -1,13 +1,13 @@
+using System.Linq;
 using System.Net;
+using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using rescueApp.Data;
-using System.Linq;
-using Microsoft.AspNetCore.Http; // Add this using directive
-using System.Text.Json;
 
 namespace rescueApp;
 
@@ -22,7 +22,8 @@ public class GetAnimalTypes
 
     [Function("GetAnimalTypes")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "animals/types")] HttpRequestData req,
+        // Security is handled by internal Auth0 Bearer token validation and role-based authorization.
+        [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "animals/types")] HttpRequestData req,
         FunctionContext executionContext)
     {
         var logger = executionContext.GetLogger("GetAnimalTypes");
@@ -39,7 +40,7 @@ public class GetAnimalTypes
             var jsonResponse = JsonSerializer.Serialize(animalTypes, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-                WriteIndented = false // Optional: Pretty-print JSON if needed
+                WriteIndented = false // Pretty-print JSON if needed
             });
 
             // Create the HTTP response

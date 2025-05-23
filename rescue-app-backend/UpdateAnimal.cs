@@ -1,6 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.IdentityModel.Tokens.Jwt; // Ensure this is included
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Net;
 using System.Security.Claims;
@@ -20,6 +20,7 @@ using rescueApp.Data;
 using rescueApp.Models;
 using rescueApp.Models.DTOs;
 using rescueApp.Models.Requests;
+
 // Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
@@ -42,7 +43,7 @@ namespace rescueApp
 
         [Function("UpdateAnimal")]
         public async Task<AzureFuncHttp.HttpResponseData> Run(
-            // TODO: Change AuthorizationLevel from Anonymous after testing/implementing real auth
+            // Security is handled by internal Auth0 Bearer token validation and role-based authorization.
             [HttpTrigger(AuthorizationLevel.Anonymous, "PUT", Route = "animals/{id}")]
             AzureFuncHttp.HttpRequestData req,
             int id) // Animal ID from route
@@ -97,7 +98,6 @@ namespace rescueApp
                 _logger.LogError(ex, "Error during authentication/authorization in UpdateAnimal.");
                 return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Authentication/Authorization error.");
             }
-            // --- End Auth ---
 
 
             // --- 2. Deserialize & Validate Request Body ---
@@ -125,7 +125,11 @@ namespace rescueApp
                 _logger.LogError(ex, "Error deserializing or validating UpdateAnimal request body.");
                 return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request format or data.");
             }
-            if (updateData == null) { /* Should be caught above, but defensive check */ return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request data."); }
+            if (updateData == null)
+            {
+                /* Should be caught above, but defensive check */
+                return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request data.");
+            }
 
 
             // --- 3. Find and Update Animal ---
@@ -377,7 +381,7 @@ namespace rescueApp
             await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-                WriteIndented = true // Optional: Pretty-print the JSON
+                WriteIndented = true // Pretty-print the JSON
             }));
 
             return response;

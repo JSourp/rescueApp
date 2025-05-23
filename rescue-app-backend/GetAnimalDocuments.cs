@@ -5,11 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
-using System.Text.Json; // Required for manual serialization
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http; // Use alias below
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
@@ -17,20 +17,22 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using rescueApp.Data;
 using rescueApp.Models;
+
 // Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
 	// DTO for returning document metadata to the frontend
+	// TODO: Consider moving this to Models/DTOs folder
 	public class AnimalDocumentDto
 	{
 		public int Id { get; set; }
 		public int AnimalId { get; set; }
 		public string DocumentType { get; set; } = string.Empty;
 		public string FileName { get; set; } = string.Empty;
-		public string BlobName { get; set; } = string.Empty; // Might not be needed by frontend
-		public string BlobUrl { get; set; } = string.Empty;  // Maybe not needed directly by list view but needed for download link generation.
+		public string BlobName { get; set; } = string.Empty;
+		public string BlobUrl { get; set; } = string.Empty;
 		public string? Description { get; set; }
 		public DateTime DateUploaded { get; set; }
 		public Guid? UploadedByUserId { get; set; }
@@ -56,7 +58,7 @@ namespace rescueApp
 
 		[Function("GetAnimalDocuments")]
 		public async Task<AzureFuncHttp.HttpResponseData> Run(
-			// Secure: Admin/Staff/Volunteer can view document lists
+			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
 			[HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "animals/{animalId:int}/documents")]
 			AzureFuncHttp.HttpRequestData req,
 			int animalId)
@@ -128,7 +130,6 @@ namespace rescueApp
 				var documents = await _dbContext.AnimalDocuments
 					.Where(d => d.AnimalId == animalId)
 					.OrderByDescending(d => d.DateUploaded) // Show newest first
-															// Include uploader info if needed
 					.Include(d => d.UploadedByUser)
 					.Select(d => new AnimalDocumentDto // Map to DTO
 					{
@@ -278,7 +279,7 @@ namespace rescueApp
 			await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
 			{
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-				WriteIndented = true // Optional: Pretty-print the JSON
+				WriteIndented = true // Pretty-print the JSON
 			}));
 
 			return response;

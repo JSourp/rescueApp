@@ -33,18 +33,18 @@ namespace rescueApp.Models
 
         [Phone(ErrorMessage = "Invalid secondary phone format.")]
         [MaxLength(30)]
-        public string? AdopterSecondaryPhone { get; set; } // Optional
+        public string? AdopterSecondaryPhone { get; set; }
 
         [RegularExpression("^(Cell|Home|Work)$", ErrorMessage = "Phone type must be Cell, Home, or Work.")]
         [MaxLength(10)]
-        public string? AdopterSecondaryPhoneType { get; set; } // Optional
+        public string? AdopterSecondaryPhoneType { get; set; }
 
         [Required(AllowEmptyStrings = false, ErrorMessage = "Street address is required.")]
         [MaxLength(255)]
         public string? AdopterStreetAddress { get; set; }
 
         [MaxLength(50)]
-        public string? AdopterAptUnit { get; set; } // Optional
+        public string? AdopterAptUnit { get; set; }
 
         [Required(AllowEmptyStrings = false, ErrorMessage = "City is required.")]
         [MaxLength(100)]
@@ -59,10 +59,10 @@ namespace rescueApp.Models
         public string? AdopterZipPostalCode { get; set; }
 
         [MaxLength(100)]
-        public string? SpousePartnerRoommate { get; set; } // Optional
+        public string? SpousePartnerRoommate { get; set; }
 
         // Optional fields below
-        public DateTime? AdoptionDate { get; set; } // Optional? Default to now if missing
+        public DateTime? AdoptionDate { get; set; }
         public string? Notes { get; set; }
         public string? HowHeard { get; set; }
         public string? Botcheck { get; set; } // Honeypot field for spam prevention

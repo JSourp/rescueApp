@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations; // Required for validation attributes
-using System.IdentityModel.Tokens.Jwt; // Ensure this is included
+using System.ComponentModel.DataAnnotations;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -34,6 +34,7 @@ namespace rescueApp
 		private static ConfigurationManager<OpenIdConnectConfiguration>? _configManager;
 		private static TokenValidationParameters? _validationParameters;
 		private readonly string _blobConnectionString = Environment.GetEnvironmentVariable("AzureBlobStorageConnectionString") ?? string.Empty;
+		private readonly string _blobContainerName = "animal-images";
 
 		public DeleteAnimalImage(AppDbContext dbContext, ILogger<DeleteAnimalImage> logger)
 		{
@@ -45,8 +46,8 @@ namespace rescueApp
 
 		[Function("DeleteAnimalImage")]
 		public async Task<AzureFuncHttp.HttpResponseData> Run(
-			// Secure: Admin/Staff/Volunteer can delete images they uploaded? Or just Admin/Staff? Let's say Admin/Staff
-			[HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "images/{imageId:int}")] // Route by image ID
+			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
+			[HttpTrigger(AuthorizationLevel.Anonymous, "DELETE", Route = "images/{imageId:int}")] // Route by image ID
             AzureFuncHttp.HttpRequestData req,
 			int imageId)
 		{
@@ -122,8 +123,39 @@ namespace rescueApp
 				_logger.LogInformation("Marked image metadata record {ImageId} for deletion.", imageId);
 
 				// 5. Delete Blob from Azure Storage
-				if (!string.IsNullOrEmpty(blobNameToDelete)) { /* ... Copy Blob Deletion Logic from DeleteDocumentMetadata ... */ }
-				else { _logger.LogWarning("Image metadata record {ImageId} had no blob name stored.", imageId); }
+				if (!string.IsNullOrEmpty(blobNameToDelete))
+				{
+					_logger.LogInformation("Attempting to delete blob: {Container}/{BlobName}", _blobContainerName, blobNameToDelete);
+					try
+					{
+						if (string.IsNullOrEmpty(_blobConnectionString)) throw new InvalidOperationException("Storage connection missing.");
+						var containerClient = new BlobContainerClient(_blobConnectionString, _blobContainerName);
+						var blobClient = containerClient.GetBlobClient(blobNameToDelete);
+
+						// DeleteIfExistsAsync returns Response<bool> where bool indicates if blob existed
+						var deleteResponse = await blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots);
+
+						if (deleteResponse.Value)
+						{
+							_logger.LogInformation("Successfully deleted blob '{BlobName}' from container '{Container}'.", blobNameToDelete, _blobContainerName);
+						}
+						else
+						{
+							_logger.LogWarning("Blob '{BlobName}' not found in container '{Container}', but proceeding with metadata deletion.", blobNameToDelete, _blobContainerName);
+						}
+					}
+					catch (Exception blobEx)
+					{
+						// Log and rollback if blob deletion throws an unexpected error.
+						_logger.LogError(blobEx, "Error deleting blob '{BlobName}' from storage. Rolling back DB changes.", blobNameToDelete);
+						await transaction.RollbackAsync();
+						return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Failed to delete document file from storage.");
+					}
+				}
+				else
+				{
+					_logger.LogWarning("Image metadata record {ImageId} had no blob name stored. Skipping blob deletion.", imageId);
+				}
 
 				// 6. Save DB Changes
 				await _dbContext.SaveChangesAsync();
@@ -253,7 +285,7 @@ namespace rescueApp
 			await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
 			{
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-				WriteIndented = true // Optional: Pretty-print the JSON
+				WriteIndented = true // Pretty-print the JSON
 			}));
 
 			return response;

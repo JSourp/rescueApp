@@ -10,7 +10,7 @@ namespace rescueApp.Models
         public int AnimalId { get; set; } // Foreign key property
         public string ImageUrl { get; set; } = string.Empty;
         public string BlobName { get; set; } = string.Empty; // Unique name in storage
-        public string? Caption { get; set; } // Optional
+        public string? Caption { get; set; }
         public int DisplayOrder { get; set; } = 0; // Default order
         public bool IsPrimary { get; set; } = false; // Default not primary
         public DateTime DateUploaded { get; set; }

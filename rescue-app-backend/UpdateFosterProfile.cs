@@ -12,14 +12,15 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-// Auth0 Usings
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using rescueApp.Data;
 using rescueApp.Models;
-using rescueApp.Models.DTOs;       // For FosterApplicationListItemDto
-using rescueApp.Models.Requests;  // For UpdateFosterApplicationRequest
+using rescueApp.Models.DTOs;
+using rescueApp.Models.Requests;
+
+// Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
@@ -42,6 +43,7 @@ namespace rescueApp
 
 		[Function("UpdateFosterProfile")]
 		public async Task<AzureFuncHttp.HttpResponseData> Run(
+			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
 			[HttpTrigger(AuthorizationLevel.Anonymous, "PUT", Route = "fosters/{userId:guid}")] AzureFuncHttp.HttpRequestData req,
 			Guid userId)
 		{
@@ -135,7 +137,7 @@ namespace rescueApp
 				var validationContext = new ValidationContext(updateRequest, serviceProvider: null, items: null);
 				bool isValid = Validator.TryValidateObject(updateRequest, validationContext, validationResults, true);
 
-				if (!isValid) // Removed || updateRequest == null here as it's checked above
+				if (!isValid)
 				{
 					string errors = string.Join("; ", validationResults.Select(vr => $"{(vr.MemberNames.Any() ? vr.MemberNames.First() : "Request")}: {vr.ErrorMessage}"));
 					_logger.LogWarning("UpdateFosterProfile DTO validation failed. Errors: [{ValidationErrors}]", errors);
@@ -198,11 +200,48 @@ namespace rescueApp
 
 				await transaction.CommitAsync();
 
-				// Fetch the updated combined details to return (using logic similar to GetFosterById)
+				// Fetch the updated combined details to return
 				// This ensures the response is fresh and reflects all changes.
 				var updatedFosterDetail = await _dbContext.FosterProfiles
 					.Where(fp => fp.UserId == userId)
-					.Select(fp => new FosterDetailDto { /* ... map all fields for FosterDetailDto ... */ })
+					.Select(fp => new FosterDetailDto
+					{
+						// From User table
+						UserId = fp.UserId,
+						FirstName = fp.User!.FirstName,
+						LastName = fp.User.LastName,
+						Email = fp.User.Email,
+						PrimaryPhone = fp.User.PrimaryPhone,
+						IsUserActive = fp.User.IsActive,
+						UserRole = fp.User.Role,
+
+						// From FosterProfile table
+						FosterProfileId = fp.Id,
+						ApprovalDate = fp.ApprovalDate,
+						IsActiveFoster = fp.IsActiveFoster,
+						AvailabilityNotes = fp.AvailabilityNotes,
+						CapacityDetails = fp.CapacityDetails,
+						HomeVisitDate = fp.HomeVisitDate,
+						HomeVisitNotes = fp.HomeVisitNotes,
+						ProfileDateCreated = fp.DateCreated,
+						ProfileDateUpdated = fp.DateUpdated,
+
+						// From linked FosterApplication (may be null)
+						FosterApplicationId = fp.FosterApplication != null ? fp.FosterApplication.Id : (int?)null,
+						ApplicantStreetAddress = fp.FosterApplication != null ? fp.FosterApplication.StreetAddress : null,
+						ApplicantCity = fp.FosterApplication != null ? fp.FosterApplication.City : null,
+
+						// List of animals currently fostered (example: filter by AdoptionStatus containing "foster")
+						CurrentlyFostering = (fp.FosteredAnimals ?? new List<Animal>())
+							.Where(a => a.AdoptionStatus != null && a.AdoptionStatus.ToLower().Contains("foster"))
+							.Select(a => new FosteredAnimalDto
+							{
+								Id = a.Id,
+								Name = a.Name,
+								AnimalType = a.AnimalType,
+								AdoptionStatus = a.AdoptionStatus
+							}).ToList()
+					})
 					.FirstOrDefaultAsync();
 
 				// --- Return Response ---
@@ -327,7 +366,7 @@ namespace rescueApp
 			await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
 			{
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-				WriteIndented = true // Optional: Pretty-print the JSON
+				WriteIndented = true // Pretty-print the JSON
 			}));
 
 			return response;

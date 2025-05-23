@@ -12,14 +12,15 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-// Auth0 Usings
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using rescueApp.Data;
 using rescueApp.Models;
-using rescueApp.Models.DTOs;       // For FosterApplicationListItemDto
-using rescueApp.Models.Requests;  // For UpdateFosterApplicationRequest
+using rescueApp.Models.DTOs;
+using rescueApp.Models.Requests;
+
+// Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
@@ -42,6 +43,7 @@ namespace rescueApp
 
 		[Function("UpdateFosterApplication")]
 		public async Task<AzureFuncHttp.HttpResponseData> Run(
+			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
 			[HttpTrigger(AuthorizationLevel.Anonymous, "PUT", Route = "foster-applications/{applicationId:int}")] AzureFuncHttp.HttpRequestData req,
 			int applicationId)
 		{
@@ -122,7 +124,11 @@ namespace rescueApp
 				_logger.LogError(ex, "Error deserializing or validating UpdateAnimal request body.");
 				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request format or data.");
 			}
-			if (updateRequest == null) { /* Should be caught above, but defensive check */ return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request data."); }
+			if (updateRequest == null)
+			{
+				/* Should be caught above, but defensive check */
+				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request data.");
+			}
 
 			// --- 3. Find and Update ---
 			using var transaction = await _dbContext.Database.BeginTransactionAsync();
@@ -173,14 +179,13 @@ namespace rescueApp
 							LastName = application.LastName,
 							Email = application.PrimaryEmail,
 							Role = "Foster", // Assign Foster role
-							IsActive = true,  // Active in your system as a foster
+							IsActive = true,  // Active in system as a foster
 							ExternalProviderId = null, // No Auth0 link yet
 							DateCreated = DateTime.UtcNow,
 							DateUpdated = DateTime.UtcNow,
 							LastLoginDate = null
 						};
 						_dbContext.Users.Add(userForFoster);
-						// SaveChangesAsync will be called later, userForFoster.Id will be populated
 						_logger.LogInformation("Local user record prepared for {ApplicantEmail}. Auth0 account can be created/linked later.", application.PrimaryEmail);
 					}
 					else
@@ -213,8 +218,7 @@ namespace rescueApp
 						_logger.LogInformation("Creating new FosterProfile for User ID: {UserId}, linked to Application ID: {ApplicationId}", userForFoster.Id, application.Id);
 						fosterProfile = new FosterProfile
 						{
-							User = userForFoster, // Link by navigation property if user is new and not yet saved
-												  // Or UserId = userForFoster.Id if userForFoster is already saved and has an ID
+							User = userForFoster,
 							FosterApplicationId = application.Id,
 							ApprovalDate = DateTime.UtcNow,
 							IsActiveFoster = true,
@@ -375,7 +379,7 @@ namespace rescueApp
 			await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
 			{
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-				WriteIndented = true // Optional: Pretty-print the JSON
+				WriteIndented = true // Pretty-print the JSON
 			}));
 
 			return response;

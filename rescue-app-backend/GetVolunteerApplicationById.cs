@@ -5,50 +5,52 @@ using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Web; // For HttpUtility
+using System.Web;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-// Auth0 Usings
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using rescueApp.Data;
 using rescueApp.Models;
-using rescueApp.Models.DTOs; // For the DTO
+using rescueApp.Models.DTOs;
+
+// Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
-    public class GetVolunteerApplicationById
-    {
-        private readonly AppDbContext _dbContext;
-        private readonly ILogger<GetVolunteerApplicationById> _logger;
+	public class GetVolunteerApplicationById
+	{
+		private readonly AppDbContext _dbContext;
+		private readonly ILogger<GetVolunteerApplicationById> _logger;
 		private readonly string _auth0Domain = Environment.GetEnvironmentVariable("AUTH0_ISSUER_BASE_URL") ?? string.Empty;
 		private readonly string _auth0Audience = Environment.GetEnvironmentVariable("AUTH0_AUDIENCE") ?? string.Empty;
 		private static ConfigurationManager<OpenIdConnectConfiguration>? _configManager;
 		private static TokenValidationParameters? _validationParameters;
 
-        public GetVolunteerApplicationById(AppDbContext dbContext, ILogger<GetVolunteerApplicationById> logger)
-        {
-            _dbContext = dbContext;
-            _logger = logger;
-            if (string.IsNullOrEmpty(_auth0Domain) || string.IsNullOrEmpty(_auth0Audience)) { _logger.LogError("Auth0 Domain/Audience not configured for GetVolunteerApplicationById."); }
-        }
+		public GetVolunteerApplicationById(AppDbContext dbContext, ILogger<GetVolunteerApplicationById> logger)
+		{
+			_dbContext = dbContext;
+			_logger = logger;
+			if (string.IsNullOrEmpty(_auth0Domain) || string.IsNullOrEmpty(_auth0Audience)) { _logger.LogError("Auth0 Domain/Audience not configured for GetVolunteerApplicationById."); }
+		}
 
-        [Function("GetVolunteerApplicationById")]
-        public async Task<AzureFuncHttp.HttpResponseData> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "volunteer-applications/{applicationId:int}")] AzureFuncHttp.HttpRequestData req,
-            int applicationId)
-        {
-            _logger.LogInformation("C# HTTP trigger function processed GetVolunteerApplicationById request for ID: {ApplicationId}.", applicationId);
+		[Function("GetVolunteerApplicationById")]
+		public async Task<AzureFuncHttp.HttpResponseData> Run(
+			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
+			[HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "volunteer-applications/{applicationId:int}")] AzureFuncHttp.HttpRequestData req,
+			int applicationId)
+		{
+			_logger.LogInformation("C# HTTP trigger function processed GetVolunteerApplicationById request for ID: {ApplicationId}.", applicationId);
 
 			User? currentUser;
 			ClaimsPrincipal? principal;
 			string? auth0UserId;
 
-            // --- 1. Authentication & Authorization ---
+			// --- 1. Authentication & Authorization ---
 			try
 			{
 				// --- Token Validation ---
@@ -88,82 +90,82 @@ namespace rescueApp
 				_logger.LogInformation("User {UserId} with role {UserRole} authorized.", currentUser.Id, currentUser.Role);
 
 			}
-			catch (Exception ex) // Catch potential exceptions during auth/authz
+			catch (Exception ex)
 			{
 				_logger.LogError(ex, "Error during authentication/authorization in CreateAnimal.");
 				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Authentication/Authorization error.");
 			}
 
 			// --- Get ---
-            try
-            {
-                var applicationEntity = await _dbContext.VolunteerApplications
-                    .Include(app => app.ReviewedByUser) // Include user who reviewed it
-                    .AsNoTracking() // Good for read-only queries
-                    .FirstOrDefaultAsync(app => app.Id == applicationId); // Use PascalCase model property
+			try
+			{
+				var applicationEntity = await _dbContext.VolunteerApplications
+					.Include(app => app.ReviewedByUser) // Include user who reviewed it
+					.AsNoTracking() // Good for read-only queries
+					.FirstOrDefaultAsync(app => app.Id == applicationId); // Use PascalCase model property
 
-                if (applicationEntity == null)
-                {
-                    _logger.LogWarning("Volunteer application not found with ID: {ApplicationId}", applicationId);
-                    return await CreateErrorResponse(req, HttpStatusCode.NotFound, $"Volunteer application with ID {applicationId} not found.");
-                }
+				if (applicationEntity == null)
+				{
+					_logger.LogWarning("Volunteer application not found with ID: {ApplicationId}", applicationId);
+					return await CreateErrorResponse(req, HttpStatusCode.NotFound, $"Volunteer application with ID {applicationId} not found.");
+				}
 
-                // Map Entity to DTO
-                var applicationDetailDto = new VolunteerApplicationDetailDto
-                {
-                    Id = applicationEntity.Id,
-                    SubmissionDate = applicationEntity.SubmissionDate,
-                    Status = applicationEntity.Status,
-                    FirstName = applicationEntity.FirstName,
-                    LastName = applicationEntity.LastName,
-                    SpousePartnerRoommate = applicationEntity.SpousePartnerRoommate,
-                    StreetAddress = applicationEntity.StreetAddress,
-                    AptUnit = applicationEntity.AptUnit,
-                    City = applicationEntity.City,
-                    StateProvince = applicationEntity.StateProvince,
-                    ZipPostalCode = applicationEntity.ZipPostalCode,
-                    PrimaryPhone = applicationEntity.PrimaryPhone,
-                    PrimaryPhoneType = applicationEntity.PrimaryPhoneType,
-                    SecondaryPhone = applicationEntity.SecondaryPhone,
-                    SecondaryPhoneType = applicationEntity.SecondaryPhoneType,
-                    PrimaryEmail = applicationEntity.PrimaryEmail,
-                    SecondaryEmail = applicationEntity.SecondaryEmail,
-                    HowHeard = applicationEntity.HowHeard,
-                    AgeConfirmation = applicationEntity.AgeConfirmation,
-                    PreviousVolunteerExperience = applicationEntity.PreviousVolunteerExperience,
-                    PreviousExperienceDetails = applicationEntity.PreviousExperienceDetails,
-                    ComfortLevelSpecialNeeds = applicationEntity.ComfortLevelSpecialNeeds,
-                    AreasOfInterest = applicationEntity.AreasOfInterest,
-                    OtherSkills = applicationEntity.OtherSkills,
-                    LocationAcknowledgement = applicationEntity.LocationAcknowledgement,
-                    VolunteerReason = applicationEntity.VolunteerReason,
-                    EmergencyContactName = applicationEntity.EmergencyContactName,
-                    EmergencyContactPhone = applicationEntity.EmergencyContactPhone,
-                    CrimeConvictionCheck = applicationEntity.CrimeConvictionCheck,
-                    PolicyAcknowledgement = applicationEntity.PolicyAcknowledgement,
-                    WaiverAgreed = applicationEntity.WaiverAgreed,
-                    ESignatureName = applicationEntity.ESignatureName,
-                    WaiverAgreementTimestamp = applicationEntity.WaiverAgreementTimestamp,
-                    ReviewedByUserId = applicationEntity.ReviewedByUserId,
-                    ReviewedByName = applicationEntity.ReviewedByUser != null ? $"{applicationEntity.ReviewedByUser.FirstName} {applicationEntity.ReviewedByUser.LastName}" : null,
-                    ReviewDate = applicationEntity.ReviewDate,
-                    InternalNotes = applicationEntity.InternalNotes
-                };
+				// Map Entity to DTO
+				var applicationDetailDto = new VolunteerApplicationDetailDto
+				{
+					Id = applicationEntity.Id,
+					SubmissionDate = applicationEntity.SubmissionDate,
+					Status = applicationEntity.Status,
+					FirstName = applicationEntity.FirstName,
+					LastName = applicationEntity.LastName,
+					SpousePartnerRoommate = applicationEntity.SpousePartnerRoommate,
+					StreetAddress = applicationEntity.StreetAddress,
+					AptUnit = applicationEntity.AptUnit,
+					City = applicationEntity.City,
+					StateProvince = applicationEntity.StateProvince,
+					ZipPostalCode = applicationEntity.ZipPostalCode,
+					PrimaryPhone = applicationEntity.PrimaryPhone,
+					PrimaryPhoneType = applicationEntity.PrimaryPhoneType,
+					SecondaryPhone = applicationEntity.SecondaryPhone,
+					SecondaryPhoneType = applicationEntity.SecondaryPhoneType,
+					PrimaryEmail = applicationEntity.PrimaryEmail,
+					SecondaryEmail = applicationEntity.SecondaryEmail,
+					HowHeard = applicationEntity.HowHeard,
+					AgeConfirmation = applicationEntity.AgeConfirmation,
+					PreviousVolunteerExperience = applicationEntity.PreviousVolunteerExperience,
+					PreviousExperienceDetails = applicationEntity.PreviousExperienceDetails,
+					ComfortLevelSpecialNeeds = applicationEntity.ComfortLevelSpecialNeeds,
+					AreasOfInterest = applicationEntity.AreasOfInterest,
+					OtherSkills = applicationEntity.OtherSkills,
+					LocationAcknowledgement = applicationEntity.LocationAcknowledgement,
+					VolunteerReason = applicationEntity.VolunteerReason,
+					EmergencyContactName = applicationEntity.EmergencyContactName,
+					EmergencyContactPhone = applicationEntity.EmergencyContactPhone,
+					CrimeConvictionCheck = applicationEntity.CrimeConvictionCheck,
+					PolicyAcknowledgement = applicationEntity.PolicyAcknowledgement,
+					WaiverAgreed = applicationEntity.WaiverAgreed,
+					ESignatureName = applicationEntity.ESignatureName,
+					WaiverAgreementTimestamp = applicationEntity.WaiverAgreementTimestamp,
+					ReviewedByUserId = applicationEntity.ReviewedByUserId,
+					ReviewedByName = applicationEntity.ReviewedByUser != null ? $"{applicationEntity.ReviewedByUser.FirstName} {applicationEntity.ReviewedByUser.LastName}" : null,
+					ReviewDate = applicationEntity.ReviewDate,
+					InternalNotes = applicationEntity.InternalNotes
+				};
 
 				// --- Return Response ---
-				var response = req.CreateResponse(HttpStatusCode.OK); // Return 200 OK
+				var response = req.CreateResponse(HttpStatusCode.OK);
 				var jsonResponse = JsonSerializer.Serialize(applicationDetailDto, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 				await response.WriteStringAsync(jsonResponse);
 				return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error fetching volunteer application ID {ApplicationId}.", applicationId);
-                return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An error occurred while fetching the volunteer application.");
-            }
-        }
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Error fetching volunteer application ID {ApplicationId}.", applicationId);
+				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An error occurred while fetching the volunteer application.");
+			}
+		}
 
-        // --- Token Validation Logic shared helper/service ---
+		// --- Token Validation Logic shared helper/service ---
 		private async Task<ClaimsPrincipal?> ValidateTokenAndGetPrincipal(AzureFuncHttp.HttpRequestData req)
 		{
 			_logger.LogInformation("Validating token...");
@@ -272,7 +274,7 @@ namespace rescueApp
 			await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
 			{
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-				WriteIndented = true // Optional: Pretty-print the JSON
+				WriteIndented = true // Pretty-print the JSON
 			}));
 
 			return response;

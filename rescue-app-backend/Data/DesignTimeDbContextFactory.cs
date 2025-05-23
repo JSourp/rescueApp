@@ -1,9 +1,8 @@
-// rescue-app-backend/Data/DesignTimeDbContextFactory.cs
+using System;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using System.IO;
-using System; // Add System for Console
 
 namespace rescueApp.Data
 {
@@ -23,23 +22,24 @@ namespace rescueApp.Data
 
             IConfigurationRoot configuration = new ConfigurationBuilder()
                 .SetBasePath(basePath)
-                .AddJsonFile("local.settings.json", optional: !settingsExists, reloadOnChange: true) // Make optional only if it truly doesn't exist
+                .AddJsonFile("local.settings.json", optional: !settingsExists, reloadOnChange: true)
                 .AddEnvironmentVariables()
                 .Build();
 
             string? connectionString = configuration[$"Values:PostgreSQLConnection"]
-                                  ?? configuration.GetConnectionString("PostgreSQLConnection");
+                ?? configuration.GetConnectionString("PostgreSQLConnection");
 
-             // --- ADD LOGGING ---
+            // --- ADD LOGGING ---
             Console.WriteLine($"---> DesignTimeDbContextFactory: Connection string retrieved (Is Null or Empty? {string.IsNullOrEmpty(connectionString)})");
-            if (!string.IsNullOrEmpty(connectionString)) {
-                 Console.WriteLine($"---> DesignTimeDbContextFactory: Conn String starts with 'Host='? {connectionString.Trim().StartsWith("Host=", StringComparison.OrdinalIgnoreCase)}");
+            if (!string.IsNullOrEmpty(connectionString))
+            {
+                Console.WriteLine($"---> DesignTimeDbContextFactory: Conn String starts with 'Host='? {connectionString.Trim().StartsWith("Host=", StringComparison.OrdinalIgnoreCase)}");
             }
-             // --- END LOGGING ---
+            // --- END LOGGING ---
 
             if (string.IsNullOrEmpty(connectionString))
             {
-                 // Include base path in error for easier debugging
+                // Include base path in error for easier debugging
                 throw new InvalidOperationException(
                     "DesignTimeDbContextFactory: Could not find 'PostgreSQLConnection' in " +
                     "local.settings.json[Values] or ConnectionStrings section." +

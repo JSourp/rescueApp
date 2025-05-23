@@ -1,4 +1,3 @@
-// rescueApp/SyncUser.cs
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -14,12 +13,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using rescueApp.Data;
 using rescueApp.Models;
+
+// Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
 	// DTO for the incoming request from the frontend after Auth0 login
 	// Properties should match the claims sent from Auth0 profile/token
+	// TODO: Consider moving this to Models/Requests folder
 	public class SyncUserRequest
 	{
 		[Required]
@@ -40,9 +42,6 @@ namespace rescueApp
 		[JsonPropertyName("name")] // Fallback for full name if given/family not present
 		public string? FullName { get; set; }
 
-		// Assuming roles are in a custom claim like "https://rescueapp/roles"
-		// The frontend might parse this from the ID token or Access Token and send it.
-		// Adjust the JsonPropertyName if claim name is different.
 		[JsonPropertyName("roles")]
 		public List<string>? Roles { get; set; } // e.g., ["Admin", "Foster"]
 	}
@@ -60,6 +59,7 @@ namespace rescueApp
 
 		[Function("SyncUser")]
 		public async Task<HttpResponseData> Run(
+			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
 			[HttpTrigger(AuthorizationLevel.Anonymous, "POST", Route = "users/sync")] HttpRequestData req)
 		{
 			_logger.LogInformation("C# HTTP trigger function processed SyncUser request.");
@@ -101,7 +101,7 @@ namespace rescueApp
 				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request data.");
 			}
 
-			User? userEntity = null; // Use PascalCase for C# model properties
+			User? userEntity = null;
 			bool isNewUser = false;
 			DateTime utcNow = DateTime.UtcNow;
 
@@ -121,8 +121,8 @@ namespace rescueApp
 
 				// Role synchronization:
 				// Get the primary role from the token (e.g., the first one, or based on priority)
-				// Be careful not to downgrade an Admin/Staff if they also have a "Foster" role from Auth0.
-				string? roleFromToken = syncRequest.Roles?.FirstOrDefault(); // Simplistic: takes the first role
+				// Do not downgrade an Admin/Staff if they also have a "Foster" role from Auth0.
+				string? roleFromToken = syncRequest.Roles?.FirstOrDefault(); // Takes the first role
 				string[] privilegedRoles = { "Admin", "Staff" };
 
 				if (!string.IsNullOrWhiteSpace(roleFromToken) &&
@@ -148,7 +148,7 @@ namespace rescueApp
 
 				string emailToCompare = syncRequest.Email!.ToLowerInvariant(); // Convert incoming email to lower once
 				userEntity = await _dbContext.Users
-									.FirstOrDefaultAsync(u => u.Email.ToLower() == emailToCompare && u.ExternalProviderId == null);
+					.FirstOrDefaultAsync(u => u.Email.ToLower() == emailToCompare && u.ExternalProviderId == null);
 
 				if (userEntity != null)
 				{
@@ -274,7 +274,7 @@ namespace rescueApp
 			await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
 			{
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-				WriteIndented = true // Optional: Pretty-print the JSON
+				WriteIndented = true // Pretty-print the JSON
 			}));
 
 			return response;

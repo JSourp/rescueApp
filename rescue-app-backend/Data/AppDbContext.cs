@@ -99,7 +99,7 @@ public class AppDbContext : DbContext
             .HasForeignKey(ad => ad.UpdatedByUserId) // snake_case FK property in Adopter
             .IsRequired(false) // FK is nullable
             .OnDelete(DeleteBehavior.SetNull); // Example: Set FK null if updating user deleted
-                                               // --- END User Audit FK Config ---
+  // --- END User Audit FK Config ---
 });
 
     // --- User Configuration ---
@@ -146,7 +146,7 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull); // Example delete behavior
 
       // --- Optional: Configure relationship for updated_by_user_id ---
-      // If you add the UpdatedByUser navigation property to AdoptionHistory model:
+      // If want to add the UpdatedByUser navigation property to AdoptionHistory model:
       // entity.HasOne(ah => ah.UpdatedByUser)
       //       .WithMany() // Assuming User doesn't need collection of records they updated
       //       .HasForeignKey(ah => ah.updated_by_user_id)
@@ -206,7 +206,6 @@ public class AppDbContext : DbContext
       entity.Property(e => e.IsPrimary).HasDefaultValue(false);
       // Configure display_order default (optional, DB default is preferred)
       entity.Property(e => e.DisplayOrder).HasDefaultValue(0);
-
 
       // Configure relationships (already defined from Animal/User side, but good practice)
       entity.HasOne(d => d.Animal) // Defined in Animal entity already
@@ -316,8 +315,5 @@ public class AppDbContext : DbContext
             .IsRequired(false)
             .OnDelete(DeleteBehavior.SetNull);
     });
-
-
-    // Add configurations for other entities if needed
   }
 }

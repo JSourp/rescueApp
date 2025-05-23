@@ -1,6 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.IdentityModel.Tokens.Jwt; // Ensure this is included
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Net;
 using System.Security.Claims;
@@ -17,6 +17,7 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using rescueApp.Data;
 using rescueApp.Models;
+
 // Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
@@ -41,7 +42,7 @@ namespace rescueApp
 
         [Function("DeleteAnimal")]
         public async Task<AzureFuncHttp.HttpResponseData> Run(
-            // TODO: Change AuthorizationLevel from Anonymous after testing/implementing real auth
+            // Security is handled by internal Auth0 Bearer token validation and role-based authorization.
             [HttpTrigger(AuthorizationLevel.Anonymous, "DELETE", Route = "animals/{id}")]
             AzureFuncHttp.HttpRequestData req,
             int id) // Animal ID from route
@@ -158,8 +159,7 @@ namespace rescueApp
 
                 _logger.LogInformation("Successfully deleted Animal ID: {animal_id} by User ID: {UserId}", id, currentUser.Id);
 
-                // --- 4. Return Success Response ---
-                // 204 No Content is standard for successful DELETE
+                // 4. Return Success Response (204 No Content)
                 var response = req.CreateResponse(HttpStatusCode.NoContent);
                 return response;
             }
@@ -285,7 +285,7 @@ namespace rescueApp
             await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-                WriteIndented = true // Optional: Pretty-print the JSON
+                WriteIndented = true // Pretty-print the JSON
             }));
 
             return response;

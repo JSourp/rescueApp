@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations; // Required for validation attributes
-using System.IdentityModel.Tokens.Jwt; // Ensure this is included
+using System.ComponentModel.DataAnnotations;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -42,6 +42,7 @@ namespace rescueApp
 
 		[Function("SetPrimaryAnimalImage")]
 		public async Task<AzureFuncHttp.HttpResponseData> Run(
+			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
 			[HttpTrigger(AuthorizationLevel.Anonymous, "PUT", Route = "images/{imageId:int}/set-primary")]
 			AzureFuncHttp.HttpRequestData req,
 			int imageId)
@@ -251,7 +252,7 @@ namespace rescueApp
 			await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
 			{
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-				WriteIndented = true // Optional: Pretty-print the JSON
+				WriteIndented = true // Pretty-print the JSON
 			}));
 
 			return response;

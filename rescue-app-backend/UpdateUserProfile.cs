@@ -1,6 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.IdentityModel.Tokens.Jwt; // Ensure this is included
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Net;
 using System.Security.Claims;
@@ -15,12 +15,14 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using rescueApp.Data;
 using rescueApp.Models;
+
 // Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
 	// DTO for the incoming request body - only fields allowed to be updated
+	// TODO: Consider moving this to Models/Requests folder
 	public class UpdateUserProfileRequest
 	{
 		// Use annotations for basic validation from the request body
@@ -32,7 +34,6 @@ namespace rescueApp
 		[MaxLength(100)]
 		public string? LastName { get; set; }
 
-		// Add other *editable* fields here if needed in the future
 		public string? PrimaryPhone { get; set; }
 		public string? PrimaryPhoneType { get; set; }
 	}
@@ -55,7 +56,7 @@ namespace rescueApp
 
 		[Function("UpdateUserProfile")]
 		public async Task<AzureFuncHttp.HttpResponseData> Run(
-			// TODO: Change AuthorizationLevel from Anonymous after testing/implementing real auth
+			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
 			[HttpTrigger(AuthorizationLevel.Anonymous, "PUT", Route = "users/me")]
 			AzureFuncHttp.HttpRequestData req)
 		{
@@ -117,7 +118,7 @@ namespace rescueApp
 			try
 			{
 				var userToUpdate = await _dbContext.Users
-										.FirstOrDefaultAsync(u => u.ExternalProviderId == auth0UserId);
+					.FirstOrDefaultAsync(u => u.ExternalProviderId == auth0UserId);
 
 				if (userToUpdate == null)
 				{
@@ -147,7 +148,6 @@ namespace rescueApp
 					userToUpdate.PrimaryPhoneType = updateData.PrimaryPhoneType;
 					changed = true;
 				}
-				// Add other editable fields like phone if needed
 
 				if (changed)
 				{
@@ -159,7 +159,6 @@ namespace rescueApp
 					_logger.LogInformation("No changes detected for User ID: {UserId}", userToUpdate.Id);
 				}
 
-				// Return success - 204 No Content is suitable for PUT if not returning data
 				var response = req.CreateResponse(HttpStatusCode.NoContent);
 				return response;
 			}
@@ -285,7 +284,7 @@ namespace rescueApp
 			await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
 			{
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-				WriteIndented = true // Optional: Pretty-print the JSON
+				WriteIndented = true // Pretty-print the JSON
 			}));
 
 			return response;

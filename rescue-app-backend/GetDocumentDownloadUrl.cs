@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations; // Required for validation attributes
-using System.IdentityModel.Tokens.Jwt; // Ensure this is included
+using System.ComponentModel.DataAnnotations;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Azure.Storage; // For StorageSharedKeyCredential
-using Azure.Storage.Blobs; // Blob SDK
-using Azure.Storage.Sas; // SAS SDK
+using Azure.Storage;
+using Azure.Storage.Blobs;
+using Azure.Storage.Sas;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +28,7 @@ namespace rescueApp
 {
 	public class GetDocumentDownloadUrl
 	{
-		private readonly AppDbContext _dbContext; // Need context to find document record
+		private readonly AppDbContext _dbContext;
 		private readonly ILogger<GetDocumentDownloadUrl> _logger;
 		private readonly string _auth0Domain = Environment.GetEnvironmentVariable("AUTH0_ISSUER_BASE_URL") ?? string.Empty;
 		private readonly string _auth0Audience = Environment.GetEnvironmentVariable("AUTH0_AUDIENCE") ?? string.Empty;
@@ -47,7 +47,7 @@ namespace rescueApp
 
 		[Function("GetDocumentDownloadUrl")]
 		public async Task<AzureFuncHttp.HttpResponseData> Run(
-			// Secure: Define who can download/view documents
+			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
 			[HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "documents/{documentId:int}/download-url")] // Use documentId from route
             AzureFuncHttp.HttpRequestData req,
 			int documentId) // Document ID from route
@@ -280,7 +280,7 @@ namespace rescueApp
 				error = new
 				{
 					code = statusCode.ToString(),
-					message = message
+					message
 				}
 			};
 
@@ -288,7 +288,7 @@ namespace rescueApp
 			await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
 			{
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-				WriteIndented = true // Optional: Pretty-print the JSON
+				WriteIndented = true // Pretty-print the JSON
 			}));
 
 			return response;

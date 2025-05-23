@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -11,34 +12,33 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using rescueApp.Data;
-using rescueApp.Models;
+using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Protocols;
-
+using rescueApp.Data;
+using rescueApp.Models;
 // Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
     // DTO for the request body for processing a return
+    // TODO: Consider moving this to Models/Requests folder
     public class ProcessReturnRequest
     {
-		[Required(ErrorMessage = "Animal Id is required.")]
-		[Range(1, int.MaxValue, ErrorMessage = "Valid Animal Id is required.")]
-		public int animal_id { get; set; }
+        [Required(ErrorMessage = "Animal Id is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Valid Animal Id is required.")]
+        public int animal_id { get; set; }
 
-		[Required(ErrorMessage = "Return date is required.")]
-		public DateTime? return_date { get; set; } // Frontend should send YYYY-MM-DD or ISO string
+        [Required(ErrorMessage = "Return date is required.")]
+        public DateTime? return_date { get; set; } // Frontend should send YYYY-MM-DD or ISO string
 
-		[Required(AllowEmptyStrings = false, ErrorMessage = "New animal status is required.")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "New animal status is required.")]
         [MaxLength(50)]
-		public string? adoption_status { get; set; } // The status AFTER the return
+        public string? adoption_status { get; set; } // The status AFTER the return
 
-		public string? notes { get; set; } // Optional notes about the return
-	}
+        public string? notes { get; set; } // Optional notes about the return
+    }
 
     public class ProcessReturn
     {
@@ -58,7 +58,7 @@ namespace rescueApp
 
         [Function("ProcessReturn")]
         public async Task<AzureFuncHttp.HttpResponseData> Run(
-            // TODO: Secure this endpoint properly
+            // Security is handled by internal Auth0 Bearer token validation and role-based authorization.
             [HttpTrigger(AuthorizationLevel.Anonymous, "POST", Route = "returns")]
             AzureFuncHttp.HttpRequestData req)
         {
@@ -67,7 +67,7 @@ namespace rescueApp
             User? currentUser;
             ClaimsPrincipal? principal;
             string? auth0UserId;
-                var utcNow = DateTime.UtcNow;
+            var utcNow = DateTime.UtcNow;
 
             // --- 1. Authentication & Authorization ---
             try
@@ -114,7 +114,6 @@ namespace rescueApp
                 _logger.LogError(ex, "Error during authentication/authorization in ProcessReturn.");
                 return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Authentication/Authorization error.");
             }
-            // --- End Auth ---
 
             // --- 2. Deserialize & Validate Request Body ---
             string requestBody = string.Empty;
@@ -141,7 +140,11 @@ namespace rescueApp
                 _logger.LogError(ex, "Error deserializing or validating ProcessReturn request body.");
                 return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request format or data.");
             }
-            if (returnRequest == null) { /* Should be caught above, but defensive check */ return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request data."); }
+            if (returnRequest == null)
+            {
+                /* Should be caught above, but defensive check */
+                return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request data.");
+            }
 
 
             // --- 3. Database Transaction ---
@@ -155,14 +158,15 @@ namespace rescueApp
 
                 if (activeAdoption == null)
                 {
-					_logger.LogWarning("No active adoption record found for Animal ID: {animal_id} to process return.", returnRequest.animal_id);
-					await transaction.RollbackAsync();
-					return await CreateErrorResponse(req, HttpStatusCode.NotFound, $"No active (non-returned) adoption record found for Animal ID {returnRequest.animal_id}.");
-				}
+                    _logger.LogWarning("No active adoption record found for Animal ID: {animal_id} to process return.", returnRequest.animal_id);
+                    await transaction.RollbackAsync();
+                    return await CreateErrorResponse(req, HttpStatusCode.NotFound, $"No active (non-returned) adoption record found for Animal ID {returnRequest.animal_id}.");
+                }
 
-                 // 5. Find the Animal (should be loaded via Include) & Check Status
-                 var animalToUpdate = activeAdoption.Animal;
-                 if (animalToUpdate == null) { // Should not happen if FK constraint exists
+                // 5. Find the Animal (should be loaded via Include) & Check Status
+                var animalToUpdate = activeAdoption.Animal;
+                if (animalToUpdate == null)
+                { // Should not happen if FK constraint exists
                     _logger.LogError("Animal record not found for AdoptionHistory ID: {HistoryId}, Animal ID: {animal_id}", activeAdoption.Id, activeAdoption.AnimalId);
                     await transaction.RollbackAsync();
                     return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Data inconsistency: Animal not found for existing adoption record.");
@@ -178,13 +182,13 @@ namespace rescueApp
 
                 // 6. Update AdoptionHistory Record
                 // Ensure return_date has UTC Kind
-                activeAdoption.ReturnDate = DateTime.SpecifyKind(returnRequest.return_date!.Value, DateTimeKind.Utc); // Use ! after validation ensures it has value
+                activeAdoption.ReturnDate = DateTime.SpecifyKind(returnRequest.return_date!.Value, DateTimeKind.Utc);
                 activeAdoption.UpdatedByUserId = currentUser.Id;
                 if (!string.IsNullOrWhiteSpace(returnRequest.notes))
                 { // Append to existing notes
                     activeAdoption.Notes = string.IsNullOrEmpty(activeAdoption.Notes)
-                         ? $"Return processed on {utcNow:yyyy-MM-dd}: {returnRequest.notes}"
-                         : $"{activeAdoption.Notes}\nReturn processed on {utcNow:yyyy-MM-dd}: {returnRequest.notes}";
+                        ? $"Return processed on {utcNow:yyyy-MM-dd}: {returnRequest.notes}"
+                        : $"{activeAdoption.Notes}\nReturn processed on {utcNow:yyyy-MM-dd}: {returnRequest.notes}";
                 }
 
                 // 7. Update Animal Record
@@ -201,7 +205,7 @@ namespace rescueApp
                 await transaction.CommitAsync();
 
                 _logger.LogInformation("Successfully processed return for Animal ID: {animal_id}. AdoptionHistory ID: {HistoryId}. New Status: {NewStatus}",
-                   animalToUpdate.Id, activeAdoption.Id, animalToUpdate.AdoptionStatus);
+                    animalToUpdate.Id, activeAdoption.Id, animalToUpdate.AdoptionStatus);
 
                 // 10. Return Success Response (200 OK is fine for updates)
                 var response = req.CreateResponse(HttpStatusCode.OK);
@@ -210,9 +214,9 @@ namespace rescueApp
             }
             catch (Exception ex)
             {
-                 await transaction.RollbackAsync();
-				_logger.LogError(ex, "Error processing return transaction for Animal ID: {animal_id}. Request Body Preview: {BodyPreview}", returnRequest?.animal_id ?? -1, requestBody.Substring(0, Math.Min(requestBody.Length, 500)));
-				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An internal error occurred while processing the return.");
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error processing return transaction for Animal ID: {animal_id}. Request Body Preview: {BodyPreview}", returnRequest?.animal_id ?? -1, requestBody.Substring(0, Math.Min(requestBody.Length, 500)));
+                return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An internal error occurred while processing the return.");
             }
         }
 
@@ -325,7 +329,7 @@ namespace rescueApp
             await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-                WriteIndented = true // Optional: Pretty-print the JSON
+                WriteIndented = true // Pretty-print the JSON
             }));
 
             return response;

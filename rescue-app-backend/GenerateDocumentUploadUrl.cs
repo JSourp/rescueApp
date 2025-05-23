@@ -1,18 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations; // Required for validation attributes
-using System.IdentityModel.Tokens.Jwt; // Ensure this is included
+using System.ComponentModel.DataAnnotations;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Web; // For HttpUtility
-using Azure.Storage; // For StorageSharedKeyCredential
-using Azure.Storage.Blobs; // Blob SDK
-using Azure.Storage.Blobs.Models; // For PublicAccessType
-using Azure.Storage.Sas; // SAS SDK
+using System.Web;
+using Azure.Storage;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Sas;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +23,7 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using rescueApp.Data;
 using rescueApp.Models;
+
 // Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
@@ -51,7 +52,7 @@ namespace rescueApp
 
 		[Function("GenerateDocumentUploadUrl")]
 		public async Task<AzureFuncHttp.HttpResponseData> Run(
-			// TODO: Secure this endpoint (Admin/Staff/Volunteer roles)
+			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
 			[HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "animals/{animalId:int}/document-upload-url")]
 			AzureFuncHttp.HttpRequestData req)
 		{
@@ -122,14 +123,14 @@ namespace rescueApp
 			// Validation for Allowed Document Types ---
 			// Define the MIME types to allow
 			var allowedContentTypes = new HashSet<string> {
-				 "image/jpeg",
-				 "image/png",
-				 "image/gif",
-				 "image/webp",
-				 "application/pdf",
-				 "application/msword", // .doc
-                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
-				 "text/plain" // .txt
+				"image/jpeg",
+				"image/png",
+				"image/gif",
+				"image/webp",
+				"application/pdf",
+				"application/msword", // .doc
+				"application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+				"text/plain" // .txt
             };
 
 			if (!allowedContentTypes.Contains(contentType)) // Check if the received type is in our allowed set
@@ -163,7 +164,6 @@ namespace rescueApp
 				}
 
 				// --- Get Account Name and Key from Connection String ---
-				// Note: Robust parsing might be needed for complex connection strings
 				string accountName = string.Empty;
 				string accountKey = string.Empty;
 				try
@@ -338,7 +338,7 @@ namespace rescueApp
 			await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
 			{
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-				WriteIndented = true // Optional: Pretty-print the JSON
+				WriteIndented = true // Pretty-print the JSON
 			}));
 
 			return response;

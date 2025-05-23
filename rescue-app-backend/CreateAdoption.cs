@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations; // Required for validation attributes
-using System.IdentityModel.Tokens.Jwt; // Ensure this is included
+using System.ComponentModel.DataAnnotations;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -41,7 +41,7 @@ namespace rescueApp
 
         [Function("CreateAdoption")]
         public async Task<AzureFuncHttp.HttpResponseData> Run(
-            // TODO: Secure this endpoint properly (AuthorizationLevel.Function/Admin)
+            // Security is handled by internal Auth0 Bearer token validation and role-based authorization.
             [HttpTrigger(AuthorizationLevel.Anonymous, "POST", Route = "adoptions")]
             AzureFuncHttp.HttpRequestData req)
         {
@@ -96,8 +96,6 @@ namespace rescueApp
                 _logger.LogError(ex, "Error during authentication/authorization in CreateAnimal.");
                 return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Authentication/Authorization error.");
             }
-            // --- End Auth ---
-
 
             // --- 2. Deserialize & Validate Request Body ---
             string requestBody = string.Empty; // Initialize outside try
@@ -133,7 +131,11 @@ namespace rescueApp
                 _logger.LogError(ex, "Error deserializing or validating CreateAnimal request body.");
                 return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request format or data.");
             }
-            if (adoptionRequest == null) { /* Should be caught above, but defensive check */ return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request data."); }
+            if (adoptionRequest == null)
+            {
+                /* Should be caught above, but defensive check */
+                return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request data.");
+            }
 
 
             // --- 3. Database Transaction ---
@@ -205,15 +207,13 @@ namespace rescueApp
                 var newAdoptionRecord = new AdoptionHistory
                 {
                     AnimalId = animalToAdopt.Id,
-                    // --- Use Navigation Property instead of ID ---
-                    // adopter_id = adopter.Id, // Let EF Core handle this
                     Adopter = adopter, // Assign the Adopter object directly
                     AdoptionDate = adoptionRequest.AdoptionDate.HasValue
                                     ? DateTime.SpecifyKind(adoptionRequest.AdoptionDate.Value, DateTimeKind.Utc)
                                     : utcNow,
                     ReturnDate = null,
                     Notes = adoptionRequest.Notes,
-                    CreatedByUserId = currentUser!.Id, // Use the validated admin/staff user ID, non-null assertion after auth check
+                    CreatedByUserId = currentUser!.Id,
                     UpdatedByUserId = currentUser!.Id,
                 };
                 _dbContext.AdoptionHistories.Add(newAdoptionRecord);
@@ -228,8 +228,8 @@ namespace rescueApp
 
                 _logger.LogInformation("Successfully recorded adoption for Animal ID: {animal_id}. Adopter ID: {adopter_id}, History ID: {HistoryId}",
                     animalToAdopt.Id,
-                    adopter.Id, // ID is now available after SaveChanges
-                    newAdoptionRecord.Id); // ID is now available after SaveChanges
+                    adopter.Id,
+                    newAdoptionRecord.Id);
 
                 // 11. Create Success Response using a DTO ---
                 var response = req.CreateResponse(HttpStatusCode.Created);
@@ -242,7 +242,6 @@ namespace rescueApp
                     animalId = newAdoptionRecord.AnimalId,
                     adopterId = newAdoptionRecord.AdopterId,
                     adoptionDate = newAdoptionRecord.AdoptionDate
-                    // Add any other simple fields the frontend might need immediately
                 };
 
                 // Define serialization options
@@ -275,20 +274,19 @@ namespace rescueApp
         {
             // Use snake_case DTO property, ensure not null after validation
             var inputEmail = reqData.AdopterEmail!;
-            var adopterEmailLower = inputEmail.ToLower(); // Still useful for logging consistency
+            var adopterEmailLower = inputEmail.ToLower();
             var utcNow = DateTime.UtcNow;
 
             _logger.LogInformation("Attempting to find adopter case-insensitively with email: {Email}", inputEmail);
 
             // Use EF.Functions.ILike with the snake_case MODEL property 'adopter_email'
             var existingAdopter = await _dbContext.Adopters
-                                      .FirstOrDefaultAsync(a => EF.Functions.ILike(a.AdopterEmail, inputEmail));
+                .FirstOrDefaultAsync(a => EF.Functions.ILike(a.AdopterEmail, inputEmail));
 
             if (existingAdopter != null)
             {
                 _logger.LogInformation("Found existing adopter by email. Adopter Id: {adopter_id}", existingAdopter.Id);
 
-                // Optional: Update existing adopter's info if provided data differs
                 // Compare Model.snake_case with DTO.snake_case
                 bool changed = false;
                 if (existingAdopter.AdopterFirstName != reqData.AdopterFirstName) { existingAdopter.AdopterFirstName = reqData.AdopterFirstName!; changed = true; }
@@ -299,7 +297,6 @@ namespace rescueApp
                 if (existingAdopter.AdopterCity != reqData.AdopterCity) { existingAdopter.AdopterCity = reqData.AdopterCity!; changed = true; }
                 if (existingAdopter.AdopterStateProvince != reqData.AdopterStateProvince) { existingAdopter.AdopterStateProvince = reqData.AdopterStateProvince!; changed = true; }
                 if (existingAdopter.AdopterZipPostalCode != reqData.AdopterZipPostalCode) { existingAdopter.AdopterZipPostalCode = reqData.AdopterZipPostalCode!; changed = true; }
-                // Optional Fields
                 if (existingAdopter.AdopterSecondaryPhone != reqData.AdopterSecondaryPhone) { existingAdopter.AdopterSecondaryPhone = reqData.AdopterSecondaryPhone; changed = true; } // Nullable
                 if (existingAdopter.AdopterSecondaryPhoneType != reqData.AdopterSecondaryPhoneType) { existingAdopter.AdopterSecondaryPhoneType = reqData.AdopterSecondaryPhoneType; changed = true; } // Nullable
                 if (existingAdopter.SpousePartnerRoommate != reqData.SpousePartnerRoommate) { existingAdopter.SpousePartnerRoommate = reqData.SpousePartnerRoommate; changed = true; } // Nullable
@@ -329,7 +326,6 @@ namespace rescueApp
                     AdopterCity = reqData.AdopterCity!,
                     AdopterStateProvince = reqData.AdopterStateProvince!,
                     AdopterZipPostalCode = reqData.AdopterZipPostalCode!,
-                    // Optional fields
                     AdopterSecondaryPhone = reqData.AdopterSecondaryPhone,
                     AdopterSecondaryPhoneType = reqData.AdopterSecondaryPhoneType,
                     SpousePartnerRoommate = reqData.SpousePartnerRoommate,
@@ -339,7 +335,7 @@ namespace rescueApp
                     Notes = null,
                 };
                 _dbContext.Adopters.Add(newAdopter);
-                // Let the main SaveChangesAsync call handle this insert
+
                 return newAdopter;
             }
         }
@@ -453,7 +449,7 @@ namespace rescueApp
             await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-                WriteIndented = true // Optional: Pretty-print the JSON
+                WriteIndented = true // Pretty-print the JSON
             }));
 
             return response;

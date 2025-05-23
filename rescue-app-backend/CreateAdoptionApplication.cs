@@ -14,6 +14,7 @@ using rescueApp.Data;
 using rescueApp.Models;
 using rescueApp.Models.Requests;
 
+// Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
@@ -31,7 +32,8 @@ namespace rescueApp
 
         [Function("CreateAdoptionApplication")]
         public async Task<AzureFuncHttp.HttpResponseData> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "adoption-applications")] AzureFuncHttp.HttpRequestData req)
+            // Security is handled by internal Auth0 Bearer token validation and role-based authorization.
+            [HttpTrigger(AuthorizationLevel.Anonymous, "POST", Route = "adoption-applications")] AzureFuncHttp.HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed CreateAdoptionApplication request.");
 

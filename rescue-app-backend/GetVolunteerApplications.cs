@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations; // Required for validation attributes
-using System.IdentityModel.Tokens.Jwt; // Ensure this is included
+using System.ComponentModel.DataAnnotations;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Web; // For HttpUtility
+using System.Web;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
@@ -26,36 +26,37 @@ using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
-    public class GetVolunteerApplications
-    {
-        private readonly AppDbContext _dbContext;
-        private readonly ILogger<GetVolunteerApplications> _logger;
+	public class GetVolunteerApplications
+	{
+		private readonly AppDbContext _dbContext;
+		private readonly ILogger<GetVolunteerApplications> _logger;
 		private readonly string _auth0Domain = Environment.GetEnvironmentVariable("AUTH0_ISSUER_BASE_URL") ?? string.Empty;
 		private readonly string _auth0Audience = Environment.GetEnvironmentVariable("AUTH0_AUDIENCE") ?? string.Empty;
 		private static ConfigurationManager<OpenIdConnectConfiguration>? _configManager;
 		private static TokenValidationParameters? _validationParameters;
 
-        public GetVolunteerApplications(AppDbContext dbContext, ILogger<GetVolunteerApplications> logger)
-        {
+		public GetVolunteerApplications(AppDbContext dbContext, ILogger<GetVolunteerApplications> logger)
+		{
 			_dbContext = dbContext;
 			_logger = logger;
 			if (string.IsNullOrEmpty(_auth0Domain) || string.IsNullOrEmpty(_auth0Audience))
 			{
 				_logger.LogError("Auth0 Domain/Audience not configured.");
 			}
-        }
+		}
 
-        [Function("GetVolunteerApplications")]
-        public async Task<AzureFuncHttp.HttpResponseData> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "volunteer-applications")] AzureFuncHttp.HttpRequestData req)
-        {
-            _logger.LogInformation("C# HTTP trigger function processed GetVolunteerApplications request.");
+		[Function("GetVolunteerApplications")]
+		public async Task<AzureFuncHttp.HttpResponseData> Run(
+			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
+			[HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "volunteer-applications")] AzureFuncHttp.HttpRequestData req)
+		{
+			_logger.LogInformation("C# HTTP trigger function processed GetVolunteerApplications request.");
 
 			User? currentUser;
 			ClaimsPrincipal? principal;
 			string? auth0UserId = null;
 
-            // --- 1. Authentication & Authorization ---
+			// --- 1. Authentication & Authorization ---
 			try
 			{
 				// --- Token Validation ---
@@ -101,67 +102,66 @@ namespace rescueApp
 				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Authentication/Authorization error.");
 			}
 
-            try
-            {
+			try
+			{
 				// --- 2. Get Query Parameters ---
-                var queryParams = HttpUtility.ParseQueryString(req.Url.Query);
-                string? statusFilter = queryParams["status"];
-                string? sortBy = queryParams["sortBy"]?.ToLowerInvariant() ?? "submissiondate_desc";
+				var queryParams = HttpUtility.ParseQueryString(req.Url.Query);
+				string? statusFilter = queryParams["status"];
+				string? sortBy = queryParams["sortBy"]?.ToLowerInvariant() ?? "submissiondate_desc";
 
-                IQueryable<VolunteerApplication> query = _dbContext.VolunteerApplications
-                    .Include(app => app.ReviewedByUser); // Include reviewer info
+				IQueryable<VolunteerApplication> query = _dbContext.VolunteerApplications
+					.Include(app => app.ReviewedByUser); // Include reviewer info
 
-                // Apply Filters
-                if (!string.IsNullOrWhiteSpace(statusFilter))
-                {
-                    _logger.LogInformation("Filtering volunteer applications by status: {Status}", statusFilter);
-                    query = query.Where(app => app.Status != null && app.Status.ToLower() == statusFilter.ToLower());
-                }
-                // Add more filters as needed (e.g., applicant name search)
+				// Apply Filters
+				if (!string.IsNullOrWhiteSpace(statusFilter))
+				{
+					_logger.LogInformation("Filtering volunteer applications by status: {Status}", statusFilter);
+					query = query.Where(app => app.Status != null && app.Status.ToLower() == statusFilter.ToLower());
+				}
 
-                // Apply Sorting
-                bool descending = sortBy.EndsWith("_desc");
-                string sortField = sortBy.Replace("_desc", "").Replace("_asc", "");
+				// Apply Sorting
+				bool descending = sortBy.EndsWith("_desc");
+				string sortField = sortBy.Replace("_desc", "").Replace("_asc", "");
 
-                switch (sortField)
-                {
-                    case "submissiondate":
-                        query = descending ? query.OrderByDescending(app => app.SubmissionDate) : query.OrderBy(app => app.SubmissionDate);
-                        break;
-                    case "applicantname":
-                        query = descending
-                            ? query.OrderByDescending(app => app.LastName).ThenByDescending(app => app.FirstName)
-                            : query.OrderBy(app => app.LastName).ThenBy(app => app.FirstName);
-                        break;
-                    case "status":
-                        query = descending ? query.OrderByDescending(app => app.Status) : query.OrderBy(app => app.Status);
-                        break;
-                    default:
-                        query = query.OrderByDescending(app => app.SubmissionDate);
-                        break;
-                }
+				switch (sortField)
+				{
+					case "submissiondate":
+						query = descending ? query.OrderByDescending(app => app.SubmissionDate) : query.OrderBy(app => app.SubmissionDate);
+						break;
+					case "applicantname":
+						query = descending
+							? query.OrderByDescending(app => app.LastName).ThenByDescending(app => app.FirstName)
+							: query.OrderBy(app => app.LastName).ThenBy(app => app.FirstName);
+						break;
+					case "status":
+						query = descending ? query.OrderByDescending(app => app.Status) : query.OrderBy(app => app.Status);
+						break;
+					default:
+						query = query.OrderByDescending(app => app.SubmissionDate);
+						break;
+				}
 
-                // Project to DTO
-                var applicationsDto = await query
-                    .Select(app => new VolunteerApplicationListItemDto
-                    {
-                        Id = app.Id,
-                        SubmissionDate = app.SubmissionDate,
-                        ApplicantName = $"{app.FirstName} {app.LastName}",
-                        PrimaryEmail = app.PrimaryEmail,
-                        PrimaryPhone = app.PrimaryPhone,
-                        Status = app.Status,
-                        AreasOfInterest = app.AreasOfInterest, // Pass this through
-                        ReviewedBy = app.ReviewedByUser != null ? $"{app.ReviewedByUser.FirstName} {app.ReviewedByUser.LastName}" : null,
-                        ReviewDate = app.ReviewDate
-                    })
-                    .ToListAsync();
+				// Project to DTO
+				var applicationsDto = await query
+					.Select(app => new VolunteerApplicationListItemDto
+					{
+						Id = app.Id,
+						SubmissionDate = app.SubmissionDate,
+						ApplicantName = $"{app.FirstName} {app.LastName}",
+						PrimaryEmail = app.PrimaryEmail,
+						PrimaryPhone = app.PrimaryPhone,
+						Status = app.Status,
+						AreasOfInterest = app.AreasOfInterest, // Pass this through
+						ReviewedBy = app.ReviewedByUser != null ? $"{app.ReviewedByUser.FirstName} {app.ReviewedByUser.LastName}" : null,
+						ReviewDate = app.ReviewDate
+					})
+					.ToListAsync();
 
-                _logger.LogInformation("Returning {Count} volunteer applications.", applicationsDto.Count);
+				_logger.LogInformation("Returning {Count} volunteer applications.", applicationsDto.Count);
 
 				var response = req.CreateResponse(HttpStatusCode.OK);
 				response.Headers.Add("Content-Type", "application/json; charset=utf-8");
-                try
+				try
 				{
 					var jsonPayload = JsonSerializer.Serialize(applicationsDto, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 					await response.WriteStringAsync(jsonPayload);
@@ -181,13 +181,13 @@ namespace rescueApp
 					await response.WriteStringAsync("Error writing response.");
 				}
 				return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error fetching volunteer applications.");
-                return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An error occurred while fetching volunteer applications.");
-            }
-        }
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Error fetching volunteer applications.");
+				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An error occurred while fetching volunteer applications.");
+			}
+		}
 
 		// --- Token Validation Logic shared helper/service ---
 		private async Task<ClaimsPrincipal?> ValidateTokenAndGetPrincipal(AzureFuncHttp.HttpRequestData req)
@@ -298,7 +298,7 @@ namespace rescueApp
 			await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
 			{
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-				WriteIndented = true // Optional: Pretty-print the JSON
+				WriteIndented = true // Pretty-print the JSON
 			}));
 
 			return response;

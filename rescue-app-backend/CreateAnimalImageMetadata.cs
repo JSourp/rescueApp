@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations; // Required for validation attributes
-using System.IdentityModel.Tokens.Jwt; // Ensure this is included
+using System.ComponentModel.DataAnnotations;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -26,6 +26,7 @@ using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 namespace rescueApp
 {
 	// DTO for request body when saving image metadata
+	// TODO: Consider moving this to Models/Requests folder
 	public class CreateAnimalImageMetadataRequest
 	{
 		[Required(AllowEmptyStrings = false)]
@@ -62,7 +63,7 @@ namespace rescueApp
 
 		[Function("CreateAnimalImageMetadata")]
 		public async Task<AzureFuncHttp.HttpResponseData> Run(
-			// Secure: Admin/Staff/Volunteer can add images
+			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
 			[HttpTrigger(AuthorizationLevel.Anonymous, "POST", Route = "animals/{animalId:int}/images")]
 			AzureFuncHttp.HttpRequestData req,
 			int animalId)
@@ -165,7 +166,7 @@ namespace rescueApp
 			if (!makeThisNewImagePrimary)
 			{
 				bool animalHasOtherImages = await _dbContext.AnimalImages
-											.AnyAsync(img => img.AnimalId == animalId);
+					.AnyAsync(img => img.AnimalId == animalId);
 				if (!animalHasOtherImages)
 				{
 					_logger.LogInformation("No existing images for Animal ID {AnimalId}. Marking new image as primary by default.", animalId);
@@ -343,7 +344,7 @@ namespace rescueApp
 			await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
 			{
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-				WriteIndented = true // Optional: Pretty-print the JSON
+				WriteIndented = true // Pretty-print the JSON
 			}));
 
 			return response;

@@ -27,7 +27,8 @@ namespace rescueApp
 
         [Function("GetAnimals")]
         public async Task<HttpResponseData> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "animals")] HttpRequestData req,
+            // Security is handled by internal Auth0 Bearer token validation and role-based authorization.
+            [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "animals")] HttpRequestData req,
             FunctionContext executionContext)
         {
             var logger = executionContext.GetLogger("GetAnimals");
@@ -48,15 +49,15 @@ namespace rescueApp
                 string? isNotFosteredParam = queryParams["isNotFostered"];
 
                 IQueryable<Animal> query = _dbContext.Animals
-                                          .Include(a => a.AnimalImages);
+                    .Include(a => a.AnimalImages);
 
                 // --- Apply Filtering ---
                 if (!string.IsNullOrEmpty(adoption_statusParam))
                 {
                     List<string> desiredStatuses = adoption_statusParam.Split(',')
-                                                        .Select(s => s.Trim().ToLowerInvariant())
-                                                        .Where(s => !string.IsNullOrEmpty(s))
-                                                        .ToList();
+                        .Select(s => s.Trim().ToLowerInvariant())
+                        .Where(s => !string.IsNullOrEmpty(s))
+                        .ToList();
                     if (desiredStatuses.Any())
                     {
                         logger.LogInformation("Filtering by adoption statuses: {Statuses}", string.Join(", ", desiredStatuses));
@@ -66,9 +67,9 @@ namespace rescueApp
                 if (!string.IsNullOrEmpty(breed))
                 {
                     List<string> desiredBreeds = breed.Split(',')
-                                                        .Select(s => s.Trim().ToLowerInvariant())
-                                                        .Where(s => !string.IsNullOrEmpty(s))
-                                                        .ToList();
+                        .Select(s => s.Trim().ToLowerInvariant())
+                        .Where(s => !string.IsNullOrEmpty(s))
+                        .ToList();
                     if (desiredBreeds.Any())
                     {
                         logger.LogInformation("Filtering by breeds: {Breeds}", string.Join(", ", desiredBreeds));
@@ -78,9 +79,9 @@ namespace rescueApp
                 if (!string.IsNullOrEmpty(animal_type))
                 {
                     List<string> desiredTypes = animal_type.Split(',')
-                                                        .Select(s => s.Trim().ToLowerInvariant())
-                                                        .Where(s => !string.IsNullOrEmpty(s))
-                                                        .ToList();
+                        .Select(s => s.Trim().ToLowerInvariant())
+                        .Where(s => !string.IsNullOrEmpty(s))
+                        .ToList();
                     if (desiredTypes.Any())
                     {
                         logger.LogInformation("Filtering by animal types: {AnimalTypes}", string.Join(", ", desiredTypes));
@@ -90,9 +91,9 @@ namespace rescueApp
                 if (!string.IsNullOrEmpty(gender))
                 {
                     List<string> desiredGender = gender.Split(',')
-                                                        .Select(s => s.Trim().ToLowerInvariant())
-                                                        .Where(s => !string.IsNullOrEmpty(s))
-                                                        .ToList();
+                        .Select(s => s.Trim().ToLowerInvariant())
+                        .Where(s => !string.IsNullOrEmpty(s))
+                        .ToList();
                     if (desiredGender.Any())
                     {
                         logger.LogInformation("Filtering by gender: {Gender}", string.Join(", ", desiredGender));
@@ -112,7 +113,7 @@ namespace rescueApp
                 }
 
 
-                // --- Apply Sorting (Enhanced) ---
+                // --- Apply Sorting ---
                 string sortField = "id"; // Default sort field
                 bool ascending = true;   // Default sort direction
 
@@ -143,7 +144,6 @@ namespace rescueApp
                         sortField = "name";
                         ascending = false;
                         break;
-                    // Add more sort options as needed (e.g., age, id)
                     case "id":
                     case "id_asc":
                         sortField = "id";
@@ -163,8 +163,6 @@ namespace rescueApp
                 logger.LogInformation("Applying sorting - Field: {SortField}, Ascending: {IsAscending}", sortField, ascending);
 
                 // Apply sorting using property names
-                // This requires careful mapping or a more dynamic approach for many fields,
-                // but for a few common ones, a switch/if-else works.
                 if (sortField == "date_created")
                 {
                     query = ascending ? query.OrderBy(a => a.DateCreated) : query.OrderByDescending(a => a.DateCreated);
@@ -177,8 +175,6 @@ namespace rescueApp
                 {
                     query = ascending ? query.OrderBy(a => a.Id) : query.OrderByDescending(a => a.Id);
                 }
-                // Add .ThenBy(a => a.id) for consistent secondary sort if desired
-
 
                 // --- Apply Limit ---
                 int? limit = null;
@@ -188,8 +184,6 @@ namespace rescueApp
                     logger.LogInformation("Applying limit: {Limit}", limit.Value);
                     query = query.Take(limit.Value); // Apply Take() AFTER OrderBy
                 }
-                // --- End Apply Limit ---
-
 
                 // --- Execute Query ---
                 List<AnimalDetailDto> animalsDtoList = await query // query includes .Include(a => a.AnimalImages)

@@ -1,14 +1,14 @@
 using System;
-using System.IO;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
-using System.Text.Json; // Required for manual serialization
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http; // Use alias below
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
@@ -16,12 +16,12 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using rescueApp.Data;
 using rescueApp.Models;
-
 // Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
+	//TODO: Consider moving this to Models/DTOs
 	public class UserProfileDto
 	{
 		public Guid Id { get; set; }
@@ -57,7 +57,8 @@ namespace rescueApp
 
 		[Function("GetUserProfile")]
 		public async Task<AzureFuncHttp.HttpResponseData> Run(
-			[HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "users/me")]
+			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
+			[HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "users/me")]
 			AzureFuncHttp.HttpRequestData req) // Use alias
 		{
 			_logger.LogInformation("C# HTTP trigger function processed GetUserProfile request.");
@@ -86,9 +87,9 @@ namespace rescueApp
 				if (_validationParameters == null && !string.IsNullOrEmpty(_auth0Domain) && !string.IsNullOrEmpty(_auth0Audience))
 				{
 					_configManager ??= new ConfigurationManager<OpenIdConnectConfiguration>(
-						  $"{_auth0Domain}.well-known/openid-configuration",
-						  new OpenIdConnectConfigurationRetriever(),
-						  new HttpDocumentRetriever());
+						$"{_auth0Domain}.well-known/openid-configuration",
+						new OpenIdConnectConfigurationRetriever(),
+						new HttpDocumentRetriever());
 
 					var discoveryDocument = await _configManager.GetConfigurationAsync(default);
 					var signingKeys = discoveryDocument.SigningKeys;
@@ -195,7 +196,7 @@ namespace rescueApp
 			try
 			{
 				var user = await _dbContext.Users
-									 .FirstOrDefaultAsync(u => u.ExternalProviderId == auth0UserId);
+					.FirstOrDefaultAsync(u => u.ExternalProviderId == auth0UserId);
 
 				if (user == null)
 				{
@@ -237,15 +238,14 @@ namespace rescueApp
 
 		// --- Helper Method ---
 		private async Task<AzureFuncHttp.HttpResponseData> CreateErrorResponse(
-			AzureFuncHttp.HttpRequestData req, // Use alias
+			AzureFuncHttp.HttpRequestData req,
 			HttpStatusCode statusCode,
 			string message)
 		{
 			var response = req.CreateResponse(statusCode);
 			// Use WriteAsJsonAsync with named statusCode parameter
-			// Ensure the object being serialized doesn't cause issues
 			await response.WriteAsJsonAsync(new { message = message }, statusCode: statusCode);
-			return response; // Ensure return
+			return response;
 		}
 	}
 }

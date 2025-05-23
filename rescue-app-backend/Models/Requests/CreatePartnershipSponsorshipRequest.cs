@@ -4,8 +4,8 @@
     {
         public class CreatePartnershipSponsorshipRequest
         {
-            // Contact Info (Matches form, frontend will send camelCase)
-            [Required][MaxLength(100)] public string? FirstName { get; set; }
+        // Contact Information
+        [Required][MaxLength(100)] public string? FirstName { get; set; }
             [Required][MaxLength(100)] public string? LastName { get; set; }
             [MaxLength(255)] public string? OrganizationName { get; set; }
             [MaxLength(100)] public string? ContactTitle { get; set; }

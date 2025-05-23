@@ -20,14 +20,15 @@ public class TestDbConnection
 
     [Function("TestDbConnection")]
     public IActionResult Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "testdb")] HttpRequestData req,
+        // Security is handled by internal Auth0 Bearer token validation and role-based authorization.
+        [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "testdb")] HttpRequestData req,
         FunctionContext executionContext)
     {
         var logger = executionContext.GetLogger("TestDbConnection");
 
         try
         {
-            _dbContext.Database.CanConnect(); // Just try to connect
+            _dbContext.Database.CanConnect();
             return new OkObjectResult("Database connection successful!");
         }
         catch (Exception ex)

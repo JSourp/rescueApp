@@ -5,50 +5,52 @@ using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Web; // For HttpUtility
+using System.Web;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-// Auth0 Usings
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using rescueApp.Data;
 using rescueApp.Models;
-using rescueApp.Models.DTOs; // For the DTO
+using rescueApp.Models.DTOs;
+
+// Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
-    public class GetFosterById
-    {
-        private readonly AppDbContext _dbContext;
-        private readonly ILogger<GetFosterById> _logger;
+	public class GetFosterById
+	{
+		private readonly AppDbContext _dbContext;
+		private readonly ILogger<GetFosterById> _logger;
 		private readonly string _auth0Domain = Environment.GetEnvironmentVariable("AUTH0_ISSUER_BASE_URL") ?? string.Empty;
 		private readonly string _auth0Audience = Environment.GetEnvironmentVariable("AUTH0_AUDIENCE") ?? string.Empty;
 		private static ConfigurationManager<OpenIdConnectConfiguration>? _configManager;
 		private static TokenValidationParameters? _validationParameters;
 
-        public GetFosterById(AppDbContext dbContext, ILogger<GetFosterById> logger)
-        {
+		public GetFosterById(AppDbContext dbContext, ILogger<GetFosterById> logger)
+		{
 			_dbContext = dbContext;
 			_logger = logger;
 			if (string.IsNullOrEmpty(_auth0Domain) || string.IsNullOrEmpty(_auth0Audience)) { _logger.LogError("Auth0 Domain/Audience not configured for GetFosterById."); }
-        }
+		}
 
-        [Function("GetFosterById")]
-        public async Task<AzureFuncHttp.HttpResponseData> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "fosters/{userId:guid}")] AzureFuncHttp.HttpRequestData req,
-            Guid userId) // userId from route
-        {
-            _logger.LogInformation("C# HTTP trigger processing GetFosterById request for User ID: {UserId}.", userId);
+		[Function("GetFosterById")]
+		public async Task<AzureFuncHttp.HttpResponseData> Run(
+			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
+			[HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "fosters/{userId:guid}")] AzureFuncHttp.HttpRequestData req,
+			Guid userId) // userId from route
+		{
+			_logger.LogInformation("C# HTTP trigger processing GetFosterById request for User ID: {UserId}.", userId);
 
 			User? currentUser;
 			ClaimsPrincipal? principal;
 			string? auth0UserId;
 
-            // --- 1. Authentication & Authorization ---
+			// --- 1. Authentication & Authorization ---
 			try
 			{
 				// --- Token Validation ---
@@ -95,74 +97,74 @@ namespace rescueApp
 			}
 
 			// --- Get ---
-            try
-            {
-                var fosterProfile = await _dbContext.FosterProfiles
-                    .Include(fp => fp.User) // Include basic User info
-                    .Include(fp => fp.FosterApplication) // Optionally include application details
-                    .FirstOrDefaultAsync(fp => fp.UserId == userId);
+			try
+			{
+				var fosterProfile = await _dbContext.FosterProfiles
+					.Include(fp => fp.User) // Include basic User info
+					.Include(fp => fp.FosterApplication) // Optionally include application details
+					.FirstOrDefaultAsync(fp => fp.UserId == userId);
 
-                if (fosterProfile == null || fosterProfile.User == null)
-                {
-                    _logger.LogWarning("Foster profile or associated user not found for User ID: {UserId}", userId);
-                    return await CreateErrorResponse(req, HttpStatusCode.NotFound, $"Foster profile not found for User ID {userId}.");
-                }
+				if (fosterProfile == null || fosterProfile.User == null)
+				{
+					_logger.LogWarning("Foster profile or associated user not found for User ID: {UserId}", userId);
+					return await CreateErrorResponse(req, HttpStatusCode.NotFound, $"Foster profile not found for User ID {userId}.");
+				}
 
-                // Get animals currently fostered by this user
-                var fosteredAnimals = await _dbContext.Animals
-                    .Where(a => a.CurrentFosterUserId == userId)
-                    .Select(a => new FosteredAnimalDto
-                    {
-                        Id = a.Id,
-                        Name = a.Name,
-                        AnimalType = a.AnimalType,
-                        AdoptionStatus = a.AdoptionStatus
-                    })
-                    .ToListAsync();
+				// Get animals currently fostered by this user
+				var fosteredAnimals = await _dbContext.Animals
+					.Where(a => a.CurrentFosterUserId == userId)
+					.Select(a => new FosteredAnimalDto
+					{
+						Id = a.Id,
+						Name = a.Name,
+						AnimalType = a.AnimalType,
+						AdoptionStatus = a.AdoptionStatus
+					})
+					.ToListAsync();
 
-                // Map to DTO
-                var fosterDetailDto = new FosterDetailDto
-                {
-                    UserId = fosterProfile.User.Id,
-                    FirstName = fosterProfile.User.FirstName ?? string.Empty,
-                    LastName = fosterProfile.User.LastName ?? string.Empty,
-                    Email = fosterProfile.User.Email,
-                    PrimaryPhone = fosterProfile.User.PrimaryPhone,
-                    IsUserActive = fosterProfile.User.IsActive,
-                    UserRole = fosterProfile.User.Role ?? string.Empty,
+				// Map to DTO
+				var fosterDetailDto = new FosterDetailDto
+				{
+					UserId = fosterProfile.User.Id,
+					FirstName = fosterProfile.User.FirstName ?? string.Empty,
+					LastName = fosterProfile.User.LastName ?? string.Empty,
+					Email = fosterProfile.User.Email,
+					PrimaryPhone = fosterProfile.User.PrimaryPhone,
+					IsUserActive = fosterProfile.User.IsActive,
+					UserRole = fosterProfile.User.Role ?? string.Empty,
 
-                    FosterProfileId = fosterProfile.Id,
-                    ApprovalDate = fosterProfile.ApprovalDate,
-                    IsActiveFoster = fosterProfile.IsActiveFoster,
-                    AvailabilityNotes = fosterProfile.AvailabilityNotes,
-                    CapacityDetails = fosterProfile.CapacityDetails,
-                    HomeVisitDate = fosterProfile.HomeVisitDate,
-                    HomeVisitNotes = fosterProfile.HomeVisitNotes,
-                    ProfileDateCreated = fosterProfile.DateCreated,
-                    ProfileDateUpdated = fosterProfile.DateUpdated,
+					FosterProfileId = fosterProfile.Id,
+					ApprovalDate = fosterProfile.ApprovalDate,
+					IsActiveFoster = fosterProfile.IsActiveFoster,
+					AvailabilityNotes = fosterProfile.AvailabilityNotes,
+					CapacityDetails = fosterProfile.CapacityDetails,
+					HomeVisitDate = fosterProfile.HomeVisitDate,
+					HomeVisitNotes = fosterProfile.HomeVisitNotes,
+					ProfileDateCreated = fosterProfile.DateCreated,
+					ProfileDateUpdated = fosterProfile.DateUpdated,
 
-                    FosterApplicationId = fosterProfile.FosterApplicationId,
-                    // If FosterApplication was included, map its fields here:
-                    ApplicantStreetAddress = fosterProfile.FosterApplication?.StreetAddress,
-                    ApplicantCity = fosterProfile.FosterApplication?.City,
+					FosterApplicationId = fosterProfile.FosterApplicationId,
+					// If FosterApplication was included, map its fields here:
+					ApplicantStreetAddress = fosterProfile.FosterApplication?.StreetAddress,
+					ApplicantCity = fosterProfile.FosterApplication?.City,
 
-                    CurrentlyFostering = fosteredAnimals
-                };
+					CurrentlyFostering = fosteredAnimals
+				};
 
-                // --- Return Response ---
-				var response = req.CreateResponse(HttpStatusCode.OK); // Return 200 OK
+				// --- Return Response ---
+				var response = req.CreateResponse(HttpStatusCode.OK);
 				var jsonResponse = JsonSerializer.Serialize(fosterDetailDto, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 				await response.WriteStringAsync(jsonResponse);
 				return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error fetching foster details for User ID {UserId}.", userId);
-                return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An error occurred.");
-            }
-        }
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Error fetching foster details for User ID {UserId}.", userId);
+				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An error occurred.");
+			}
+		}
 
-        // --- Token Validation Logic shared helper/service ---
+		// --- Token Validation Logic shared helper/service ---
 		private async Task<ClaimsPrincipal?> ValidateTokenAndGetPrincipal(AzureFuncHttp.HttpRequestData req)
 		{
 			_logger.LogInformation("Validating token...");
@@ -271,7 +273,7 @@ namespace rescueApp
 			await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
 			{
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-				WriteIndented = true // Optional: Pretty-print the JSON
+				WriteIndented = true // Pretty-print the JSON
 			}));
 
 			return response;

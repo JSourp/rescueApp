@@ -20,8 +20,6 @@ namespace rescueApp.Models
         public Guid? CreatedByUserId { get; set; }
         public Guid? UpdatedByUserId { get; set; }
         public Guid? CurrentFosterUserId { get; set; }
-        //public string? CurrentFosterName { get; set; }
-
         public virtual ICollection<AdoptionHistory>? AdoptionHistories { get; set; }
         public virtual ICollection<AnimalDocument>? AnimalDocuments { get; set; }
         public virtual ICollection<AnimalImage> AnimalImages { get; set; }

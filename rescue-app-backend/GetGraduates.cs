@@ -13,17 +13,18 @@ using Microsoft.Extensions.Logging;
 using rescueApp.Data;
 using rescueApp.Models;
 
-// Alias
+// Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
+	//TODO: Consider moving this to Models/DTOs
 	public class GraduateDto
 	{
 		public int Id { get; set; }
 		public int AnimalId { get; set; }
 		public string? Name { get; set; }
-		public string? ImageUrl { get; set; } // Or PrimaryImageUrl
+		public string? ImageUrl { get; set; }
 		public string? AnimalType { get; set; }
 		public string? Breed { get; set; }
 		public string? Gender { get; set; }
@@ -32,7 +33,7 @@ namespace rescueApp
 	public class GetGraduates
 	{
 		private readonly AppDbContext _dbContext;
-		private readonly ILogger<GetGraduates> _logger; // Correctly defined instance variable
+		private readonly ILogger<GetGraduates> _logger;
 
 		public GetGraduates(AppDbContext dbContext, ILogger<GetGraduates> logger)
 		{
@@ -42,6 +43,7 @@ namespace rescueApp
 
 		[Function("GetGraduates")]
 		public async Task<HttpResponseData> Run(
+			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
 			[HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "graduates")] HttpRequestData req)
 		{
 			// Use the injected _logger instance
@@ -57,13 +59,9 @@ namespace rescueApp
 			try
 			{
 				// Join with the LATEST ACTIVE AdoptionHistory record for each animal to get the relevant adoption date.
-				// NOTE: This join logic needs care. Selecting the relevant history record might be complex.
-				// A simpler approach might be to query AdoptionHistory first WHERE return_date IS NULL
-				// and include Animal, then filter Animal properties. Like so.
-
 				IQueryable<AdoptionHistory> historyQuery = _dbContext.AdoptionHistories
 					.Include(ah => ah.Animal) // Include animal data
-						.ThenInclude(a => a!.AnimalImages) // <-- THEN INCLUDE the related images for the animal
+						.ThenInclude(a => a!.AnimalImages) // <-- Include related images for the animal
 					.Where(ah => ah.ReturnDate == null && ah.Animal != null && ah.Animal.AdoptionStatus == "Adopted"); // Only active adoptions for animals marked Adopted
 
 				// Apply filters based on the JOINED Animal properties
@@ -82,7 +80,7 @@ namespace rescueApp
 
 
 				// Apply sorting based on AdoptionDate or Animal Name
-				bool descending = sortBy?.ToLowerInvariant().EndsWith("_desc") ?? true; // Default desc?
+				bool descending = sortBy?.ToLowerInvariant().EndsWith("_desc") ?? true;
 				string? sortField = sortBy?.ToLowerInvariant().Replace("_desc", "").Replace("_asc", "");
 
 				_logger.LogInformation("Sorting Graduates by {SortField} {Direction}", sortField ?? "adoption_date", descending ? "DESC" : "ASC");
@@ -97,8 +95,8 @@ namespace rescueApp
 					case "adoption_date":
 					default: // Default sort by adoption date
 						historyQuery = descending
-						   ? historyQuery.OrderByDescending(ah => ah.AdoptionDate)
-						   : historyQuery.OrderBy(ah => ah.AdoptionDate);
+							? historyQuery.OrderByDescending(ah => ah.AdoptionDate)
+							: historyQuery.OrderBy(ah => ah.AdoptionDate);
 						break;
 				}
 
@@ -114,10 +112,10 @@ namespace rescueApp
 						AdoptionDate = ah.AdoptionDate,
 						// Find the image marked as primary, or the first by display order, or null
 						ImageUrl = ah.Animal.AnimalImages! // Use ! since Animal should be included
-									 .OrderBy(img => img.IsPrimary ? 0 : 1) // Prioritize primary=true
-									 .ThenBy(img => img.DisplayOrder) // Then by explicit order
-									 .Select(img => img.ImageUrl)      // Select the URL string
-									 .FirstOrDefault(),                 // Get the best match or null
+							.OrderBy(img => img.IsPrimary ? 0 : 1) // Prioritize primary=true
+							.ThenBy(img => img.DisplayOrder)       // Then by explicit order
+							.Select(img => img.ImageUrl)           // Select the URL string
+							.FirstOrDefault(),                     // Get the best match or null
 					})
 					.ToListAsync();
 

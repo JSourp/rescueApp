@@ -5,18 +5,19 @@ using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Web; // For HttpUtility
+using System.Web;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-// Auth0 Usings
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using rescueApp.Data;
 using rescueApp.Models;
-using rescueApp.Models.DTOs; // For the DTO
+using rescueApp.Models.DTOs;
+
+// Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
@@ -39,6 +40,7 @@ namespace rescueApp
 
 		[Function("GetFosterApplicationById")]
 		public async Task<AzureFuncHttp.HttpResponseData> Run(
+			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
 			[HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "foster-applications/{applicationId:int}")] AzureFuncHttp.HttpRequestData req,
 			int applicationId)
 		{
@@ -161,7 +163,7 @@ namespace rescueApp
 				};
 
 				// --- Return Response ---
-				var response = req.CreateResponse(HttpStatusCode.OK); // Return 200 OK
+				var response = req.CreateResponse(HttpStatusCode.OK);
 				var jsonResponse = JsonSerializer.Serialize(applicationDetailDto, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 				await response.WriteStringAsync(jsonResponse);
 				return response;
@@ -282,7 +284,7 @@ namespace rescueApp
 			await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
 			{
 				PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-				WriteIndented = true // Optional: Pretty-print the JSON
+				WriteIndented = true // Pretty-print the JSON
 			}));
 
 			return response;

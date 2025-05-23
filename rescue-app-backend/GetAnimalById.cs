@@ -6,15 +6,17 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.EntityFrameworkCore; // Required for Include/ThenInclude
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using rescueApp.Data;
 using rescueApp.Models;
 using rescueApp.Models.DTOs;
 
+// Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp;
+
 public class GetAnimalById
 {
     private readonly AppDbContext _dbContext;
@@ -28,6 +30,7 @@ public class GetAnimalById
 
     [Function("GetAnimalById")]
     public async Task<HttpResponseData> Run(
+        // Security is handled by internal Auth0 Bearer token validation and role-based authorization.
         [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "animals/{id:int}")] HttpRequestData req,
         int id,
         FunctionContext executionContext)
@@ -38,13 +41,13 @@ public class GetAnimalById
         {
             // Fetch the animal including the ordered list of its images
             var animalEntity = await _dbContext.Animals
-                    .Include(a => a.AnimalImages
-                                .OrderBy(img => !img.IsPrimary) // Primary first
-                                .ThenBy(img => img.DisplayOrder)
-                                .ThenBy(img => img.Id))
-                    .Include(a => a.CurrentFoster)
-                    .AsNoTracking() // Good for read-only queries
-                    .FirstOrDefaultAsync(a => a.Id == id); // Find animal by ID
+                .Include(a => a.AnimalImages
+                    .OrderBy(img => !img.IsPrimary)
+                    .ThenBy(img => img.DisplayOrder)
+                    .ThenBy(img => img.Id))
+                .Include(a => a.CurrentFoster)
+                .AsNoTracking() // Good for read-only queries
+                .FirstOrDefaultAsync(a => a.Id == id); // Find animal by ID
 
             if (animalEntity == null)
             {
@@ -99,7 +102,6 @@ public class GetAnimalById
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 WriteIndented = false
-                // No ReferenceHandler needed for DTOs
             };
             var jsonString = JsonSerializer.Serialize(animalDetailDto, jsonOptions);
             await response.WriteStringAsync(jsonString); // Serialize the DTO

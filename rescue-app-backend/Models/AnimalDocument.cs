@@ -1,4 +1,3 @@
-// rescueApp/Models/AnimalDocument.cs
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -13,7 +12,7 @@ namespace rescueApp.Models
         public string FileName { get; set; } = string.Empty; // Original filename
         public string BlobName { get; set; } = string.Empty; // Unique name in blob storage
         public string BlobUrl { get; set; } = string.Empty; // Full base URL
-        public string? Description { get; set; } // Nullable
+        public string? Description { get; set; }
         public DateTime DateUploaded { get; set; }
         public Guid? UploadedByUserId { get; set; }
 

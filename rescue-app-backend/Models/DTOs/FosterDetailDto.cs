@@ -10,7 +10,6 @@ namespace rescueApp.Models.DTOs
         public string? Name { get; set; }
         public string? AnimalType { get; set; }
         public string? AdoptionStatus { get; set; } // To see if it's "In Foster"
-        // Add other key animal details you want to see in the foster's list
     }
 
     public class FosterDetailDto
@@ -35,9 +34,8 @@ namespace rescueApp.Models.DTOs
         public DateTime ProfileDateCreated { get; set; }
         public DateTime ProfileDateUpdated { get; set; }
 
-        // From linked FosterApplication (optional, could be fetched separately if too much)
+        // From linked FosterApplication
         public int? FosterApplicationId { get; set; }
-        // You could include a few key fields from the application here if desired
         public string? ApplicantStreetAddress { get; set; }
         public string? ApplicantCity { get; set; }
 

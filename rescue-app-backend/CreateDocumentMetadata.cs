@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations; // Required for validation attributes
-using System.IdentityModel.Tokens.Jwt; // Ensure this is included
+using System.ComponentModel.DataAnnotations;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -24,6 +24,7 @@ using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 namespace rescueApp
 {
 	// DTO for request body when saving metadata
+	// TODO: Consider moving this to Models/Requests folder
 	public class CreateDocumentMetadataRequest
 	{
 		[Required(AllowEmptyStrings = false)]
@@ -60,7 +61,7 @@ namespace rescueApp
 
 		[Function("CreateDocumentMetadata")]
 		public async Task<AzureFuncHttp.HttpResponseData> Run(
-			// TODO: Change AuthorizationLevel from Anonymous after testing/implementing real auth
+			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
 			[HttpTrigger(AuthorizationLevel.Anonymous, "POST", Route = "animals/{animalId:int}/documents")]
 			AzureFuncHttp.HttpRequestData req,
 			int animalId) // Animal ID from route
@@ -118,7 +119,7 @@ namespace rescueApp
 			}
 
 			// 2. Deserialize & Validate Request Body ---
-			string requestBody = string.Empty; // Initialize outside try
+			string requestBody = string.Empty;
 			CreateDocumentMetadataRequest? metadataRequest;
 			try
 			{
@@ -144,7 +145,11 @@ namespace rescueApp
 				_logger.LogError(ex, "Error deserializing or validating CreateAnimal request body.");
 				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request format or data.");
 			}
-			if (metadataRequest == null) { /* Should be caught above, but defensive check */ return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request data."); }
+			if (metadataRequest == null)
+			{
+				/* Should be caught above, but defensive check */
+				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request data.");
+			}
 
 
 			// 3. Check if Animal Exists ---
@@ -167,8 +172,8 @@ namespace rescueApp
 					FileName = metadataRequest.FileName!,
 					BlobName = metadataRequest.BlobName!,
 					BlobUrl = metadataRequest.BlobUrl!,
-					Description = metadataRequest.Description, // Nullable
-					DateUploaded = utcNow, // Let DB default handle? Explicit is fine too.
+					Description = metadataRequest.Description,
+					DateUploaded = utcNow,
 					UploadedByUserId = currentUser.Id // Link to logged-in user
 				};
 
@@ -192,7 +197,6 @@ namespace rescueApp
 					newDocument.Description,
 					newDocument.DateUploaded,
 					newDocument.UploadedByUserId
-					// Add any other simple fields the frontend might need immediately
 				};
 
 				// Define serialization options
@@ -203,7 +207,7 @@ namespace rescueApp
 				response.Headers.Add("Content-Type", "application/json; charset=utf-8"); // Set Content-Type
 				await response.WriteStringAsync(jsonPayload); // Write the JSON string
 
-				return response; // Return the successful response
+				return response;
 			}
 			catch (DbUpdateException dbEx)
 			{
@@ -220,118 +224,118 @@ namespace rescueApp
 		}
 
 		// --- Token Validation Logic shared helper/service ---
-        private async Task<ClaimsPrincipal?> ValidateTokenAndGetPrincipal(AzureFuncHttp.HttpRequestData req)
-        {
-            _logger.LogInformation("Validating token...");
+		private async Task<ClaimsPrincipal?> ValidateTokenAndGetPrincipal(AzureFuncHttp.HttpRequestData req)
+		{
+			_logger.LogInformation("Validating token...");
 
-            // 1. Get Token from Header
-            if (!req.Headers.TryGetValues("Authorization", out var authHeaders) || !authHeaders.Any())
-            {
-                _logger.LogWarning("ValidateTokenAndGetPrincipal: Missing Authorization header.");
-                return null;
-            }
+			// 1. Get Token from Header
+			if (!req.Headers.TryGetValues("Authorization", out var authHeaders) || !authHeaders.Any())
+			{
+				_logger.LogWarning("ValidateTokenAndGetPrincipal: Missing Authorization header.");
+				return null;
+			}
 
-            string bearerToken = authHeaders.First();
-            if (!bearerToken.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-            {
-                _logger.LogWarning("ValidateTokenAndGetPrincipal: Invalid Authorization header format.");
-                return null;
-            }
+			string bearerToken = authHeaders.First();
+			if (!bearerToken.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+			{
+				_logger.LogWarning("ValidateTokenAndGetPrincipal: Invalid Authorization header format.");
+				return null;
+			}
 
-            string token = bearerToken.Substring("Bearer ".Length).Trim();
+			string token = bearerToken.Substring("Bearer ".Length).Trim();
 
-            // 2. Initialize Validation Parameters if needed
-            if (_validationParameters == null && !string.IsNullOrEmpty(_auth0Domain) && !string.IsNullOrEmpty(_auth0Audience))
-            {
-                _configManager ??= new ConfigurationManager<OpenIdConnectConfiguration>(
-                    $"{_auth0Domain}.well-known/openid-configuration",
-                    new OpenIdConnectConfigurationRetriever(),
-                    new HttpDocumentRetriever());
+			// 2. Initialize Validation Parameters if needed
+			if (_validationParameters == null && !string.IsNullOrEmpty(_auth0Domain) && !string.IsNullOrEmpty(_auth0Audience))
+			{
+				_configManager ??= new ConfigurationManager<OpenIdConnectConfiguration>(
+					$"{_auth0Domain}.well-known/openid-configuration",
+					new OpenIdConnectConfigurationRetriever(),
+					new HttpDocumentRetriever());
 
-                var discoveryDocument = await _configManager.GetConfigurationAsync(default);
-                var signingKeys = discoveryDocument.SigningKeys;
+				var discoveryDocument = await _configManager.GetConfigurationAsync(default);
+				var signingKeys = discoveryDocument.SigningKeys;
 
-                _validationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidIssuer = _auth0Domain,
-                    ValidateAudience = true,
-                    ValidAudience = _auth0Audience,
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKeys = signingKeys,
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.FromMinutes(1) // Allow for small clock differences
-                };
+				_validationParameters = new TokenValidationParameters
+				{
+					ValidateIssuer = true,
+					ValidIssuer = _auth0Domain,
+					ValidateAudience = true,
+					ValidAudience = _auth0Audience,
+					ValidateIssuerSigningKey = true,
+					IssuerSigningKeys = signingKeys,
+					ValidateLifetime = true,
+					ClockSkew = TimeSpan.FromMinutes(1) // Allow for small clock differences
+				};
 
-                _logger.LogInformation("Initialized TokenValidationParameters...");
-            }
-            else if (_validationParameters == null)
-            {
-                _logger.LogError("Auth0 Domain or Audience configuration missing, cannot validate token.");
-                return null;
-            }
+				_logger.LogInformation("Initialized TokenValidationParameters...");
+			}
+			else if (_validationParameters == null)
+			{
+				_logger.LogError("Auth0 Domain or Audience configuration missing, cannot validate token.");
+				return null;
+			}
 
-            // 3. Validate Token
-            try
-            {
-                var handler = new JwtSecurityTokenHandler();
-                var validationResult = await handler.ValidateTokenAsync(token, _validationParameters);
+			// 3. Validate Token
+			try
+			{
+				var handler = new JwtSecurityTokenHandler();
+				var validationResult = await handler.ValidateTokenAsync(token, _validationParameters);
 
-                if (!validationResult.IsValid)
-                {
-                    _logger.LogWarning("Token validation failed: {ExceptionMessage}", validationResult.Exception?.Message ?? "Unknown validation error");
-                    return null;
-                }
+				if (!validationResult.IsValid)
+				{
+					_logger.LogWarning("Token validation failed: {ExceptionMessage}", validationResult.Exception?.Message ?? "Unknown validation error");
+					return null;
+				}
 
-                if (validationResult.ClaimsIdentity == null)
-                {
-                    _logger.LogError("Token validation succeeded but ClaimsIdentity is null.");
-                    return null;
-                }
+				if (validationResult.ClaimsIdentity == null)
+				{
+					_logger.LogError("Token validation succeeded but ClaimsIdentity is null.");
+					return null;
+				}
 
-                _logger.LogInformation("Token validation successful.");
-                return new ClaimsPrincipal(validationResult.ClaimsIdentity);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Error during token validation: {Message}", ex.Message);
-                return null;
-            }
-        }
+				_logger.LogInformation("Token validation successful.");
+				return new ClaimsPrincipal(validationResult.ClaimsIdentity);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError("Error during token validation: {Message}", ex.Message);
+				return null;
+			}
+		}
 
-        // Helper for creating error responses
-        private async Task<AzureFuncHttp.HttpResponseData> CreateErrorResponse(
-            AzureFuncHttp.HttpRequestData req,
-            HttpStatusCode statusCode,
-            string message)
-        {
-            // Log the error message
-            _logger.LogWarning("Creating error response. StatusCode: {StatusCode}, Message: {Message}", statusCode, message);
+		// Helper for creating error responses
+		private async Task<AzureFuncHttp.HttpResponseData> CreateErrorResponse(
+			AzureFuncHttp.HttpRequestData req,
+			HttpStatusCode statusCode,
+			string message)
+		{
+			// Log the error message
+			_logger.LogWarning("Creating error response. StatusCode: {StatusCode}, Message: {Message}", statusCode, message);
 
-            // Create the response object
-            var response = req.CreateResponse(statusCode);
+			// Create the response object
+			var response = req.CreateResponse(statusCode);
 
-            // Set the content type to JSON
-            response.Headers.Add("Content-Type", "application/json");
+			// Set the content type to JSON
+			response.Headers.Add("Content-Type", "application/json");
 
-            // Build the error response body
-            var errorResponse = new
-            {
-                error = new
-                {
-                    code = statusCode.ToString(),
-                    message = message
-                }
-            };
+			// Build the error response body
+			var errorResponse = new
+			{
+				error = new
+				{
+					code = statusCode.ToString(),
+					message = message
+				}
+			};
 
-            // Serialize the error response to JSON and write it to the response body
-            await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
-                WriteIndented = true // Optional: Pretty-print the JSON
-            }));
+			// Serialize the error response to JSON and write it to the response body
+			await response.WriteStringAsync(JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
+			{
+				PropertyNamingPolicy = JsonNamingPolicy.CamelCase, // Use camelCase for JSON properties
+				WriteIndented = true // Pretty-print the JSON
+			}));
 
-            return response;
-        }
+			return response;
+		}
 	}
 }

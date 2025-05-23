@@ -28,10 +28,10 @@ namespace rescueApp.Models
         public string Email { get; set; } = string.Empty;
 
         [MaxLength(30)]
-        public string? PrimaryPhone { get; set; } // PascalCase
+        public string? PrimaryPhone { get; set; }
 
         [MaxLength(10)]
-        public string? PrimaryPhoneType { get; set; } // PascalCase (e.g., "Cell", "Home")
+        public string? PrimaryPhoneType { get; set; } // (e.g., "Cell", "Home")
 
         [Required]
         [MaxLength(50)]

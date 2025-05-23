@@ -14,6 +14,7 @@ using rescueApp.Data;
 using rescueApp.Models;
 using rescueApp.Models.Requests;
 
+// Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
@@ -31,7 +32,8 @@ namespace rescueApp
 
         [Function("CreateFosterApplication")]
         public async Task<AzureFuncHttp.HttpResponseData> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "foster-applications")] AzureFuncHttp.HttpRequestData req)
+            // Security is handled by internal Auth0 Bearer token validation and role-based authorization.
+            [HttpTrigger(AuthorizationLevel.Anonymous, "POST", Route = "foster-applications")] AzureFuncHttp.HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed CreateFosterApplication request.");
 
@@ -122,7 +124,7 @@ namespace rescueApp
                 HasFosteredBefore = appRequest.HasFosteredBefore!,
                 PreviousFosterDetails = appRequest.PreviousFosterDetails,
                 WhyFoster = appRequest.WhyFoster!,
-                FosterAnimalTypes = appRequest.FosterAnimalTypes, // Already a string from DTO
+                FosterAnimalTypes = appRequest.FosterAnimalTypes,
                 WillingMedical = appRequest.WillingMedical!,
                 WillingBehavioral = appRequest.WillingBehavioral!,
                 CommitmentLength = appRequest.CommitmentLength!,

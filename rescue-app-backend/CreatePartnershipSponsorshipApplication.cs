@@ -12,8 +12,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using rescueApp.Data;
 using rescueApp.Models;
-using rescueApp.Models.Requests; // For the DTO
+using rescueApp.Models.Requests;
 
+// Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
@@ -31,7 +32,8 @@ namespace rescueApp
 
 		[Function("CreatePartnershipSponsorshipApplication")]
 		public async Task<AzureFuncHttp.HttpResponseData> Run(
-			[HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "partnership-sponsorship-applications")] AzureFuncHttp.HttpRequestData req)
+			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
+			[HttpTrigger(AuthorizationLevel.Anonymous, "POST", Route = "partnership-sponsorship-applications")] AzureFuncHttp.HttpRequestData req)
 		{
 			_logger.LogInformation("C# HTTP trigger function processed CreatePartnershipSponsorshipApplication request.");
 
@@ -95,7 +97,6 @@ namespace rescueApp
 				HowHeard = appRequest.HowHeard,
 				InterestType = appRequest.InterestType,
 				DetailsOfInterest = appRequest.DetailsOfInterest,
-				// Default values for status and submission_date are handled by DB/Model
 			};
 
 			try
