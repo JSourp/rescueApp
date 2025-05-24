@@ -1,8 +1,8 @@
 import Image from "next/image";
 import React, { useState, useEffect } from 'react';
 import { Container } from "@/components/Container";
-import Modal from '@/components/Modal'; // Import Modal
-import AdoptionForm from '@/components/AdoptionForm'; // Import AdoptionForm
+import Modal from '@/components/Modal';
+import AdoptionForm from '@/components/AdoptionForm';
 
 // Update interface to include id and name
 interface SpotlightData {
@@ -30,8 +30,7 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
 
   // Handle case where data might be null (if API fetch fails or returns empty)
   if (!data) {
-    // Optionally render a placeholder or nothing
-    return null; // Or <Container>Loading Spotlight...</Container> etc.
+    return null;
   }
 
   // Determine image position for layout, fallback to left if not specified
@@ -42,9 +41,7 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
       <Container className="flex flex-wrap mb-20 lg:gap-10 lg:flex-nowrap ">
         {/* Image Section */}
         <div
-          className={`flex items-center justify-center w-full lg:w-3/5 ${imagePosition === "right" ? "lg:order-1" : "" // Use layout variable
-            }`}
-        >
+          className={`flex items-center justify-center w-full lg:w-3/5 ${imagePosition === "right" ? "lg:order-1" : ""}`}>
           <div className="relative w-full aspect-w-1 aspect-h-1 lg:aspect-w-16 lg:aspect-h-9">
             <Image
               // Check if data.image is already an object (like StaticImageData) or just a URL string
@@ -52,7 +49,7 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
               alt={data.name || 'Spotlight Animal'} // Use actual name for alt text
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className={"object-cover rounded-lg shadow-md"} // Added rounded corners/shadow
+              className={"object-cover rounded-lg shadow-md"}
               // Add blurDataURL only if data.image is StaticImageData or handle separately
               blurDataURL={typeof data.image !== 'string' ? data.image.blurDataURL : undefined}
               placeholder={typeof data.image !== 'string' ? "blur" : "empty"}
@@ -86,7 +83,7 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
               ))}
             </div>
 
-            <div className="w-full mt-8"> {/* Add margin top */}
+            <div className="w-full mt-8">
               <button
                 onClick={() => setShowAdoptForm(true)}
                 className="bg-primary hover:bg-primary-800 w-full sm:w-auto px-6 py-3 text-white font-bold rounded-md transition duration-300"

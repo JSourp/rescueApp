@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { differenceInDays } from 'date-fns';
-import {
-  ArrowRightCircleIcon,
-  ArrowRightEndOnRectangleIcon,
-  ArrowRightIcon,
-  ArrowRightStartOnRectangleIcon,
-} from "@heroicons/react/24/solid";
+import { ArrowRightIcon } from "@heroicons/react/24/solid";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -18,7 +13,7 @@ export const calculateAge = (dateOfBirth) => {
     const birthDate = new Date(dateOfBirth);
     // Add check for invalid date
     if (isNaN(birthDate.getTime())) {
-        return "Unknown";
+      return "Unknown";
     }
     const today = new Date();
 

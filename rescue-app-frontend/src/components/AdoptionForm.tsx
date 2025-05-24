@@ -278,7 +278,7 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
         const web3formsPayload = {
           ...data, // Send original snake_case form data to web3forms
           access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
-          from_name: "Rescue App Adoption Application", // Customize as needed
+          from_name: "Second Chance Adoption Application", // Customize as needed
           subject: `New Adoption Application: ${data.first_name} ${data.last_name}`,
           botcheck: undefined, // Don't send honeypot data in email
         };
@@ -533,7 +533,6 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
               <div>
                 <label htmlFor="children_in_home" className={labelBaseClasses}>Number & Ages of Children (&lt;18)?</label>
                 <input type="text" id="children_in_home" {...register("children_in_home")} placeholder="e.g., 1 child, age 8" className={`${inputBaseClasses} ${inputBorderClasses(!!errors.children_in_home)}`} />
-                {/* Optional: Add validation if needed */}
               </div>
             </div>
             {/* Allergies */}
@@ -766,8 +765,7 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
                     type="checkbox"
                     id="waiver_agreed"
                     {...register("waiver_agreed", { required: "You must agree to the terms." })}
-                    className={`${checkboxInputClasses} ${errors.waiver_agreed ? 'border-red-500' : ''}`}
-                  />
+                    className={`${checkboxInputClasses} ${errors.waiver_agreed ? 'border-red-500' : ''}`} />
                   <span className={`${checkboxLabelClasses} ml-2`}>
                     I have read, understand, and agree to the Adopter Agreement and Waiver of Liability terms stated above. *
                   </span>
@@ -804,8 +802,7 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800"
-              >
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800">
                 Cancel
               </button>
               <button

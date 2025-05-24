@@ -1,6 +1,6 @@
 import { Container } from "@/components/Container";
 import { SectionTitle } from "@/components/SectionTitle";
-import Image from "next/image"; // Optional: if you want to add an image
+import Image from "next/image";
 import Link from "next/link";
 
 export default function AboutUsPage() {
@@ -34,8 +34,7 @@ export default function AboutUsPage() {
         <div className="text-center mb-10">
           <SectionTitle
             preTitle="Our Story"
-            title="Advocates First: Welcome to Second Chance"
-          >
+            title="Advocates First: Welcome to Second Chance">
             Located in Glendale, Arizona, Second Chance Animal Rescue and Sanctuary
             was founded by a group of passionate animal advocates dedicated to making
             a tangible difference in the lives of animals in need.

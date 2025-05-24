@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { format } from 'date-fns'; // For formatting dates
+import { format } from 'date-fns';
 import { Container } from '@/components/Container';
 import AddAnimalForm from '@/components/admin/AddAnimalForm';
 import EditAnimalForm from '@/components/admin//EditAnimalForm';
@@ -14,9 +14,9 @@ import Modal from '@/components/Modal';
 import { LoadingSpinner, PlusIcon, PencilSquareIcon, TrashIcon, SuccessCheckmarkIcon, ArrowUturnLeftIcon } from '@/components/Icons';
 import { AnimalListItem } from '@/types/animalListItem';
 import { UserProfile } from '@/types/userProfile';
-import { useUser } from '@auth0/nextjs-auth0/client'; // To check login state & potentially role later
-import { getAuth0AccessToken } from '@/utils/auth'; // Import token helper
-import { adoptionStatuses } from '@/constants/adoptionStatuses'; // Import list of statuses
+import { useUser } from '@auth0/nextjs-auth0/client';
+import { getAuth0AccessToken } from '@/utils/auth';
+import { adoptionStatuses } from '@/constants/adoptionStatuses';
 
 // Define the type for the filters object passed to the fetch function
 interface AdminAnimalFilters {
@@ -49,7 +49,6 @@ async function fetchAdminAnimals(
 	// Handle array of statuses
 	if (filters.adoption_status && filters.adoption_status.length > 0) {
 		// Join the array into a comma-separated string.
-		// Backend expects comma-separated and handles decoding of individual statuses.
 		queryParams.append('adoption_status', filters.adoption_status.join(','));
 	}
 
@@ -216,7 +215,7 @@ export default function AdminAnimalsPage() {
 		} finally {
 			setIsLoading(false);
 		}
-	}, [genderFilter, animalTypeFilter, breedFilter, statusFilters, sortBy, isAuthLoading, authError]); // Include all filter/sort states
+	}, [genderFilter, animalTypeFilter, breedFilter, statusFilters, sortBy, isAuthLoading, authError]);
 
 	// Initial data load and reload on filter/sort changes
 	useEffect(() => {
@@ -312,8 +311,7 @@ export default function AdminAnimalsPage() {
 		} catch (err) {
 			console.error("Delete error:", err);
 			setError(err instanceof Error ? err.message : 'Failed to delete animal');
-			// Keep modal open to show error? Or close and show error on page?
-			// For now, let's keep modal open, user needs to cancel.
+			// Keep modal open to show error, user needs to cancel.
 		} finally {
 			setIsDeleting(false);
 		}
@@ -345,14 +343,12 @@ export default function AdminAnimalsPage() {
 				{/* Add Animal Button - Right Aligned */}
 				{/* Conditionally render this div only if the user has the correct role */}
 				{['Admin', 'Staff'].includes(currentUserRole ?? '') && (
-					<div className="flex justify-end mb-6"> {/* Use flexbox to push content to the end (right), add margin below */}
+					<div className="flex justify-end mb-6">
 						<button
 							onClick={handleAddAnimalClick}
-							// Re-apply button styling (using Asparagus theme from AddAnimalForm)
-							className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-md shadow transition duration-300"
-						>
+							className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-md shadow transition duration-300">
 							<PlusIcon className="w-5 h-5" />
-							<span>Add New Animal</span> {/* Explicit span for text */}
+							<span>Add New Animal</span>
 						</button>
 					</div>
 				)}
@@ -386,7 +382,7 @@ export default function AdminAnimalsPage() {
 							</select>
 						</div>
 						{/* Status Filter (Checkboxes) */}
-						<div className="sm:col-span-2 md:col-span-1"> {/* Adjust span as needed */}
+						<div className="sm:col-span-2 md:col-span-1">
 							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
 							<div className="max-h-40 overflow-y-auto p-2 border rounded bg-white dark:bg-gray-700 dark:border-gray-600 space-y-1">
 								{adoptionStatuses.map((status) => (
@@ -397,8 +393,7 @@ export default function AdminAnimalsPage() {
 											value={status}
 											checked={statusFilters.includes(status)} // Check if status is in the array
 											onChange={handleStatusFilterChange} // Use the new handler
-											className="h-4 w-4 text-text-link border-gray-300 dark:border-gray-500 rounded focus:ring-text-link dark:bg-gray-600"
-										/>
+											className="h-4 w-4 text-text-link border-gray-300 dark:border-gray-500 rounded focus:ring-text-link dark:bg-gray-600" />
 										<label htmlFor={`status-${status.replace(/\s+/g, '-')}`} className="ml-2 text-sm text-gray-700 dark:text-gray-300">{status}</label>
 									</div>
 								))}
@@ -429,10 +424,6 @@ export default function AdminAnimalsPage() {
 									<th className={thClasses}>Type</th>
 									<th className={thClasses}>Breed</th>
 									<th className={thClasses}>Status</th>
-									{/* <th className={thClasses}>Gender</th> */}
-									{/* <th className={thClasses}>Date of Birth</th> */}
-									{/* <th className={thClasses}>Weight</th> */}
-									{/* <th className={thClasses}>Story</th> */}
 									<th className={thClasses}>Date Added</th>
 									<th className={thClasses}>Last Updated</th>
 									<th className={`${thClasses} text-right`}>Actions</th>
@@ -462,20 +453,12 @@ export default function AdminAnimalsPage() {
 													href={`/admin/animal/${animalItem.id}`}
 													className="font-medium text-text-link hover:underline"
 													title={`View details for ${animalItem.name}`}>
-													{animalItem.name ?? 'N/A'} {/* Display name */}
+													{animalItem.name ?? 'N/A'}
 												</Link>
 											</td>
 											<td className={tdClasses}>{animalItem.animalType ? `${animalItem.animalType}` : 'N/A'}</td>
 											<td className={tdClasses}>{animalItem.breed ? `${animalItem.breed}` : 'N/A'}</td>
 											<td className={tdClasses}>{animalItem.adoptionStatus ? `${animalItem.adoptionStatus}` : 'N/A'}</td>
-											{/* <td className={tdClasses}>{animalItem.gender ? `${animalItem.gender}` : 'N/A'}</td> */}
-											{/* <td className={tdClasses}>{animalItem.date_of_birth ? format(new Date(animalItem.date_of_birth), 'P') : 'N/A'}</td> */}
-											{/* <td className={tdClasses}>{animalItem.weight ? `${animalItem.weight} lbs` : 'N/A'}</td> */}
-											{/* <td className={`${tdClasses} max-w-xs`}>
-												<div className="overflow-hidden overflow-ellipsis whitespace-nowrap" title={animalItem.story}>
-													{animalItem.story ? animalItem.story : 'N/A'}
-												</div>
-											</td> */}
 											<td className={tdClasses}>{format(new Date(animalItem.dateCreated), 'P')}</td>
 											<td className={tdClasses}>{format(new Date(animalItem.dateUpdated), 'P')}</td>
 											<td className={`${tdClasses} text-right space-x-2`}>
@@ -547,7 +530,6 @@ export default function AdminAnimalsPage() {
 
 			{isFinalizeModalOpen && selectedAnimal && (
 				<Modal onClose={() => { setIsFinalizeModalOpen(false); setSelectedAnimal(null); }}>
-					{/* Create FinalizeAdoptionForm component below */}
 					<FinalizeAdoptionForm
 						animal={selectedAnimal}
 						onClose={() => { setIsFinalizeModalOpen(false); setSelectedAnimal(null); }}
@@ -558,17 +540,15 @@ export default function AdminAnimalsPage() {
 
 			{isDeleteConfirmOpen && selectedAnimal && (
 				<Modal onClose={handleCloseDeleteConfirm}>
-					{/* Create ConfirmDeleteModal component below */}
 					<ConfirmDeleteModal
 						itemType='animal'
 						itemName={selectedAnimal.name ?? 'this animal'}
 						onClose={handleCloseDeleteConfirm}
 						onConfirmDelete={() => handleConfirmDelete(selectedAnimal.id)}
-						isDeleting={isDeleting} // Pass deletion state
+						isDeleting={isDeleting}
 					/>
 				</Modal>
 			)}
-			{/* --- End Modals --- */}
 		</>
 	);
 }

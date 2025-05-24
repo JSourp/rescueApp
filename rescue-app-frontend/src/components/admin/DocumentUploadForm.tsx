@@ -1,4 +1,3 @@
-// src/components/admin/DocumentUploadForm.tsx
 'use client';
 
 import React, { useState, useRef } from 'react';
@@ -51,7 +50,6 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setApiError(null); // Clear error when new file selected
 		if (event.target.files && event.target.files[0]) {
-			// TODO: Add file size validation here if desired
 			setSelectedFile(event.target.files[0]);
 		} else {
 			setSelectedFile(null);
@@ -116,7 +114,6 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 
 			// 3. Save Metadata to your backend API
 			const metadataPayload = {
-				// Match the backend DTO (CreateDocumentMetadataRequest) - needs PascalCase
 				documentType: metadataFormData.documentType,
 				fileName: selectedFile.name, // Use original file_name
 				blobName: sasData.blob_name, // Use unique name from SAS response
@@ -137,7 +134,6 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 			if (!metadataResponse.ok) {
 				let errorMsg = `Error ${metadataResponse.status}: Failed to save document metadata.`;
 				try { const errBody = await metadataResponse.json(); errorMsg = errBody.message || errorMsg; } catch (_) { }
-				// Attempt to clean up orphaned blob if metadata save fails? Optional.
 				console.error("Metadata save failed, potentially leaving orphaned blob:", sasData.blob_name);
 				throw new Error(errorMsg);
 			}
@@ -163,7 +159,6 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 		}
 	};
 
-	// --- TODO: Update this styling. Base styling classes (use a suitable theme color, e.g., blue) ---
 	const inputBaseClasses = "w-full p-2 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-500 dark:focus:border-blue-500";
 	const inputBorderClasses = (hasError: boolean) => hasError ? 'border-red-500 dark:border-red-600' : 'border-gray-300 dark:border-gray-600';
 	const errorTextClasses = "text-red-500 dark:text-red-400 text-xs mt-1";
@@ -195,7 +190,6 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 								/>
 								{/* Show selected file_name */}
 								{selectedFile && <p className="text-xs text-gray-500 mt-1">Selected: {selectedFile.name}</p>}
-								{/* RHF doesn't easily validate file inputs, rely on isRequired + selectedFile check */}
 							</div>
 
 							{/* Document Type */}
@@ -221,14 +215,14 @@ export default function DocumentUploadForm({ animalId, animalName, onClose, onUp
 						<div className="flex justify-end gap-3 pt-6 border-t border-gray-300 dark:border-gray-700 mt-6">
 							<button
 								type="button"
-								disabled={isSubmitting || isUploading} // Use RHF submitting state
+								disabled={isSubmitting || isUploading}
 								onClick={onClose}
 								className="bg-neutral-200 hover:bg-neutral-300 text-neutral-800 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500 font-medium py-2 px-5 rounded-md transition duration-300">
 								Cancel
 							</button>
 							<button
 								type="submit"
-								disabled={!selectedFile || isSubmitting || isUploading} // Use RHF submitting state
+								disabled={!selectedFile || isSubmitting || isUploading}
 								className="bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50">
 								{(isUploading || isSubmitting) ? (
 									<LoadingSpinner className="text-center w-5 h-5 mx-auto" />

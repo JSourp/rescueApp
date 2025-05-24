@@ -22,7 +22,7 @@ interface Graduate extends Animal {
 
 async function fetchGraduates(
 	filters: { gender: string; animal_type: string; breed: string; },
-	sortBy: string // Now expects 'adoption_date_desc' or 'adoption_date_asc' etc.
+	sortBy: string
 ): Promise<Graduate[]> { // Expecting array of Graduate type
 	const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -155,9 +155,6 @@ export default function GraduatesPage() {
 		setSortBy(e.target.value);
 	};
 
-	// --- JSX (UI Code) ---
-	// Add UI elements (like <input> or <select>) so user can actively filter by Breed or Age Group
-
 	if (loading) {
 		return (
 			<div className="text-center py-10 text-gray-500 dark:text-gray-400">
@@ -203,7 +200,6 @@ export default function GraduatesPage() {
 					<option value="">All Genders</option>
 					<option value="Male">Male</option>
 					<option value="Female">Female</option>
-					{/* Add 'Unknown' or other genders if applicable */}
 				</select>
 				<select value={sortBy} onChange={handleSortChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
 					{sortingOptions.map(option => (
@@ -214,7 +210,7 @@ export default function GraduatesPage() {
 
 			{/* Graduate Grid */}
 			{!loading && !error && (
-				<> {/* Fragment to group results */}
+				<>
 					{graduates.length > 0 ? (
 						// --- Display Grid ---
 						<div className="flex justify-center">
@@ -224,24 +220,24 @@ export default function GraduatesPage() {
 										key={graduate.id}
 										className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform transition duration-300 border border-gray-300 dark:border-transparent">
 										{/* <Link href={`/animal/${graduate.animalId}`} className="block"> */} {/* Make entire card clickable */}
-											<div className="text-center">
-												<h2 className="text-xl font-semibold py-2 text-gray-900 dark:text-gray-100 truncate px-2">
-													{graduate.name}
-												</h2>
-											</div>
-											<Image
-												src={graduate.imageUrl || '/placeholder-image.png'}
-												alt={graduate.name ? `${graduate.name}` : ''}
-												width={400}
-												height={300}
-												className="w-full h-64 object-cover" // Ensure consistent image size
-												priority={index < 4} // Prioritize loading images for first few graduates
-											/>
-											<div className="p-4 text-center min-h-[50px]">
-												<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-													Adopted: {graduate.adoptionDate ? format(new Date(graduate.adoptionDate), 'MMM dd, yyyy') : 'Date N/A'}
-												</p>
-											</div>
+										<div className="text-center">
+											<h2 className="text-xl font-semibold py-2 text-gray-900 dark:text-gray-100 truncate px-2">
+												{graduate.name}
+											</h2>
+										</div>
+										<Image
+											src={graduate.imageUrl || '/placeholder-image.png'}
+											alt={graduate.name ? `${graduate.name}` : ''}
+											width={400}
+											height={300}
+											className="w-full h-64 object-cover" // Ensure consistent image size
+											priority={index < 4} // Prioritize loading images for first few graduates
+										/>
+										<div className="p-4 text-center min-h-[50px]">
+											<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+												Adopted: {graduate.adoptionDate ? format(new Date(graduate.adoptionDate), 'MMM dd, yyyy') : 'Date N/A'}
+											</p>
+										</div>
 										{/* </Link> */}
 									</div>
 								))}
@@ -262,11 +258,9 @@ export default function GraduatesPage() {
 											onClick={() => {
 												setGenderFilter('');
 												setAnimalTypeFilter('');
-												setBreedFilter(''); // Reset breed if UI exists
-												// Optionally reset sort? setSortBy('adoption_date_desc');
+												setBreedFilter('');
 											}}
-											className="mt-4 px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline focus:outline-none"
-										>
+											className="mt-4 px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline focus:outline-none">
 											Reset Filters
 										</button>
 									</>
@@ -276,11 +270,11 @@ export default function GraduatesPage() {
 										<h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-3"> Our First Graduates Are Coming Soon! </h3>
 										<p className="text-gray-600 dark:text-gray-400 mb-6 max-w-xl mx-auto">
 											As a newer rescue, we&apos;re eagerly waiting to celebrate our first successful adoptions.
-											</p>
-											<div className="flex flex-col sm:flex-row justify-center gap-4">
-												<Link href="/available-animals" className="...">See Available Animals</Link>
-												<Link href="/get-involved#adopt" className="...">Learn About Adopting</Link>
-											</div>
+										</p>
+										<div className="flex flex-col sm:flex-row justify-center gap-4">
+											<Link href="/available-animals" className="...">See Available Animals</Link>
+											<Link href="/get-involved#adopt" className="...">Learn About Adopting</Link>
+										</div>
 									</>
 								)}
 							</div>

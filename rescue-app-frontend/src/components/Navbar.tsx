@@ -25,7 +25,7 @@ const allDropdownMenuItems: DropdownMenuItem[] = [
 ];
 
 export function Navbar() {
-  const { user, error: authError, isLoading: isAuthLoading } = useUser(); // Renamed error to authError
+  const { user, error: authError, isLoading: isAuthLoading } = useUser();
   const [userRole, setUserRole] = useState<string>("Guest"); // Default to Guest
   const [isLoadingRole, setIsLoadingRole] = useState<boolean>(true); // For profile fetching state
 
@@ -95,8 +95,7 @@ export function Navbar() {
             width={250} // Keep intrinsic
             height={250}
             className="w-52 h-auto"
-            priority
-          />
+            priority />
         </Link>
 
         {/* Desktop Nav Links */}
@@ -146,15 +145,14 @@ export function Navbar() {
               <div className="relative group">
                 {/* User Avatar and Name */}
                 <button className="flex items-center space-x-2 px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md shadow-md hover:bg-gray-200 dark:hover:bg-gray-700 transition duration-300">
-                  {/* This is where you could add a user image, not needed currently
+                  {/* Could add a user image, not needed currently
                   {user.picture && (
                     <Image
                       src={user.picture}
                       alt={user.name || user.email || 'User'}
                       width={32}
                       height={32}
-                      className="w-6 h-6 rounded-full"
-                    />
+                      className="w-6 h-6 rounded-full"/>
                   )}
                   */}
                   <span>{user.name || user.nickname || user.email}</span>
@@ -168,8 +166,7 @@ export function Navbar() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
+                      d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
 
@@ -211,14 +208,12 @@ export function Navbar() {
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
-                      aria-hidden="true"
-                    >
+                      aria-hidden="true">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
+                        d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   ) : (
                     <svg
@@ -227,14 +222,12 @@ export function Navbar() {
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
-                      aria-hidden="true"
-                    >
+                        aria-hidden="true">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M4 6h16M4 12h16m-7 6h7"
-                      />
+                          d="M4 6h16M4 12h16m-7 6h7" />
                     </svg>
                   )}
                 </DisclosureButton>
@@ -299,7 +292,7 @@ export function Navbar() {
   );
 }
 
-// Helper function to fetch user profile from your backend
+// Helper function to fetch user profile from backend
 async function fetchCurrentUserProfileClientSide(accessToken: string): Promise<UserProfile | null> {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
   if (!apiBaseUrl) {

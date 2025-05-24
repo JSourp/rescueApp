@@ -64,12 +64,10 @@ export default async function AdminFosterApplicationReviewPage({ params }: { par
 
 	const userProfile = await fetchUserProfileServerSide(session.accessToken);
 	if (!userProfile) { redirect('/'); }
-	//if (!userProfile) { redirect(`/admin-login?error=profile_fetch_failed&returnTo=/admin/foster-applications/review/${applicationId}`); }
 
 	const allowedRoles = ['Admin', 'Staff'];
 	if (!userProfile.role || !allowedRoles.includes(userProfile.role)) {
 		redirect('/');
-		//redirect('/admin?error=unauthorized');
 	}
 
 	const application = await fetchSingleFosterApplication(applicationId, session.accessToken);

@@ -117,8 +117,7 @@ export default function ReturnFromFosterModal({
 							value={newAdoptionStatus}
 							onChange={(e) => setNewAdoptionStatus(e.target.value)}
 							className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-							disabled={isProcessing}
-						>
+							disabled={isProcessing}>
 							<option value="">Select New Status...</option>
 							{adoptionStatuses.map(status => (
 								<option key={status} value={status}>{status}</option>
@@ -135,8 +134,7 @@ export default function ReturnFromFosterModal({
 						type="button"
 						onClick={handleConfirmReturn}
 						disabled={isProcessing || !newAdoptionStatus}
-						className="px-4 py-2 text-sm rounded-md bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50"
-					>
+						className="px-4 py-2 text-sm rounded-md bg-yellow-500 text-white hover:bg-yellow-600 disabled:opacity-50">
 						{isProcessing ? <LoadingSpinner className="w-5 h-5" /> : "Confirm Return"}
 					</button>
 				</div>

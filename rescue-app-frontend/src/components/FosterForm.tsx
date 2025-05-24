@@ -102,7 +102,7 @@ interface FosterFormProps {
 }
 
 export default function FosterForm({ onClose }: FosterFormProps) {
-	const defaultSubject = `Foster Application`; // Generic subject for foster
+	const defaultSubject = `Foster Application`;
 
 	const {
 		register,
@@ -231,7 +231,7 @@ export default function FosterForm({ onClose }: FosterFormProps) {
 
 			console.log("Submitting Foster Application to backend:", dbPayload);
 
-			const dbResponse = await fetch(`${apiBaseUrl}/foster-applications`, { // New endpoint
+			const dbResponse = await fetch(`${apiBaseUrl}/foster-applications`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" }, // No Auth token for public submission
 				body: JSON.stringify(dbPayload), // Send camelCase payload
@@ -252,7 +252,7 @@ export default function FosterForm({ onClose }: FosterFormProps) {
 					waiver_agreed: data.waiver_agreed ? 'Yes' : 'No',
 					e_signature_name: data.e_signature_name,
 					access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
-					from_name: "Rescue App Foster Application", // Customize as needed
+					from_name: "Second Chance Foster Application", // Customize as needed
 					subject: `New Foster Application: ${data.first_name} ${data.last_name}`, // More specific subject
 					botcheck: undefined, // Remove honeypot data from email payload
 				};
@@ -487,7 +487,6 @@ export default function FosterForm({ onClose }: FosterFormProps) {
 							<div>
 								<label htmlFor="children_in_home" className={labelBaseClasses}>Number & Ages of Children (&lt;18)?</label>
 								<input type="text" id="children_in_home" {...register("children_in_home")} placeholder="e.g., 1 child, age 8" className={`${inputBaseClasses} ${inputBorderClasses(!!errors.children_in_home)}`} />
-								{/* Optional: Add validation if needed */}
 							</div>
 						</div>
 						{/* Allergies */}
@@ -509,7 +508,7 @@ export default function FosterForm({ onClose }: FosterFormProps) {
 							</div>
 							{errors.has_allergies && <p className={errorTextClasses}>{errors.has_allergies.message}</p>}
 						</div>
-						{/* Household Aware (Foster Specific Wording) */}
+						{/* Household Aware */}
 						<div className="mb-4">
 							<label className={labelBaseClasses}>Is everyone in the household aware & supportive of fostering (understanding it is temporary)? *</label>
 							<div className="flex flex-wrap gap-x-4 gap-y-2 mt-1">
@@ -596,7 +595,7 @@ export default function FosterForm({ onClose }: FosterFormProps) {
 								</div>
 							</div>
 						)}
-						{/* Veterinarian Info (Optional) */}
+						{/* Veterinarian Info */}
 						<div className="mb-4">
 							<h5 className={subSectionTitleClasses}>Veterinarian Information (Optional)</h5>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -746,8 +745,7 @@ export default function FosterForm({ onClose }: FosterFormProps) {
 										type="checkbox"
 										id="waiver_agreed"
 										{...register("waiver_agreed", { required: "You must agree to the terms." })}
-										className={`${checkboxInputClasses} ${errors.waiver_agreed ? 'border-red-500' : ''}`}
-									/>
+										className={`${checkboxInputClasses} ${errors.waiver_agreed ? 'border-red-500' : ''}`} />
 									<span className={`${checkboxLabelClasses} ml-2`}>
 										I have read, understand, and agree to the Foster Agreement and Waiver of Liability terms stated above. *
 									</span>
@@ -786,8 +784,7 @@ export default function FosterForm({ onClose }: FosterFormProps) {
 								type="button"
 								onClick={onClose}
 								disabled={isSubmitting}
-								className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800"
-							>
+								className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:focus:ring-offset-gray-800">
 								Cancel
 							</button>
 							<button

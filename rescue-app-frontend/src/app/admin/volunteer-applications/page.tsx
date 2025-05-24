@@ -15,7 +15,6 @@ import { format } from 'date-fns';
 // Define the type for the filters object
 interface VolunteerAppFilters {
 	status: string;
-	// Add other potential filters here: nameSearch, dateRange, etc.
 }
 
 // Possible statuses for filtering (should match backend/database options)
@@ -28,13 +27,11 @@ async function fetchVolunteerApplications(
 	accessToken: string
 ): Promise<VolunteerApplicationListItem[]> {
 	const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-	// Ensure this route matches your GetVolunteerApplications.cs function's HttpTrigger route
 	const endpoint = `${apiBaseUrl}/volunteer-applications`;
 	const queryParams = new URLSearchParams();
 
 	if (filters.status) queryParams.append('status', filters.status);
 	if (sortBy) queryParams.append('sortBy', sortBy);
-	// Add other filter params here if implemented
 
 	const url = `${endpoint}?${queryParams.toString()}`;
 	console.log("Fetching volunteer applications from URL:", url);
@@ -160,12 +157,12 @@ export default function AdminVolunteerApplicationsPage() {
 	const tdClasses = "px-4 py-3 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700";
 
 	if (isAuthLoading || isLoadingRole) return
-		<Container className="text-center py-10">
-			<div className="flex flex-col items-center">
-				<LoadingSpinner className="mb-4" />
-				<span>Loading Access...</span>
-			</div>
-		</Container>;
+	<Container className="text-center py-10">
+		<div className="flex flex-col items-center">
+			<LoadingSpinner className="mb-4" />
+			<span>Loading Access...</span>
+		</div>
+	</Container>;
 	if (!currentUserRole || !['Admin', 'Staff'].includes(currentUserRole)) {
 		return <Container className="text-center py-10 text-red-500">Access Denied. You must be an Admin or Staff to view this page.</Container>;
 	}
@@ -244,8 +241,8 @@ export default function AdminVolunteerApplicationsPage() {
 												View/Review
 											</Link>
 											{/* <button onClick={() => handleReviewClick(app)} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
-                                                View/Review (Modal - NYI)
-                                            </button> */}
+												View/Review (Modal - NYI)
+											</button> */}
 										</td>
 									</tr>
 								)) : (
@@ -258,16 +255,16 @@ export default function AdminVolunteerApplicationsPage() {
 			</Container>
 
 			{/* Placeholder for Review Modal if you implement it here later
-            {isReviewModalOpen && selectedApplication && (
-                <Modal onClose={handleCloseReviewModal} preventBackdropClickClose={true} size="3xl">
-                    <div className="p-6">
-                        Reviewing {selectedApplication.applicantName}
-                        TODO: Build review form/display for volunteer application
-                        <button onClick={handleCloseReviewModal}>Close</button>
-                    </div>
-                </Modal>
-            )}
-            */}
+			{isReviewModalOpen && selectedApplication && (
+				<Modal onClose={handleCloseReviewModal} preventBackdropClickClose={true} size="3xl">
+					<div className="p-6">
+						Reviewing {selectedApplication.applicantName}
+						TODO: Build review form/display for volunteer application
+						<button onClick={handleCloseReviewModal}>Close</button>
+					</div>
+				</Modal>
+			)}
+			*/}
 		</>
 	);
 }

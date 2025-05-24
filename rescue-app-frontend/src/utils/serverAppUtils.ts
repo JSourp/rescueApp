@@ -1,4 +1,4 @@
-import { UserProfile } from '@/types/userProfile'; // Ensure your UserProfile type is defined
+import { UserProfile } from '@/types/userProfile';
 
 export async function fetchUserProfileServerSide(accessToken: string): Promise<UserProfile | null> {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -16,7 +16,6 @@ export async function fetchUserProfileServerSide(accessToken: string): Promise<U
 		const response = await fetch(url, {
 			method: 'GET',
 			headers: {
-				// --- 2. Add the Authorization header ---
 				'Authorization': `Bearer ${accessToken}`
 			},
 			cache: 'no-store' // Don't cache user profile data on the server component fetch

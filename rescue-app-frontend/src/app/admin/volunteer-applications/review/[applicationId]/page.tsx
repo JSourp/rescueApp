@@ -82,7 +82,7 @@ export default async function AdminVolunteerApplicationReviewPage({ params }: { 
 
     const allowedRoles = ['Admin', 'Staff'];
     if (!userProfile.role || !allowedRoles.includes(userProfile.role)) {
-        redirect('/admin?error=unauthorized_volunteer_review'); // More specific error
+        redirect('/admin?error=unauthorized_volunteer_review');
     }
 
     const application = await fetchSingleVolunteerApplication(applicationId, session.accessToken);

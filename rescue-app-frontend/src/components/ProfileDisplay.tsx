@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { UserProfile } from '@/types/userProfile'; // Adjust path
-import { useForm, SubmitHandler } from 'react-hook-form'; // Import RHF
+import { UserProfile } from '@/types/userProfile';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { getAuth0AccessToken } from '@/utils/auth';
 
 // Define the shape of the form data (only editable fields)
@@ -12,7 +12,6 @@ interface ProfileFormData {
   lastName: string;
   primaryPhone: string;
   primaryPhoneType: string;
-  // Add corresponding fields here if you make more fields editable
 }
 
 // Helper component
@@ -59,9 +58,8 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
     register,
     handleSubmit,
     reset, // To reset form state
-    formState: { errors, isSubmitting, isDirty } // Get form state (isDirty tells if form values changed)
+    formState: { errors, isSubmitting, isDirty } // Get form state
   } = useForm<ProfileFormData>({
-    // Default values are set using useEffect below to ensure they use fetched data
   });
 
   // Set form defaults when editing starts or initial data changes
@@ -88,7 +86,6 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
       setApiError("Authentication error. Could not get token.");
       return; // Stop submission if token fails
     }
-    // --- Got Token ---
 
     try {
       const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -111,7 +108,6 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
       // Update local state with the successfully saved data
       setProfileData(prev => ({ ...prev, ...formData }));
       setIsEditing(false); // Exit edit mode on success
-      // Optionally show a success toast/message
 
     } catch (error) {
       console.error("Profile update error:", error);
@@ -136,7 +132,6 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
           <ProfileDetail label="Role" value={profileData.role} />
           <ProfileDetail label="Account Status" value={profileData.isActive} />
           <ProfileDetail label="Member Since" value={format(new Date(profileData.dateCreated), 'MMMM do, yyyy')} />
-          {/* Add other details from profileData */}
 
           <div className="pt-6 text-right">
             <button
@@ -207,8 +202,7 @@ export default function ProfileDisplay({ initialProfileData }: ProfileDisplayPro
               <button
                 type="button"
                 onClick={() => { setIsEditing(false); reset(); setApiError(null); }} // Cancel edits & reset form
-                className="bg-neutral-200 hover:bg-neutral-300 text-neutral-800 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500 font-medium py-2 px-5 rounded-md transition duration-300"
-              >
+                className="bg-neutral-200 hover:bg-neutral-300 text-neutral-800 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500 font-medium py-2 px-5 rounded-md transition duration-300">
                 Cancel
               </button>
               <button

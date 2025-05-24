@@ -11,7 +11,7 @@ import { getAuth0AccessToken } from '@/utils/auth';
 import { Animal } from '@/types/animal';
 import { AnimalImage } from '@/types/animalImage';
 import { AnimalListItem } from '@/types/animalListItem';
-import Image from 'next/image'; // Use Next.js Image for previews
+import Image from 'next/image';
 import { adoptionStatuses } from '@/constants/adoptionStatuses';
 
 // Form data only includes non-image fields now
@@ -130,7 +130,6 @@ export default function EditAnimalForm({ animalId, initialAnimalName, onClose, o
 	const handleFilesSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
 		if (event.target.files) {
 			const filesArray = Array.from(event.target.files);
-			// TODO: Add validation if needed (max number, size, type)
 			setNewFiles(prev => [...prev, ...filesArray]);
 
 			// Generate previews
@@ -154,8 +153,6 @@ export default function EditAnimalForm({ animalId, initialAnimalName, onClose, o
 	const handleMarkImageForDelete = (imageId: number) => {
 		// Add ID to delete list if not already there
 		setImagesToDelete(prev => prev.includes(imageId) ? prev : [...prev, imageId]);
-		// TODO: Visually hide or indicate deletion in the UI
-		// Example: Dim the image by adding state or modifying currentImages locally (more complex)
 		console.log("Marked image ID for deletion:", imageId);
 	};
 
@@ -224,7 +221,6 @@ export default function EditAnimalForm({ animalId, initialAnimalName, onClose, o
 			setApiError("Authentication error. Could not get token.");
 			return; // Stop submission if token fails
 		}
-		// --- Got Token ---
 
 		let processError: string | null = null;
 		let coreDataUpdated = false;
@@ -262,15 +258,15 @@ export default function EditAnimalForm({ animalId, initialAnimalName, onClose, o
 					try {
 						// 2a: Get SAS URL
 						const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-						const filename = encodeURIComponent(file.name); // Renamed from 'file_name'
+						const filename = encodeURIComponent(file.name);
 						const contentType = encodeURIComponent(file.type);
 						const isAnyExistingPrimary = currentImages.some(img => img.isPrimary && !imagesToDelete.includes(img.id));
 
 						const urlToFetch = `${apiBaseUrl}/image-upload-url?filename=${filename}&contentType=${contentType}`;
 
 						console.log("Requesting SAS URL from:", urlToFetch);
-						const fetchHeaders = { 'Authorization': `Bearer ${accessToken}` }; // Header construction
-						console.log("Headers for SAS URL request:", fetchHeaders); // Your log
+						const fetchHeaders = { 'Authorization': `Bearer ${accessToken}` };
+						console.log("Headers for SAS URL request:", fetchHeaders);
 
 						const sasUrlResponse = await fetch(urlToFetch, { // Call to GenerateImageUploadUrl
 							headers: fetchHeaders
@@ -294,11 +290,11 @@ export default function EditAnimalForm({ animalId, initialAnimalName, onClose, o
 
 						// 2c: Save Metadata
 						const metadataPayload = {
-							documentType: "Animal Photo", // Fixed type for animal images
+							documentType: "Animal Photo",
 							fileName: file.name,
 							blobName: sasData.blob_name,
 							imageUrl: sasData.imageUrl,
-							caption: null, // Get caption from form if you add it
+							caption: null,
 							isPrimary: !isAnyExistingPrimary && (newFiles.indexOf(file) === 0), // Make first new file primary if no existing primary
 							displayOrder: 0 // Need logic for ordering
 						};
@@ -460,7 +456,6 @@ export default function EditAnimalForm({ animalId, initialAnimalName, onClose, o
 							<div>
 								<label htmlFor="dateOfBirth" className={labelBaseClasses}>Date of Birth (Approx.)</label>
 								<input type="date" id="dateOfBirth" {...register("dateOfBirth")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.dateOfBirth)}`} />
-								{/* Add max date validation? pattern? */}
 							</div>
 
 							{/* Gender */}
@@ -565,8 +560,7 @@ export default function EditAnimalForm({ animalId, initialAnimalName, onClose, o
 												type="button"
 												onClick={() => handleRemoveNewFile(index)}
 												className="absolute top-1 right-1 bg-red-600/80 hover:bg-red-700 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-												title="Remove New File"
-											>
+												title="Remove New File">
 												<TrashIcon className="w-4 h-4" />
 											</button>
 										</div>
@@ -584,30 +578,26 @@ export default function EditAnimalForm({ animalId, initialAnimalName, onClose, o
 									accept="image/png, image/jpeg, image/webp, image/gif"
 									ref={fileInputRef}
 									onChange={handleFilesSelected}
-									className={`block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 dark:file:bg-primary-900/30 file:text-primary-700 dark:file:text-primary-200 hover:file:bg-primary-100 dark:hover:file:bg-primary-900/50`}
-								/>
+									className={`block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 dark:file:bg-primary-900/30 file:text-primary-700 dark:file:text-primary-200 hover:file:bg-primary-100 dark:hover:file:bg-primary-900/50`} />
 								{isUploading && <p className="text-sm text-text-link mt-1"><LoadingSpinner className="inline w-4 h-4 mr-1" /> Uploading new images...</p>}
 							</div>
-							{/* --- End Image Management Section --- */}
 						</div>
 
 						{/* Form Actions */}
 						<div className="flex justify-end gap-3 pt-6 border-t border-gray-300 dark:border-gray-700 mt-6">
 							<button
 								type="button"
-								disabled={isSubmitting || isUploading} // Use RHF submitting state
+								disabled={isSubmitting || isUploading}
 								onClick={onClose}
-								className="bg-neutral-200 hover:bg-neutral-300 text-neutral-800 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500 font-medium py-2 px-5 rounded-md transition duration-300"
-							>
+								className="bg-neutral-200 hover:bg-neutral-300 text-neutral-800 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500 font-medium py-2 px-5 rounded-md transition duration-300">
 								Cancel
 							</button>
 							<button
 								type="submit"
-								disabled={isSubmitting || isUploading || !canSaveChanges} // Use RHF submitting state
-								className="bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50" // Use theme color
-							>
+								disabled={isSubmitting || isUploading || !canSaveChanges}
+								className="bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50">
 								{isSubmitting ? (
-									<LoadingSpinner className="text-center w-5 h-5 mx-auto" /> // Show spinner
+									<LoadingSpinner className="text-center w-5 h-5 mx-auto" />
 								) : (
 									'Save Changes'
 								)}

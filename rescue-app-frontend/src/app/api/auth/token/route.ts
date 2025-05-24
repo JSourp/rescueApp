@@ -1,4 +1,4 @@
-import { getAccessToken, withApiAuthRequired } from '@auth0/nextjs-auth0'; // Use v3 root import
+import { getAccessToken, withApiAuthRequired } from '@auth0/nextjs-auth0';
 import { NextResponse } from 'next/server';
 
 // Wrap with withApiAuthRequired to ensure only logged-in users can call this

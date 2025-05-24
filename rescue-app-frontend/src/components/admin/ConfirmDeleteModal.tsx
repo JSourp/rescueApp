@@ -1,8 +1,7 @@
-// src/components/admin/ConfirmDeleteModal.tsx
 'use client';
 
 import React from 'react';
-import { LoadingSpinner, TrashIcon, ExclamationTriangleIcon } from '@/components/Icons'; // Import icons
+import { LoadingSpinner, TrashIcon, ExclamationTriangleIcon } from '@/components/Icons';
 
 interface ConfirmDeleteModalProps {
 	itemType: string; // e.g., 'animal', 'document'
@@ -47,8 +46,7 @@ export default function ConfirmDeleteModal({
 					type="button"
 					disabled={isDeleting}
 					className="inline-flex justify-center w-full border border-transparent text-text-on-accent bg-accent-700 hover:bg-accent-900 transition duration-300 rounded-md shadow px-4 py-2 font-medium sm:w-auto sm:text-sm disabled:opacity-50 dark:focus:ring-offset-gray-800"
-					onClick={onConfirmDelete}
-				>
+					onClick={onConfirmDelete}>
 					{isDeleting ? (
 						<> <LoadingSpinner className="w-5 h-5 mr-2" /> Deleting... </>
 					) : (
@@ -59,8 +57,7 @@ export default function ConfirmDeleteModal({
 					type="button"
 					disabled={isDeleting}
 					className="mt-3 inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:w-auto sm:text-sm dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600 dark:focus:ring-offset-gray-800 disabled:opacity-50"
-					onClick={onClose}
-				>
+					onClick={onClose}>
 					Cancel
 				</button>
 			</div>

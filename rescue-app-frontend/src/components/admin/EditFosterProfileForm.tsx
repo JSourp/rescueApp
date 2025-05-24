@@ -1,11 +1,10 @@
-// src/components/admin/EditFosterProfileForm.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { LoadingSpinner, ExclamationTriangleIcon, SuccessCheckmarkIcon } from '@/components/Icons';
 import { getAuth0AccessToken } from '@/utils/auth';
-import { FosterDetailDto } from '@/types/fosterDetail'; // Your existing type
+import { FosterDetailDto } from '@/types/fosterDetail';
 import { format } from 'date-fns';
 
 // Define editable fields in the form data interface

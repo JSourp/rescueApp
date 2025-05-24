@@ -15,7 +15,7 @@ interface UpdateApplicationData {
 interface FosterApplicationReviewFormProps {
 	applicationId: number;
 	currentStatus: string;
-	currentInternalNotes: string; // For pre-filling, could be just initial value
+	currentInternalNotes: string;
 }
 
 export default function FosterApplicationReviewForm({
@@ -97,8 +97,7 @@ export default function FosterApplicationReviewForm({
 					value={internalNotes}
 					onChange={(e) => setInternalNotes(e.target.value)}
 					className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm focus:ring-gray-500 focus:border-gray-500"
-					placeholder="Add new notes about this status change or review..."
-				/>
+					placeholder="Add new notes about this status change or review..." />
 			</div>
 			{updateError && (
 				<p className="p-2 text-sm text-red-700 bg-red-100 dark:text-red-200 dark:bg-red-900/30 border border-red-300 rounded-md">

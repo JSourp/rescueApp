@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Container } from '@/components/Container';
-import { AnimalListItem } from '@/types/animalListItem'; // Assuming you have this type definition
+import { AnimalListItem } from '@/types/animalListItem';
 import Image from 'next/image';
 import Link from 'next/link';
 import { InformationCircleIcon } from "@/components/Icons";
@@ -98,7 +98,6 @@ export default function AvailableAnimalsPage() {
   const sortingOptions = [
     { value: 'longest', label: 'Longest Stay' },
     { value: 'shortest', label: 'Shortest Stay' },
-    // Add other sort options like 'nameAsc', 'nameDesc', 'ageAsc', 'ageDesc' if backend supports
   ];
 
   useEffect(() => {
@@ -140,9 +139,6 @@ export default function AvailableAnimalsPage() {
     setSortBy(e.target.value);
   };
 
-  // --- JSX (UI Code) ---
-  // Add UI elements (like <input> or <select>) so user can actively filter by Breed or Age Group
-
   if (loading) {
     return (
       <div className="text-center py-10 text-gray-500 dark:text-gray-400">
@@ -158,8 +154,7 @@ export default function AvailableAnimalsPage() {
           display: "flex",
           justifyContent: "center",
           textAlign: "center",
-        }}
-      >
+        }}>
         Error: {error}
       </div>
     );
@@ -181,7 +176,6 @@ export default function AvailableAnimalsPage() {
           <option value="">All Genders</option>
           <option value="Male">Male</option>
           <option value="Female">Female</option>
-          {/* Add 'Unknown' or other genders if applicable */}
         </select>
         <select value={sortBy} onChange={handleSortChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
           {sortingOptions.map(option => (
@@ -202,7 +196,7 @@ export default function AvailableAnimalsPage() {
                 >
                   <Link href={`/animal/${animal.id}`} className="block"> {/* Make entire card clickable */}
                     <div className="text-center">
-                      <h2 className="text-xl font-semibold py-2 text-gray-900 dark:text-gray-100 truncate px-2"> {/* Added truncate */}
+                      <h2 className="text-xl font-semibold py-2 text-gray-900 dark:text-gray-100 truncate px-2">
                         {animal.name}
                       </h2>
                     </div>
@@ -236,8 +230,7 @@ export default function AvailableAnimalsPage() {
                       setBreedFilter('');
                       setSortBy('longest'); // Reset to default sort
                     }}
-                    className="mt-4 px-4 py-2 text-sm font-medium text-text-link dark:text-text-link hover:underline focus:outline-none"
-                  >
+                    className="mt-4 px-4 py-2 text-sm font-medium text-text-link dark:text-text-link hover:underline focus:outline-none">
                     Reset Filters
                   </button>
               </div>

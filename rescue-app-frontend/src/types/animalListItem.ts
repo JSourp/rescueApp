@@ -8,9 +8,6 @@ export interface AnimalListItem {
     adoptionStatus?: string | null;
     dateCreated: string;
     dateUpdated: string;
-    // createdByUserId?: string | null; // Maybe not needed for list view?
-    // updatedByUserId?: string | null; // Maybe not needed for list view?
-
     // Only the primary image URL
     primaryImageUrl?: string | null;
 }

@@ -13,10 +13,10 @@ import { format, differenceInDays } from "date-fns";
 import Slider from "react-slick";
 
 async function fetchAnimalDetails(id: string): Promise<Animal | null> {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL; // Adjust URL if needed
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   try {
-    const response = await fetch(`${apiBaseUrl}/animals/${id}`, { // Use the id in the URL
+    const response = await fetch(`${apiBaseUrl}/animals/${id}`, {
       cache: 'no-store', // Disable caching for fresh data
     });
 
@@ -78,7 +78,7 @@ export default function AnimalDetailsPage() {
     autoplaySpeed: 5000, // Delay between slides (5 seconds)
     pauseOnHover: true,
     adaptiveHeight: true, // Adjust slider height to current image
-    // Add custom arrows if desired
+    // TODO: Add custom arrows
   };
 
   if (loading) {
@@ -103,9 +103,9 @@ export default function AnimalDetailsPage() {
   }
 
   // Format the intake date
-  const intakeDate = format(new Date(animal.dateCreated), "MMM dd yyyy"); // Format as "Apr 09 2025"
+  const intakeDate = format(new Date(animal.dateCreated), "MMM dd yyyy");
 
-  // Calculate the number of days the animal has been with you
+  // Calculate the number of days the animal has been with us
   const daysWithUs = differenceInDays(new Date(), new Date(animal.dateCreated));
 
   // Determine the correct label for "day" or "days"
@@ -155,14 +155,7 @@ export default function AnimalDetailsPage() {
                   fill
                 className="object-cover rounded-lg shadow-md"
                 priority // First and only image, so prioritize
-                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 40vw, 30vw" // Match sizes from slider
-              />
-              {/* Optional: Display caption for single image, styled consistently
-              {images[0].caption && (
-                <p className="absolute bottom-0 left-0 right-0 p-2 bg-black bg-opacity-50 text-white text-xs text-center rounded-b-lg">
-                  {images[0].caption}
-                </p>
-              )} */}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 40vw, 30vw" />
             </div>
           ) : (
             // --- Case 3: Multiple Images -> Show Slider ---
@@ -170,7 +163,7 @@ export default function AnimalDetailsPage() {
               <Slider {...sliderSettings}>
                 {images.map((image, index) => (
                   <div key={image.id || index}> {/* Use unique image ID */}
-                    <div className="aspect-w-4 aspect-h-3 bg-gray-100 dark:bg-gray-700 rounded-lg"> {/* Aspect ratio container */}
+                    <div className="aspect-w-4 aspect-h-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
                       <Image
                         src={image.imageUrl} // Use correct camelCase prop
                         alt={`${animal.name || 'Animal'} picture ${index + 1} ${image.caption ? `- ${image.caption}` : ''}`}
@@ -211,7 +204,7 @@ export default function AnimalDetailsPage() {
       </div>
 
       {/* Conditionally render the Modal containing the Inquiry Form */}
-      {showAdoptionForm && animal && ( // Rename state if desired, e.g., showAdoptionForm
+      {showAdoptionForm && animal && (
         <Modal onClose={() => setshowAdoptionForm(false)}>
           <AdoptionForm
             animalName={animal.name ?? undefined} // Pass optional props

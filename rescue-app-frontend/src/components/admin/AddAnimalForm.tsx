@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { LoadingSpinner, SuccessCheckmarkIcon } from '@/components/Icons';
 import { getAuth0AccessToken } from '@/utils/auth';
-import { adoptionStatuses } from '@/constants/adoptionStatuses'; // Import list of statuses
+import { adoptionStatuses } from '@/constants/adoptionStatuses';
 
 // Define the shape of the form data
 interface AddAnimalFormData {
@@ -85,7 +85,6 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 			setApiError("Authentication error. Could not get token.");
 			return; // Stop submission if token fails
 		}
-		// --- Got Token ---
 
 		let uploadedImageData: { imageUrl: string; blob_name: string; file_name: string } | null = null;
 
@@ -194,8 +193,8 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 
 		} catch (error: any) {
 			console.error("Create animal API error:", error);
-			setIsSuccess(false); // Ensure success is false on
-			setSubmitMessage(error.message || "An unexpected error occurred."); // Use error state instead
+			setIsSuccess(false);
+			setSubmitMessage(error.message || "An unexpected error occurred.");
 			setApiError(error.message || "Failed to create animal record.");
 			setIsProcessing(false);
 			return; // Stop if animal creation fails
@@ -210,8 +209,8 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 					fileName: uploadedImageData.file_name,
 					blobName: uploadedImageData.blob_name,
 					imageUrl: uploadedImageData.imageUrl,
-					isPrimary: true, // Example: Mark first image as primary
-					displayOrder: 0  // Example: First image
+					isPrimary: true, // Mark first image as primary
+					displayOrder: 0  // First image
 				};
 
 				const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -268,9 +267,9 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 
 
 	return (
-		<div className="flex flex-col max-h-[85vh]"> {/* Limit height */}
+		<div className="flex flex-col max-h-[85vh]">
 			{/* Header */}
-			<div className="flex-shrink-0 p-5 bg-primary-600"> {/* Use theme color */}
+			<div className="flex-shrink-0 p-5 bg-primary-600">
 				<h3 className="text-lg text-white text-center font-semibold">Add New Animal</h3>
 			</div>
 
@@ -336,13 +335,12 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 									ref={fileInputRef} // Optional ref if needed
 									onChange={handleFileChange}
 									className={`block w-full text-sm text-slate-500 dark:text-slate-400
-                                file:mr-4 file:py-2 file:px-4
-                                file:rounded-full file:border-0
-                                file:text-sm file:font-semibold
-                                file:bg-primary-50 dark:file:bg-primary-900/30
-                                file:text-primary-700 dark:file:text-primary-200
-                                hover:file:bg-primary-100 dark:hover:file:bg-primary-900/50`}
-								/>
+										file:mr-4 file:py-2 file:px-4
+										file:rounded-full file:border-0
+										file:text-sm file:font-semibold
+										file:bg-primary-50 dark:file:bg-primary-900/30
+										file:text-primary-700 dark:file:text-primary-200
+										hover:file:bg-primary-100 dark:hover:file:bg-primary-900/50`} />
 								{/* Optional: Show image preview */}
 								{selectedFile && (
 									<div className="mt-2">
@@ -367,8 +365,7 @@ export default function AddAnimalForm({ onClose, onAnimalAdded }: AddAnimalFormP
 								<select
 									id="adoption_status"
 									{...register("adoption_status", { required: "Initial status is required" })}
-									className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adoption_status)}`}
-								>
+									className={`${inputBaseClasses} ${inputBorderClasses(!!errors.adoption_status)}`}>
 									{/* Common statuses at the top */}
 									{commonStatuses.map((status) => (
 										<option key={status} value={status}>

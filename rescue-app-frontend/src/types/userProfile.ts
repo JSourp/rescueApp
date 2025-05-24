@@ -11,11 +11,3 @@ export interface UserProfile {
     dateCreated: string;
     lastLoginDate?: string | null;
 }
-
-/* Role Types
- * Admin: Full access to all features and settings.
- * Staff: Can manage animals, and finalize adoptions.
- * Volunteer: Limited access, view only for now.
- * Foster: Limited access, view only for now.
- * Guest: Read-only access to public information.
-*/

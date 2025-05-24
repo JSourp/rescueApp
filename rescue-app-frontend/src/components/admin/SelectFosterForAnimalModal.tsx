@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { FosterListItem } from '@/types/fosterListItem'; // For listing fosters
+import { FosterListItem } from '@/types/fosterListItem';
 import { getAuth0AccessToken } from '@/utils/auth';
 import { LoadingSpinner, ExclamationTriangleIcon } from '@/components/Icons';
 import { CheckCircleIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid';
@@ -17,7 +17,7 @@ interface SelectFosterForAnimalModalProps {
 async function fetchActiveFosters(accessToken: string): Promise<FosterListItem[]> {
 	const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 	const queryParams = new URLSearchParams();
-	queryParams.append('isActiveFoster', 'true'); // Assuming backend supports this
+	queryParams.append('isActiveFoster', 'true');
 	queryParams.append('sortBy', 'lastname_asc');
 
 	const url = `${apiBaseUrl}/fosters?${queryParams.toString()}`;
@@ -97,13 +97,16 @@ export default function SelectFosterForAnimalModal({
 				headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
 				body: JSON.stringify(payload)
 			});
-			if (!response.ok) { /* ... throw error ... */ }
+			if (!response.ok) { throw new Error(`API Error: ${response.status}`); }
 			const updatedAnimal = await response.json();
 			setSuccessMessage(`Successfully placed ${animalName || 'animal'} with selected foster.`);
 			setSelectedFosterUserId(null);
 			onPlacementSuccess();
 			setTimeout(onClose, 2000);
-		} catch (err) { /* ... */ }
+		} catch (error) {
+			console.error(`Error fetching animal details for ID ${animalId}:`, error);
+			return null;
+		}
 		finally { setIsPlacing(false); }
 	};
 
@@ -136,8 +139,7 @@ export default function SelectFosterForAnimalModal({
 							value={selectedFosterUserId || ''}
 							onChange={(e) => setSelectedFosterUserId(e.target.value)}
 							className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-							disabled={isPlacing}
-						>
+							disabled={isPlacing}>
 							<option value="" disabled>-- Select a Foster --</option>
 							{activeFosters.map(foster => (
 								<option key={foster.userId} value={foster.userId}>

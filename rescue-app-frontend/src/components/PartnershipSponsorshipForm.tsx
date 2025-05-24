@@ -9,17 +9,17 @@ interface PartnershipSponsorshipFormData {
 	// Contact Info
 	first_name: string;
 	last_name: string;
-	organization_name?: string; // Optional
-	contact_title?: string; // Optional
-	website_url?: string; // Optional
+	organization_name?: string;
+	contact_title?: string;
+	website_url?: string;
 	primary_phone: string;
-	primary_phone_type: 'Cell' | 'Home' | 'Work' | ''; // Enum-like type
+	primary_phone_type: 'Cell' | 'Home' | 'Work' | '';
 	primary_email: string;
-	how_heard?: string; // Optional text/select
+	how_heard?: string;
 
 	// Partnership/Sponsorship Specific
-	interest_type?: string; // Optional select
-	details_of_interest?: string; // Textarea
+	interest_type?: string;
+	details_of_interest?: string;
 
 	// Submission related (hidden/internal)
 	subject: string;
@@ -115,7 +115,7 @@ export default function PartnershipSponsorshipForm({ onClose }: PartnershipSpons
 				const web3formsPayload = {
 					...data, // Send original snake_case form data to web3forms
 					access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
-					from_name: "Rescue App Partnership/Sponsorship Application", // Customize as needed
+					from_name: "Second Chance Partnership/Sponsorship Application",
 					subject: `New Partnership/Sponsorship Application: ${data.first_name} ${data.last_name} of ${data.organization_name || "N/A"}`,
 					botcheck: undefined, // Don't send honeypot data in email
 				};
@@ -176,7 +176,7 @@ export default function PartnershipSponsorshipForm({ onClose }: PartnershipSpons
 				</h3>
 			</div>
 
-			{/* Form Area - Make scrollable */}
+			{/* Form Area - scrollable */}
 			<div className="flex-grow p-6 bg-gray-50 dark:bg-gray-800 overflow-y-auto">
 				{!isSuccess ? (
 					<form onSubmit={handleSubmit(onSubmit)} noValidate>

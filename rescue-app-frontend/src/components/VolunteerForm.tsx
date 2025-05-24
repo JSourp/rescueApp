@@ -133,7 +133,7 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
     setSubmitMessage("");
     console.log("Volunteer Form Data:", data);
 
-    if (data.location_acknowledgement !== true && data.location_acknowledgement !== 'accepted') { // Example validation
+    if (data.location_acknowledgement !== true && data.location_acknowledgement !== 'accepted') {
       setSubmitMessage("Please acknowledge the location information.");
       return;
     }
@@ -148,8 +148,6 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
     if (data.crime_conviction_check !== 'No') {
       // Handle this sensitively - may require follow up rather than form rejection
       setSubmitMessage("Thank you for your honesty. Please note we may need to discuss this further.");
-      // Decide if you want to prevent submission here or handle during review
-      // return;
     }
 
     // --- Client-side validation for waiver ---
@@ -242,7 +240,7 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
           policy_acknowledgement: data.policy_acknowledgement ? 'Yes' : 'No',
           waiver_agreed: data.waiver_agreed ? 'Yes' : 'No',
           access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
-          from_name: "Rescue App Volunteer Application", // Customize as needed
+          from_name: "Second Chance Volunteer Application",
           subject: `New Volunteer Application: ${data.first_name} ${data.last_name}`,
           botcheck: undefined, // Don't send honeypot data in email
         };
@@ -529,7 +527,6 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
                 <TooltipButton content="Helps us understand your motivation and track hours if needed for school/court." label="More info about reason for volunteering" />
               </label>
               <select id="volunteer_reason" {...register("volunteer_reason")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.volunteer_reason)}`}>
-                {/* ... Options ... */}
                 <option value="">Select if applicable...</option>
                 <option value="General Interest">General Interest / Love for Animals</option>
                 <option value="School Credit">School Credit / Project</option>

@@ -436,8 +436,7 @@ export default function AdminFosterApplicationsPage() {
 										id="newStatus"
 										value={newStatus}
 										onChange={(e) => setNewStatus(e.target.value)}
-										className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm"
-									>
+										className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm">
 										{applicationStatuses.map(status => <option key={status} value={status}>{status}</option>)}
 									</select>
 								</div>
@@ -449,8 +448,7 @@ export default function AdminFosterApplicationsPage() {
 										value={internalNotes}
 										onChange={(e) => setInternalNotes(e.target.value)}
 										className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm"
-										placeholder="Add notes about the review or decision..."
-									/>
+										placeholder="Add notes about the review or decision..." />
 								</div>
 								{updateError && <p className="text-sm text-red-500 mb-3">Error during update: {updateError}</p>}
 								<div className="flex justify-end gap-3">

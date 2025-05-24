@@ -4,11 +4,11 @@ export interface AnimalDocument {
     documentType: string; // e.g., "Vaccination Record"
     fileName: string;     // Original file_name
     blobName: string;     // Name in Azure blob storage
-    blobUrl: string;      // URL to display/use (the important one!)
+    blobUrl: string;      // URL to display/use
     description?: string | null;
-    dateUploaded: string; // ISO Date String
+    dateUploaded: string;
     uploadedByUserId?: string | null;
-    uploaderEmail?: string | null; // Optional from join
-    uploaderFirstName?: string | null; // Optional from join
-    uploaderLastName?: string | null; // Optional from join
+    uploaderEmail?: string | null;
+    uploaderFirstName?: string | null;
+    uploaderLastName?: string | null;
 }

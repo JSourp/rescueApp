@@ -14,16 +14,16 @@ import { Donate } from "@/components/Donate";
 
 // Define the type for the spotlight data structure (matching what fetchSpotlights returns)
 type SpotlightAnimalData = {
-    id: number;
-    name: string;
+  id: number;
+  name: string;
+  title: string;
+  desc: string | null;
+  image: any; // string | StaticImageData
+  bullets: {
     title: string;
     desc: string | null;
-    image: any; // string | StaticImageData
-    bullets: {
-      title: string;
-      desc: string | null;
-      icon: React.ReactNode;
-    }[];
+    icon: React.ReactNode;
+  }[];
 } | null; // Allow null
 
 export default function Home() {
@@ -37,22 +37,22 @@ export default function Home() {
 
   useEffect(() => {
     const loadSpotlights = async () => {
-      setLoadingSpotlights(true); // Start loading
+      setLoadingSpotlights(true);
       setErrorSpotlights(null);
       try {
-        const spotlights = await fetchSpotlights(); // Fetch the data
+        const spotlights = await fetchSpotlights();
 
         // Set state based on the number of results, handle null/undefined
         setSpotlightOne(spotlights.length > 0 ? spotlights[0] : null);
         setSpotlightTwo(spotlights.length > 1 ? spotlights[1] : null);
 
       } catch (error) {
-          console.error("Failed to load spotlight data:", error);
-          setErrorSpotlights("Could not load spotlight animals.");
-          setSpotlightOne(null); // Clear state on error
-          setSpotlightTwo(null);
+        console.error("Failed to load spotlight data:", error);
+        setErrorSpotlights("Could not load spotlight animals.");
+        setSpotlightOne(null); // Clear state on error
+        setSpotlightTwo(null);
       } finally {
-          setLoadingSpotlights(false); // Finish loading regardless of success/error
+        setLoadingSpotlights(false); // Finish loading regardless of success/error
       }
     };
 
@@ -67,27 +67,27 @@ export default function Home() {
       <Container>
         {/* Conditionally render Spotlights based on loading and data */}
         {loadingSpotlights && (
-           <div className="text-center py-10 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-10 text-gray-500 dark:text-gray-400">
             Loading something adorable...
-           </div>
+          </div>
         )}
         {errorSpotlights && (
-            <div className="text-center py-10 text-red-500 dark:text-red-400">
-                Error: {errorSpotlights}
-            </div>
+          <div className="text-center py-10 text-red-500 dark:text-red-400">
+            Error: {errorSpotlights}
+          </div>
         )}
 
         {/* Render spotlights only if data is available and no loading/error */}
         {!loadingSpotlights && !errorSpotlights && spotlightOne && (
-            <>
+          <>
             {/* Render first spotlight (already checked it exists) */}
             <Spotlights data={spotlightOne} imgPos="left" />
 
             {/* Render second spotlight only if it also exists */}
-              {spotlightTwo && (
-                <Spotlights data={spotlightTwo} imgPos="right" />
+            {spotlightTwo && (
+              <Spotlights data={spotlightTwo} imgPos="right" />
             )}
-            </>
+          </>
         )}
 
 
@@ -102,8 +102,7 @@ export default function Home() {
 
         <SectionTitle
           preTitle="Testimonials"
-          title="What Our Community Says"
-        >
+          title="What Our Community Says">
           We are so grateful for the support of our community.
           These testimonials highlight the positive impact of Second Chance on both animals and humans.
         </SectionTitle>

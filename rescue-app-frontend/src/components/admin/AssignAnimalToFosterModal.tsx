@@ -107,7 +107,7 @@ export default function AssignAnimalToFosterModal({
 		}
 
 		const payload = {
-			adoptionStatus: "Available - In Foster", // Or your chosen status for fostered animals
+			adoptionStatus: "Available - In Foster",
 			currentFosterUserId: fosterId
 		};
 

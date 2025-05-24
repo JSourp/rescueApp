@@ -97,7 +97,6 @@ export default function FosterDetailClientSection({ fosterData }: FosterDetailCl
 							<DetailItem label="Approved On">{format(new Date(fosterData.approvalDate), 'PPP')}</DetailItem>
 							<DetailItem label="Availability Notes">{fosterData.availabilityNotes}</DetailItem>
 							<DetailItem label="Capacity Details">{fosterData.capacityDetails}</DetailItem>
-							{/* Add more fields from FosterDetailDto here */}
 						</dl>
 					</div>
 					<div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-4">

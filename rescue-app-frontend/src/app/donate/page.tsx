@@ -54,8 +54,7 @@ export default function DonatePage() {
                             href="https://www.amazon.com/hz/wishlist/ls/197NWZ1O3D2O9?ref_=wl_share"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-accent hover:underline ml-2 font-medium whitespace-nowrap"
-                        >
+                            className="text-accent hover:underline ml-2 font-medium whitespace-nowrap">
                             View Our Wishlist
                         </a>
                     </div>

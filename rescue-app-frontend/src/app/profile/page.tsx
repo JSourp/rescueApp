@@ -5,9 +5,7 @@ import { headers } from 'next/headers';
 import { Container } from '@/components/Container';
 import { LoadingSpinner } from "@/components/Icons";
 import { format } from 'date-fns';
-// Import the type - can be shared between server and client
 import { UserProfile } from '@/types/userProfile';
-// Import the display component (which will be Client Component)
 import ProfileDisplay from '@/components/ProfileDisplay';
 
 // --- Fetch function to ACCEPT and USE the accessToken ---
@@ -83,7 +81,6 @@ export default async function ProfilePage() {
 	}
 
 	// 3. Check if Access Token exists ---
-	// It might be missing if Auth0 isn't configured to issue one for your API audience
 	if (!accessToken) {
 		console.error("Access Token missing from session!");
 		return (
@@ -104,7 +101,6 @@ export default async function ProfilePage() {
 		return (
 			<Container className="text-center py-10">
 				<h1 className="text-3xl font-bold mb-4">My Profile</h1>
-				{/* Updated message: Distinguish between API error and missing profile */}
 				<p className="text-red-500">Could not load your profile data from our system.</p>
 				<p className="text-sm text-gray-500 mt-2">Your login succeeded, but we encountered an issue retrieving your details. Please try again later or contact support.</p>
 				<p className="text-xs mt-4">Auth ID: {auth0User.sub}</p>
@@ -117,7 +113,6 @@ export default async function ProfilePage() {
 	return (
 		<Container className="py-10">
 			<h1 className="text-center text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">Your Profile</h1>
-			{/* Pass fetched data to the Client Component */}
 			<ProfileDisplay initialProfileData={profileData} />
 		</Container>
 	);

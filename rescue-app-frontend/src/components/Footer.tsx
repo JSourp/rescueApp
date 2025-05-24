@@ -7,8 +7,6 @@ import {
   GraduationCapIcon,
   InformationCircleIcon,
   UserGroupIcon,
-  QuestionMarkCircleIcon,
-  Twitter,
   Facebook,
   Instagram
 } from "@/components/Icons";
@@ -53,14 +51,17 @@ export function Footer() {
                 <GraduationCapIcon />
                 <span>Our Graduates</span>
               </Link>
-              {/* <Link href="/color-palette-dev" className="flex items-center space-x-2 p-1 text-gray-500 rounded-md dark:text-gray-300 hover:text-text-link focus:text-text-link focus:outline-none">
+              {/*
+              <Link href="/color-palette-dev" className="flex items-center space-x-2 p-1 text-gray-500 rounded-md dark:text-gray-300 hover:text-text-link focus:text-text-link focus:outline-none">
                 <span>Color Palette</span>
-              </Link>*/}
+              </Link>
+              */}
               {/* Add FAQ when needed
               <Link href="/faq" className="flex items-center space-x-2 p-1 text-gray-500 rounded-md dark:text-gray-300 hover:text-text-link focus:text-text-link focus:outline-none">
                 <QuestionMarkCircleIcon />
                 <span>FAQ</span>
-              </Link>*/}
+              </Link>
+              */}
             </div>
           </div>
 

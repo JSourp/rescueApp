@@ -1,12 +1,10 @@
-// src/app/color-palette-dev/page.tsx
 // Temporary page for visualizing the custom Tailwind color palette
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Container } from '@/components/Container';
-// Re-import Headless UI components
 import { Disclosure, DisclosureButton, DisclosurePanel, Transition } from '@headlessui/react';
-import { ChevronUpIcon } from '@heroicons/react/20/solid'; // Example icon for disclosure
+import { ChevronUpIcon } from '@heroicons/react/20/solid';
 
 // Manually define the color palette structure based on tailwind.config.ts
 const colorPalette = {
@@ -103,8 +101,7 @@ export default function ColorPaletteDevPage() {
 									enterTo="transform scale-100 opacity-100"
 									leave="transition duration-75 ease-out"
 									leaveFrom="transform scale-100 opacity-100"
-									leaveTo="transform scale-95 opacity-0"
-								>
+									leaveTo="transform scale-95 opacity-0">
 									<DisclosurePanel className="px-4 pt-2 pb-4 text-sm text-gray-500 dark:text-gray-300 border-t border-gray-200 dark:border-gray-700">
 										<div className="space-y-3 mt-3">
 											{Object.entries(shades).map(([shade, hex]) => {

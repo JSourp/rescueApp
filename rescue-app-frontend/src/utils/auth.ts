@@ -1,11 +1,6 @@
-// src/utils/auth.ts
-/**
- * Fetches the Auth0 Access Token for the current user session
- * by calling the internal Next.js API route.
- */
 export async function getAuth0AccessToken(): Promise<string | null> {
     try {
-        // Fetch from the internal Next.js API route
+        // Fetch Auth0 Access Token from the internal Next.js API route
         const response = await fetch('/api/auth/token'); // Relative URL within the app
 
         if (!response.ok) {

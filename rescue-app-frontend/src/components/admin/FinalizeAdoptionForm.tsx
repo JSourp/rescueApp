@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { LoadingSpinner, SuccessCheckmarkIcon } from '@/components/Icons';
-import { getAuth0AccessToken } from '@/utils/auth'; // Shared helper
+import { getAuth0AccessToken } from '@/utils/auth';
 import { Animal } from '@/types/animal';
 import { format } from 'date-fns'; // For default date
 import { FinalizeAdoptionFormDetail } from '@/types/finalizeAdoptionFormDetail';
@@ -56,10 +56,9 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 		const accessToken = await getAuth0AccessToken(); // Use imported helper
 		if (!accessToken) {
 			setApiError("Authentication error. Could not get token.");
-			setIsProcessing(false); // <--- Reset on early exit
+			setIsProcessing(false); // Reset on early exit
 			return; // Stop submission if token fails
 		}
-		// --- Got Token ---
 
 		// Construct payload
 		const payload = {
@@ -69,15 +68,15 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 			adopterEmail: formData.adopterEmail,
 			adopterPrimaryPhone: formData.adopterPrimaryPhone,
 			adopterPrimaryPhoneType: formData.adopterPrimaryPhoneType,
-			adopterSecondaryPhone: formData.adopterSecondaryPhone || null, // Send null if empty
-			adopterSecondaryPhoneType: formData.adopterSecondaryPhoneType || null, // Send null if empty
+			adopterSecondaryPhone: formData.adopterSecondaryPhone || null,
+			adopterSecondaryPhoneType: formData.adopterSecondaryPhoneType || null,
 			adopterStreetAddress: formData.adopterStreetAddress,
-			adopterAptUnit: formData.adopterAptUnit || null, // Send null if empty
+			adopterAptUnit: formData.adopterAptUnit || null,
 			adopterCity: formData.adopterCity,
 			adopterStateProvince: formData.adopterStateProvince,
 			adopterZipPostalCode: formData.adopterZipPostalCode,
 			spousePartnerRoommate: formData.spousePartnerRoommate || null,
-			adoptionDate: formData.adoptionDate ? new Date(formData.adoptionDate).toISOString() : new Date().toISOString(), // Send as ISO string
+			adoptionDate: formData.adoptionDate ? new Date(formData.adoptionDate).toISOString() : new Date().toISOString(),
 			notes: formData.notes || null,
 		};
 

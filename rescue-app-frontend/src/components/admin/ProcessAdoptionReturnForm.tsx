@@ -173,15 +173,13 @@ export default function ProcessAdoptionReturnForm({ animal, onClose, onReturnCom
 							type="button"
 							onClick={onClose}
 							disabled={isSubmitting || isProcessing} // Disable if processing
-							className="bg-neutral-200 hover:bg-neutral-300 text-neutral-800 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500 font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50"
-						>
+							className="bg-neutral-200 hover:bg-neutral-300 text-neutral-800 dark:bg-neutral-600 dark:text-neutral-100 dark:hover:bg-neutral-500 font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50">
 							Cancel
 						</button>
 						<button
 							type="submit"
 							disabled={isSubmitting || isProcessing} // Use both flags for robust disable
-							className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50" // Blue theme
-						>
+							className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded-md transition duration-300 disabled:opacity-50">
 							{isSubmitting || isProcessing ? (
 								<LoadingSpinner className="w-5 h-5 mx-auto" />
 							) : (

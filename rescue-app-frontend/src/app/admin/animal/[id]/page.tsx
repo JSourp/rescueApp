@@ -12,7 +12,7 @@ async function fetchAnimalDetails(id: number, accessToken: string | undefined): 
   console.log(`ADMIN FETCH: Fetching details for animal ID: ${id}`);
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-  if (!apiBaseUrl || !accessToken) return null; // Need base URL and token
+  if (!apiBaseUrl || !accessToken) return null;
   const url = `${apiBaseUrl}/animals/${id}`;
   try {
     const response = await fetch(url, {

@@ -1,4 +1,3 @@
-// src/components/HeroSection.tsx
 import React, { useState, useEffect } from 'react';
 import { Container } from '@/components/Container';
 import Link from 'next/link';
@@ -17,20 +16,16 @@ export const HeroSection = () => {
 						{missionStatement}
 					</p>
 
-					{/* Call-to-Action Buttons (Should still contrast well) */}
+					{/* Call-to-Action Buttons */}
 					<div className="flex flex-col sm:flex-row justify-center gap-4">
 						<Link
 							href="/available-animals"
-							// Use a contrasting light color for the primary button
-							className="inline-block bg-primary hover:bg-primary-800 text-on-primary font-bold py-3 px-8 rounded-md transition duration-300 text-lg shadow-md"
-						>
+							className="inline-block bg-primary hover:bg-primary-800 text-on-primary font-bold py-3 px-8 rounded-md transition duration-300 text-lg shadow-md">
 							Meet Our Animals
 						</Link>
 						<Link
 							href="/get-involved"
-							// Keep transparent border style
-							className="inline-block bg-transparent hover:bg-secondary-600 hover:bg-opacity-20 border-black dark:hover:bg-white dark:hover:text-black dark:border-white border-2 font-bold py-3 px-8 rounded-md transition duration-300 text-lg"
-						>
+							className="inline-block bg-transparent hover:bg-secondary-600 hover:bg-opacity-20 border-black dark:hover:bg-white dark:hover:text-black dark:border-white border-2 font-bold py-3 px-8 rounded-md transition duration-300 text-lg">
 							Get Involved
 						</Link>
 					</div>

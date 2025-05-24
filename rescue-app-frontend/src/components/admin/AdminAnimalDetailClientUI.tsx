@@ -1,4 +1,4 @@
-'use client'; // This component handles state and interaction
+'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -124,7 +124,7 @@ export default function AdminAnimalDetailClientUI({
 	};
 
 	// --- Handlers  ---
-	const handleEditClick = (animalItem: AnimalListItem) => { // animalItem is from your list
+	const handleEditClick = (animalItem: AnimalListItem) => {
 		setAnimalIdToEdit(animalItem.id);
 		setAnimalNameToEdit(animalItem.name || 'Animal'); // Use name, or a default if name is null
 		setIsEditModalOpen(true);
@@ -381,11 +381,10 @@ export default function AdminAnimalDetailClientUI({
 								<Image
 									src={'/placeholder-image.png'}
 									alt={animal.name || 'Animal image'}
-									width={300} // Example intrinsic size for placeholder
+									width={300}
 									height={225}
-									className="object-contain p-4 max-h-[400px]" // Contain placeholder
-									priority
-								/>
+									className="object-contain p-4 max-h-[400px]"
+									priority />
 							</div>
 						) : (
 								<div className="relative w-full aspect-w-1 aspect-h-1 lg:aspect-w-16 lg:aspect-h-9">
@@ -395,8 +394,7 @@ export default function AdminAnimalDetailClientUI({
 										fill
 										className="object-cover rounded-lg shadow-md"
 										priority // First and only image, so prioritize
-										sizes="(max-width: 768px) 100vw, (max-width: 1024px) 40vw, 30vw" // Match sizes from slider
-									/>
+										sizes="(max-width: 768px) 100vw, (max-width: 1024px) 40vw, 30vw" />
 								</div>
 						)}
 						{/* TODO: Add Edit Image Button/Flow Here */}
@@ -678,8 +676,6 @@ export default function AdminAnimalDetailClientUI({
 					/>
 				</Modal>
 			)}
-
-			{/* --- End Modals --- */}
 		</>
 	);
 }

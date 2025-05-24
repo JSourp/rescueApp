@@ -3,7 +3,7 @@ import { getSession } from '@auth0/nextjs-auth0';
 import { redirect } from 'next/navigation';
 import { Container } from '@/components/Container';
 import Link from 'next/link';
-import { UserProfile } from '@/types/userProfile'; // Your existing type
+import { UserProfile } from '@/types/userProfile';
 import { FosterDetailDto as FosterDetail } from '@/types/fosterDetail';
 import { format } from 'date-fns';
 import { HeartIcon, PencilSquareIcon, ArrowUturnLeftIcon } from '@/components/Icons';
