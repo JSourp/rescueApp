@@ -6,6 +6,14 @@ Welcome to the RescueApp project! This platform is designed to help animal rescu
 
 RescueApp is a full-stack web application built with a modern technology set. It provides a public-facing side for viewing available animals and learning about the rescue, and an administrative backend for staff and volunteers to manage operations. The goal is to move away from manual or outdated systems (like "chalkboards") towards a reliable, centralized digital platform.
 
+**Quick Links:**
+* [1. Technology Stack](#1-technology-stack)
+* [2. How Can I Use It? (Developer Setup Guide)](#2-how-can-i-use-it-developer-setup-guide)
+* [3. How Can I Use the Site? (Admin User Guide)](#3-how-can-i-use-the-site-admin-user-guide)
+* [Versioning](#versioning)
+* [Contributing](#contributing-placeholder)
+* [License](#license-placeholder)
+
 ## 1. Technology Stack
 
 This project utilizes a combination of modern technologies to deliver a robust and scalable application:
