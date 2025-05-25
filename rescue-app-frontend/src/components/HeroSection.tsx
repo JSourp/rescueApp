@@ -10,7 +10,7 @@ export const HeroSection = () => {
 			<Container>
 				<div className="max-w-5xl mx-auto text-center">
 					<h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight drop-shadow-md text-base lg:leading-tight lg:text-4xl">
-						Second Chance Animal Rescue & Sanctuary
+						Second Chance Animal Rescue & Sanctuary (SCARS)
 					</h1>
 					<p className="text-lg md:text-xl font-medium mb-8 px-4 drop-shadow-sm text-gray-500 lg:text-xl xl:text-xl dark:text-gray-300">
 						{missionStatement}
