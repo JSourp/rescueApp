@@ -48,7 +48,7 @@ This project utilizes a combination of modern technologies to deliver a robust a
 
 **How they are used together:**
 
-1.  A **public user** visits the Next.js frontend website (e.g., `www.secondchanceanimalrescueandsanctuary.com`). They can view available animals, learn about the rescue, and submit applications (foster, volunteer, adoption, partnership). These public pages can be server-rendered by Next.js for speed and SEO.
+1.  A **public user** visits the Next.js frontend website (e.g., `www.scars-az.com`). They can view available animals, learn about the rescue, and submit applications (foster, volunteer, adoption, partnership). These public pages can be server-rendered by Next.js for speed and SEO.
 2.  When a user wants to access protected areas or perform actions (admin logging in to add or make updates to exisitng animals), they are redirected to **Auth0** for authentication.
 3.  Once authenticated, Auth0 returns them to the Next.js application with session information (including an ID token and an Access Token).
 4.  The Next.js frontend (client-side components) uses the **Access Token** to make secure calls to the **Azure Functions backend API** (e.g., `https://rescue-app-api.azurewebsites.net/api/...`).
