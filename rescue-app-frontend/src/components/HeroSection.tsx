@@ -15,7 +15,6 @@ export const HeroSection = () => {
 					<p className="text-lg md:text-xl font-medium mb-8 px-4 drop-shadow-sm text-gray-500 lg:text-xl xl:text-xl dark:text-gray-300">
 						{missionStatement}
 					</p>
-
 					{/* Call-to-Action Buttons */}
 					<div className="flex flex-col sm:flex-row justify-center gap-4">
 						<Link
