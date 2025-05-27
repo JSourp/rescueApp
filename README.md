@@ -319,7 +319,7 @@ This project aims to follow [Semantic Versioning (SemVer)](https://semver.org/) 
 
 Releases are marked using **Git tags** (e.g., `v0.1.0`, `v1.0.0`).
 
-A `CHANGELOG.md` file should be maintained to document notable changes in each version.
+A `CHANGELOG.md` file is maintained to document notable changes in each version.
 
 ## Contributing
 
