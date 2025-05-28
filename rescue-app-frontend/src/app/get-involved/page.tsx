@@ -6,12 +6,15 @@ import AdoptionForm from '@/components/AdoptionForm';
 import FosterForm from '@/components/FosterForm';
 import VolunteerForm from '@/components/VolunteerForm';
 import PartnershipSponsorshipForm from '@/components/PartnershipSponsorshipForm';
+import { GiftIcon, HeartIcon } from "@/components/Icons";
+
 
 export default function GetInvolvedPage() {
   const [showAdoptForm, setShowAdoptForm] = useState(false);
   const [showFosterForm, setShowFosterForm] = useState(false);
   const [showVolunteerForm, setShowVolunteerForm] = useState(false);
   const [showPartnershipSponsorshipForm, setShowPartnershipSponsorshipForm] = useState(false);
+  const amazonWishlistUrl = "https://www.amazon.com/hz/wishlist/ls/197NWZ1O3D2O9?ref_=wl_share";
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -22,9 +25,9 @@ export default function GetInvolvedPage() {
         There are many ways to support Second Chance Animal Rescue & Sanctuary. Find the perfect fit for you!
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Adoption Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xl border border-gray-300 dark:border-transparent">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
           <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
             Adopt a Friend
           </h2>
@@ -39,7 +42,7 @@ export default function GetInvolvedPage() {
         </div>
 
         {/* Fostering Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xl border border-gray-300 dark:border-transparent">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
           <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
             Foster an Animal
           </h2>
@@ -54,7 +57,7 @@ export default function GetInvolvedPage() {
         </div>
 
         {/* Volunteering Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xl border border-gray-300 dark:border-transparent">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
           <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
             Volunteer Your Time
           </h2>
@@ -69,7 +72,7 @@ export default function GetInvolvedPage() {
         </div>
 
         {/* Partner/Sponsor Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xl border border-gray-300 dark:border-transparent">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
           <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
             Partner or Sponsor
           </h2>
@@ -84,8 +87,9 @@ export default function GetInvolvedPage() {
         </div>
 
         {/* Donations Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col justify-self-center md:col-span-2 max-w-xl border border-gray-300 dark:border-transparent">
-          <h2 className="text-2xl font-semibold mb-4 text-accent">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent"> {/* Removed justify-self-center md:col-span-2 */}
+          <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4 flex items-center">
+            <HeartIcon className="w-6 h-6 mr-2 text-secondary" />
             Make a Donation
           </h2>
           <p className="text-text-base dark:text-text-light mb-4 flex-grow">
@@ -93,9 +97,27 @@ export default function GetInvolvedPage() {
           </p>
           <button
             onClick={() => window.location.href = '/donate'}
-            className="text-text-on-accent bg-accent transition duration-300 rounded-md shadow mt-auto w-full py-2 px-4">
+            className="text-text-on-accent bg-accent hover:bg-accent-700 transition duration-300 rounded-md shadow mt-auto w-full py-2 px-4">
             Donate Now
           </button>
+        </div>
+
+        {/* Amazon Wishlist Section */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
+          <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4 flex items-center">
+            <GiftIcon className="w-6 h-6 mr-2 text-secondary" />
+            Our Amazon Wishlist
+          </h2>
+          <p className="text-text-base dark:text-text-light mb-4 flex-grow">
+            Help us provide essential supplies for our animals by purchasing items from our Amazon Wishlist. Items are shipped directly to us!
+          </p>
+          <a
+            href={amazonWishlistUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-text-on-secondary bg-secondary hover:bg-secondary-700 transition duration-300 rounded-md shadow mt-auto w-full py-2 px-4 text-center">
+            View Amazon Wishlist
+          </a>
         </div>
       </div>
 
