@@ -5,12 +5,12 @@ import Link from "next/link";
 
 export default function AboutUsPage() {
   const boardMembers = [
-    "Jordan Brunelle",
-    "Kelsey Johnson",
-    "Chris Robinson",
     "Emilie Robinson",
+    "Chris Robinson",
     "Chanell Sourp",
     "Jon Sourp",
+    "Kelsey Johnson",
+    "Jordan Brunelle",
   ];
 
   const ein = "33-5038937";
