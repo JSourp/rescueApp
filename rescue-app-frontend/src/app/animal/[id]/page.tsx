@@ -45,7 +45,7 @@ export default function AnimalDetailsPage() {
     const loadAnimal = async () => {
       setLoading(true);
       setError(null);
-
+      window.scrollTo(0, 0);
       try {
         if (animal_id) {
           const fetchedAnimal = await fetchAnimalDetails(animal_id);
