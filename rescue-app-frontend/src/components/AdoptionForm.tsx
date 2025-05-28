@@ -305,7 +305,7 @@ export default function AdoptionForm({ animalName, animal_id, onClose }: Adoptio
 
       // --- Overall Success (based on DB save) ---
       setIsSuccess(true);
-      setSubmitMessage("Thank you! Your adoption application has been submitted. Our adoption coordinator will be in touch soon!");
+      setSubmitMessage("Thank you! Your adoption application has been submitted. A team member will be in touch soon!");
       reset(); // Reset form fields
 
       setTimeout(() => {

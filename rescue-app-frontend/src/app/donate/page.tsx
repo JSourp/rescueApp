@@ -1,5 +1,6 @@
 import { Container } from "@/components/Container";
 import Link from "next/link";
+import { Facebook, Instagram } from "@/components/Icons";
 
 export default function DonatePage() {
     return (
@@ -66,8 +67,20 @@ export default function DonatePage() {
                             Follow us on social media and share our animals&apos; stories! Every share increases their chance of finding a home.
                         </p>
                         <div className="mt-2 flex justify-start gap-4">
-                            <a href="https://facebook.com/" target="_blank" rel="noopener noreferrer" className="...">Facebook</a>
-                            <a href="https://instagram.com/" target="_blank" rel="noopener noreferrer" className="...">Instagram</a>
+                            <a
+                                href="https://instagram.com/"
+                                target="_blank"
+                                rel="noopener">
+                                <span className="sr-only">Instagram</span>
+                                <Instagram />
+                            </a>
+                            <a
+                                href="https://facebook.com/"
+                                target="_blank"
+                                rel="noopener">
+                                <span className="sr-only">Facebook</span>
+                                <Facebook />
+                            </a>
                         </div>
                     </div>
                 </div>

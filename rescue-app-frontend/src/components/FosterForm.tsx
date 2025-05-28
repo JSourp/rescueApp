@@ -279,7 +279,7 @@ export default function FosterForm({ onClose }: FosterFormProps) {
 
 			// --- Overall Success (based on DB save) ---
 			setIsSuccess(true);
-			setSubmitMessage("Thank you! Your foster application has been submitted. Our foster coordinator will be in touch soon!");
+			setSubmitMessage("Thank you! Your foster application has been submitted. A team member will be in touch soon!");
 			reset(); // Reset form fields
 
 			setTimeout(() => {

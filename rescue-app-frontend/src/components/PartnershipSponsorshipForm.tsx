@@ -142,7 +142,7 @@ export default function PartnershipSponsorshipForm({ onClose }: PartnershipSpons
 
 			// --- Overall Success (based on DB save) ---
 			setIsSuccess(true);
-			setSubmitMessage("Thank you! Your application has been submitted. We will be in touch soon!");
+			setSubmitMessage("Thank you! Your application has been submitted. A team member will be in touch soon!");
 			reset(); // Reset form fields
 
 			setTimeout(() => {

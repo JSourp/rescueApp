@@ -267,7 +267,7 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
 
       // --- Overall Success (based on DB save) ---
       setIsSuccess(true);
-      setSubmitMessage("Thank you! Your volunteer application has been submitted. Our volunteer coordinator will be in touch soon!");
+      setSubmitMessage("Thank you! Your volunteer application has been submitted. A team member will be in touch soon!");
       reset(); // Reset form fields
 
       setTimeout(() => {
