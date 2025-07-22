@@ -100,6 +100,7 @@ export default function Home() {
          <Video videoId="fZ0D0cnR88E" />
          */}
 
+        {/* Removing Testimonials section for now
         <SectionTitle
           preTitle="Testimonials"
           title="What Our Community Says">
@@ -107,6 +108,7 @@ export default function Home() {
           These testimonials highlight the positive impact of Second Chance on both animals and humans.
         </SectionTitle>
         <Testimonials />
+        */}
 
         <Donate />
 
@@ -115,7 +117,9 @@ export default function Home() {
         </SectionTitle>
         <Faq />
 
+        {/* Removing Partners section for now
         <Partners />
+        */}
       </Container>
     </>
   );

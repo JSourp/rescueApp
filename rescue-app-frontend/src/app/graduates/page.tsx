@@ -182,105 +182,127 @@ export default function GraduatesPage() {
 
 	return (
 		<Container className="py-8 px-4">
-			<GraduationCapIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
-			<h1 className="text-3xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">Our Graduates</h1>
-			<p className="text-center text-gray-600 dark:text-gray-400 mb-8">
-				Celebrating the second chances found through adoption!
-			</p>
-
-			{/* Filtering Options */}
-			<div className="flex flex-wrap items-center justify-center mb-6 gap-4">
-				<select value={animalTypeFilter} onChange={handleAnimalTypeFilterChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600" aria-label="Filter by Animal Type">
-					<option value="">All Species</option>
-					{animalTypes.map(type => (
-						<option key={type} value={type}>{type}</option>
-					))}
-				</select>
-				<select value={genderFilter} onChange={handleGenderFilterChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600" aria-label="Filter by Animal Genders">
-					<option value="">All Genders</option>
-					<option value="Male">Male</option>
-					<option value="Female">Female</option>
-				</select>
-				<select value={sortBy} onChange={handleSortChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
-					{sortingOptions.map(option => (
-						<option key={option.value} value={option.value}>{option.label}</option>
-					))}
-				</select>
-			</div>
-
-			{/* Graduate Grid */}
-			{!loading && !error && (
+			{/* Title & Description */}
+			{graduates.length > 0 ? (
 				<>
-					{graduates.length > 0 ? (
-						// --- Display Grid ---
-						<div className="flex justify-center">
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-								{graduates.map((graduate, index) => (
-									<div
-										key={graduate.id}
-										className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform transition duration-300 border border-gray-300 dark:border-transparent">
-										{/* <Link href={`/animal/${graduate.animalId}`} className="block"> */} {/* Make entire card clickable */}
-										<div className="text-center">
-											<h2 className="text-xl font-semibold py-2 text-gray-900 dark:text-gray-100 truncate px-2">
-												{graduate.name}
-											</h2>
-										</div>
-										<Image
-											src={graduate.imageUrl || '/placeholder-image.png'}
-											alt={graduate.name ? `${graduate.name}` : ''}
-											width={400}
-											height={300}
-											className="w-full h-64 object-cover" // Ensure consistent image size
-											priority={index < 4} // Prioritize loading images for first few graduates
-										/>
-										<div className="p-4 text-center min-h-[50px]">
-											<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-												Adopted: {graduate.adoptionDate ? format(new Date(graduate.adoptionDate), 'MMM dd, yyyy') : 'Date N/A'}
-											</p>
-										</div>
-										{/* </Link> */}
-									</div>
-								))}
-							</div>
-						</div>
-					) : (
-						// --- Display Correct "No Results" Message ---
-						<div className="text-center py-16 px-4">
-							<GraduationCapIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
-								{filtersAreActive ? (
-									// Message when filters are active but yield no results
-									<>
-										<h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No Graduates Match Your Filters</h3>
-										<p className="text-gray-500 dark:text-gray-400">
-											Try adjusting or resetting your filters to see more of our happy alumni!
-										</p>
-										<button
-											onClick={() => {
-												setGenderFilter('');
-												setAnimalTypeFilter('');
-												setBreedFilter('');
-											}}
-											className="mt-4 px-4 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline focus:outline-none">
-											Reset Filters
-										</button>
-									</>
-								) : (
-									// Message when NO filters are active and NO graduates exist overall
-									<>
-										<h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-3"> Our First Graduates Are Coming Soon! </h3>
-										<p className="text-gray-600 dark:text-gray-400 mb-6 max-w-xl mx-auto">
-											As a newer rescue, we&apos;re eagerly waiting to celebrate our first successful adoptions.
-										</p>
-										<div className="flex flex-col sm:flex-row justify-center gap-4">
-											<Link href="/available-animals" className="...">See Available Animals</Link>
-											<Link href="/get-involved#adopt" className="...">Learn About Adopting</Link>
-										</div>
-									</>
-								)}
-							</div>
-					)}
+					<GraduationCapIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+					<h1 className="text-3xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">Our Graduates</h1>
+					<p className="text-center text-gray-600 dark:text-gray-400 mb-8">
+						Celebrating the second chances found through adoption!
+					</p>
+
+					{/* Filtering Options */}
+					<div className="flex flex-wrap items-center justify-center mb-6 gap-4">
+						<select value={animalTypeFilter} onChange={handleAnimalTypeFilterChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600" aria-label="Filter by Animal Type">
+							<option value="">All Species</option>
+							{animalTypes.map(type => (
+								<option key={type} value={type}>{type}</option>
+							))}
+						</select>
+						<select value={genderFilter} onChange={handleGenderFilterChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600" aria-label="Filter by Animal Genders">
+							<option value="">All Genders</option>
+							<option value="Male">Male</option>
+							<option value="Female">Female</option>
+						</select>
+						<select value={sortBy} onChange={handleSortChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+							{sortingOptions.map(option => (
+								<option key={option.value} value={option.value}>{option.label}</option>
+							))}
+						</select>
+					</div>
 				</>
+			) : (
+				filtersAreActive ? (
+					<>
+						<GraduationCapIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+						<h1 className="text-3xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">Our Graduates</h1>
+						<p className="text-center text-gray-600 dark:text-gray-400 mb-8">
+							Celebrating the second chances found through adoption!
+						</p>
+
+							{/* Filtering Options */}
+							<div className="flex flex-wrap items-center justify-center mb-6 gap-4">
+								<select value={animalTypeFilter} onChange={handleAnimalTypeFilterChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600" aria-label="Filter by Animal Type">
+									<option value="">All Species</option>
+									{animalTypes.map(type => (
+										<option key={type} value={type}>{type}</option>
+									))}
+								</select>
+								<select value={genderFilter} onChange={handleGenderFilterChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600" aria-label="Filter by Animal Genders">
+									<option value="">All Genders</option>
+									<option value="Male">Male</option>
+									<option value="Female">Female</option>
+								</select>
+								<select value={sortBy} onChange={handleSortChange} className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+									{sortingOptions.map(option => (
+										<option key={option.value} value={option.value}>{option.label}</option>
+									))}
+								</select>
+							</div>
+						</>
+					) : (
+						<>
+						<GraduationCapIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+						<h1 className="text-3xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">Our First Graduates Are Coming Soon!</h1>
+						<p className="text-center text-gray-600 dark:text-gray-400 mb-8">
+							As a newer rescue, we&apos;re eagerly waiting to celebrate our first successful adoptions.
+						</p>
+						<div className="flex flex-col sm:flex-row justify-center gap-4">
+							<Link href="/available-animals" className="text-text-link hover:underline font-medium mx-1">See Available Animals</Link>
+						</div>
+					</>
+				)
 			)}
+
+			{/* Graduate Grid or No Results */}
+			{graduates.length > 0 ? (
+				<div className="flex justify-center">
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+						{graduates.map((graduate, index) => (
+							<div
+								key={graduate.id}
+								className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform transition duration-300 border border-gray-300 dark:border-transparent">
+								{/* <Link href={`/animal/${graduate.animalId}`} className="block"> */} {/* Make entire card clickable */}
+								<div className="text-center">
+									<h2 className="text-xl font-semibold py-2 text-gray-900 dark:text-gray-100 truncate px-2">
+										{graduate.name}
+									</h2>
+								</div>
+								<Image
+									src={graduate.imageUrl || '/placeholder-image.png'}
+									alt={graduate.name ? `${graduate.name}` : ''}
+									width={400}
+									height={300}
+									className="w-full h-64 object-cover" // Ensure consistent image size
+									priority={index < 4} // Prioritize loading images for first few graduates
+								/>
+								<div className="p-4 text-center min-h-[50px]">
+									<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+										Adopted: {graduate.adoptionDate ? format(new Date(graduate.adoptionDate), 'MMM dd, yyyy') : 'Date N/A'}
+									</p>
+								</div>
+								{/* </Link> */}
+							</div>
+						))}
+					</div>
+				</div>
+			) : filtersAreActive ? (
+				<div className="text-center py-16 px-4">
+						<h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No Graduates Match Your Filters</h3>
+						<p className="text-gray-500 dark:text-gray-400">
+							Try adjusting or resetting your filters to see more of our happy alumni!
+						</p>
+						<button
+							onClick={() => {
+								setGenderFilter('');
+								setAnimalTypeFilter('');
+								setBreedFilter('');
+							}}
+							className="mt-4 px-4 py-2 text-sm font-medium text-text-link hover:underline focus:outline-none">
+							Reset Filters
+						</button>
+					</div>
+			) : null}
 		</Container>
 	);
 }

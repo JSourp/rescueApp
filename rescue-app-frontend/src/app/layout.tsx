@@ -6,6 +6,7 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import Script from 'next/script';
 
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -34,6 +35,9 @@ export default function RootLayout({
             <PopupWidget />
           </ThemeProvider>
         </body>
+        <Script type="text/javascript" defer src="https://donorbox.org/install-popup-button.js" id="donorbox-popup-button-installer" />
+        <Script type="text/javascript" defer src="https://donorbox.org/widget.js" id="donorbox-widget-installer" />
+        <Script type="text/javascript" src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" />
       </UserProvider>
     </html>
   );
