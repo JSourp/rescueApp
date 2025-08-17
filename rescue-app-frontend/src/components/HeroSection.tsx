@@ -3,7 +3,9 @@ import { Container } from '@/components/Container';
 import Link from 'next/link';
 
 export const HeroSection = () => {
-	const missionStatement = "Providing a second chance for animals in need through dedicated rescue, compassionate rehabilitation, and placement into loving forever homes, operating with full transparency and unwavering advocacy for animal well-being.";
+	{/* const missionStatement = "Providing a second chance for animals in need through dedicated rescue, compassionate rehabilitation, and placement into loving forever homes, operating with full transparency and unwavering advocacy for animal well-being."; */ }
+
+	const missionStatement = "Help us build a new rescue from the ground up. Our mission is to provide a second chance for animals in need, and we are starting with what matters most: a compassionate foster network. As we work towards our long-term goal of a physical rescue and sanctuary, your help right now is essential. You can become a part of our founding story by signing up to foster, or making a foundational donation.";
 
 	return (
 		<div className="max-w-7xl mx-auto bg-white dark:bg-gray-800 p-8 md:p-4 rounded-lg shadow-lg border border-gray-300 dark:border-transparent">
