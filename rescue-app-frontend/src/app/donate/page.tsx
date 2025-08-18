@@ -58,7 +58,7 @@ export default function DonatePage() {
                             Essential items help us care for the animals daily.
                         </p>
                         <a
-                            href="https://www.amazon.com/hz/wishlist/ls/197NWZ1O3D2O9?ref_=wl_share"
+                            href="https://a.co/9oxHMUy"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-accent hover:underline ml-2 font-medium whitespace-nowrap">
@@ -74,7 +74,7 @@ export default function DonatePage() {
                         </p>
                         <div className="mt-2 flex justify-start gap-4">
                             <a
-                                href="https://instagram.com/"
+                                href="https://www.instagram.com/scars.az/"
                                 target="_blank"
                                 rel="noopener">
                                 <span className="sr-only">Instagram</span>

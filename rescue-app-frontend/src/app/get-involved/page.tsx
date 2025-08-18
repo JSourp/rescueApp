@@ -14,7 +14,7 @@ export default function GetInvolvedPage() {
   const [showFosterForm, setShowFosterForm] = useState(false);
   const [showVolunteerForm, setShowVolunteerForm] = useState(false);
   const [showPartnershipSponsorshipForm, setShowPartnershipSponsorshipForm] = useState(false);
-  const amazonWishlistUrl = "https://www.amazon.com/hz/wishlist/ls/197NWZ1O3D2O9?ref_=wl_share";
+  const amazonWishlistUrl = "https://a.co/9oxHMUy";
 
   return (
     <div className="container mx-auto py-8 px-4">

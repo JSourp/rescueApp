@@ -12,7 +12,7 @@ import {
 } from "@/components/Icons";
 
 export function Footer() {
-  const amazonWishlistUrl = "https://www.amazon.com/hz/wishlist/ls/197NWZ1O3D2O9?ref_=wl_share";
+  const amazonWishlistUrl = "https://a.co/9oxHMUy";
 
   return (
     <div className="relative">
@@ -89,7 +89,7 @@ export function Footer() {
             <div>Follow us</div>
             <div className="flex mt-5 space-x-5 text-gray-400 dark:text-gray-500">
               <a
-                href="https://instagram.com/"
+                href="https://www.instagram.com/scars.az/"
                 target="_blank"
                 rel="noopener">
                 <span className="sr-only">Instagram</span>
