@@ -18,20 +18,29 @@ export default function DonatePage() {
             {/* Main content box */}
             <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 p-6 md:p-8 rounded-lg shadow-lg border border-gray-300 dark:border-transparent">
                 <h2 className="text-2xl font-semibold mb-4 text-center text-heading">
-                    Online Donations - Coming Soon!
+                    Make a Secure Donation
                 </h2>
                 <p className="text-gray-700 dark:text-gray-300 mb-6 text-center">
-                    We&apos;re incredibly grateful for your interest in supporting us financially! We are currently in the process of finalizing our official non-profit status and obtaining our EIN (Employer Identification Number).
+                    Every contribution directly supports our mission and helps save lives. Use the secure form below to make a one-time or recurring donation.
                 </p>
-                {/* Highlight Box for Status */}
-                <div className="mb-8 p-4 bg-secondary-50 dark:bg-gray-700 border-l-4 border-secondary-500 dark:border-secondary-400 rounded-r-md">
-                    <p className="text-secondary-800 dark:text-secondary-200 font-medium">
-                        Once our EIN is confirmed, we&apos;ll be launching our secure online donation portal through Donorbox. Thank you for your patience!
-                    </p>
+
+                {/* Donorbox Embedded Form */}
+                <div className="mb-8 flex justify-center">
+                    <iframe
+                        src="https://donorbox.org/second-chance-794835?default_interval=o&hide_donation_meter=true"
+                        name="donorbox"
+                        allow="payment"
+                        seamless={true}
+                        frameBorder="0"
+                        scrolling="no"
+                        height="900px"
+                        width="100%"
+                        style={{ maxWidth: '500px', minWidth: '250px', maxHeight: 'none' }}
+                    ></iframe>
                 </div>
 
                 <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200 border-t pt-6 border-gray-200 dark:border-gray-700">
-                    How You Can Help Right Now:
+                    Other Ways to Give
                 </h3>
                 <div className="space-y-5">
                     {/* Link to Get Involved */}
@@ -86,7 +95,7 @@ export default function DonatePage() {
                 </div>
 
                 <p className="mt-10 text-center text-gray-600 dark:text-gray-400 italic">
-                    Thank you for your understanding and support as we get established. We couldn&apos;t do this without you!
+                    Every contribution, big or small, makes a life-changing difference. Thank you for your support!
                 </p>
             </div>
         </Container>
