@@ -28,11 +28,11 @@ export default function DonatePage() {
                 <div className="mt-6 mb-8 text-center">
                     <a
                         href="https://donorbox.org/second-chance-794835?"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-block px-8 py-3 rounded-md shadow-lg text-lg font-semibold text-text-on-accent bg-accent hover:scale-105 transition-transform duration-300"
-                    >
-                        Donate Securely Now
+                        className="dbox-donation-button px-5 py-2 rounded-md shadow text-text-on-accent bg-accent hover:scale-105 transition-transform duration-300 mb-2 lg:mb-0"
+                        style={{ textDecoration: 'none' }}>
+                        <span className="flex items-center space-x-2">
+                            <span>Donate Securely Now</span>
+                        </span>
                     </a>
                 </div>
 
