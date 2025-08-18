@@ -21,22 +21,19 @@ export default function DonatePage() {
                     Make a Secure Donation
                 </h2>
                 <p className="text-gray-700 dark:text-gray-300 mb-6 text-center">
-                    Every contribution directly supports our mission and helps save lives. Use the secure form below to make a one-time or recurring donation.
+                    Click the button below to make a secure one-time or recurring donation through our partnership with Donorbox. Every contribution directly supports our mission and helps save lives.
                 </p>
 
-                {/* Donorbox Embedded Form */}
-                <div className="mb-8 flex justify-center">
-                    <iframe
-                        src="https://donorbox.org/second-chance-794835?default_interval=o&hide_donation_meter=true"
-                        name="donorbox"
-                        allow="payment"
-                        seamless={true}
-                        frameBorder="0"
-                        scrolling="no"
-                        height="900px"
-                        width="100%"
-                        style={{ maxWidth: '500px', minWidth: '250px', maxHeight: 'none' }}
-                    ></iframe>
+                {/* Donorbox Link Button */}
+                <div className="mt-6 mb-8 text-center">
+                    <a
+                        href="https://donorbox.org/second-chance-794835?"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block px-8 py-3 rounded-md shadow-lg text-lg font-semibold text-text-on-accent bg-accent hover:scale-105 transition-transform duration-300"
+                    >
+                        Donate Securely Now
+                    </a>
                 </div>
 
                 <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200 border-t pt-6 border-gray-200 dark:border-gray-700">
