@@ -99,10 +99,10 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Nav Links */}
-        <div className="hidden lg:flex flex-1 justify-center items-center">
-          <ul className="flex items-center space-x-4">
+        <div className="hidden text-center lg:flex lg:items-center space-x-4 ml-4">
+          <ul className="items-center justify-end flex-1 pt-6 list-none lg:pt-0 lg:flex">
             {navigation.map((item, index) => (
-              <li className="nav__item" key={index}>
+              <li className="mr-3 nav__item" key={index}>
                 <Link
                   key={item.name}
                   href={item.href}
@@ -116,6 +116,14 @@ export function Navbar() {
 
         {/* Right Side Buttons: Login/Logout */}
         <div className="hidden lg:flex flex-col lg:flex-row items-center lg:space-x-4 ml-4">
+          {/* Invisible placeholder for Donate Button spacing */}
+          <div className="px-5 py-2 rounded-md shadow mb-2 lg:mb-0" style={{ visibility: 'hidden' }}>
+            <span className="flex items-center space-x-2">
+              <HeartIcon />
+              <span>Donate</span>
+            </span>
+          </div>
+
           {/* Login / Logout Section */}
           <div className="relative text-sm text-gray-700 dark:text-gray-300">
             {isAuthLoading && (
