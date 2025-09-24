@@ -1,0 +1,17 @@
+export const adoptionStatuses = [
+	"Adopted",
+	"Adoption Pending",
+	"Available",
+	"Available - In Foster",
+	"Behavioral Hold",
+	"Behavioral Hold - With Trainer",
+	"Died in Care",
+	"Euthanized",
+	"Lost in Care",
+	"Medical Hold",
+	"Medical Hold - In Foster",
+	"Not Yet Available",
+	"Returned to Owner",
+	"Stray Hold",
+	"Transferred",
+];

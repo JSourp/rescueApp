@@ -1,0 +1,154 @@
+import Image from "next/image";
+import Link from "next/link";
+import React, { useState, useEffect } from 'react';
+import { Container } from "@/components/Container";
+import Modal from '@/components/Modal';
+import AdoptionForm from '@/components/AdoptionForm';
+
+// Update interface to include id and name
+interface SpotlightData {
+  id: number;
+  name: string;
+  title: string;
+  desc: string | null;
+  image: any; // Keep 'any' or use string | StaticImageData
+  bullets: {
+    title: string;
+    desc: string | null;
+    icon: React.ReactNode;
+  }[];
+  imgPos?: "left" | "right"; // Keep imgPos if needed for data structure
+}
+
+interface SpotlightsProps {
+  imgPos?: "left" | "right"; // For layout control
+  data: SpotlightData | null; // Accept potentially null data
+}
+
+export const Spotlights = (props: Readonly<SpotlightsProps>) => {
+  const { data } = props;
+  const [showAdoptForm, setShowAdoptForm] = useState(false); // State for modal
+
+  // Handle case where data might be null (if API fetch fails or returns empty)
+  if (!data) {
+    return null;
+  }
+
+  // Determine image position for layout, fallback to left if not specified
+  const imagePosition = props.imgPos || data.imgPos || "left";
+
+  // --- Truncated Description Logic ---
+
+  // 1. Set your desired character limit
+  const maxLength = 225;
+
+  // 2. Check if the description is longer than the limit
+  if (!data.desc || data.desc.length <= maxLength) {
+    // If it's short enough or null, just display the full description or nothing
+    return <p className="text-gray-600 dark:text-gray-300">{data.desc ?? ""}</p>;
+  }
+
+  // 3. If it's too long, find the last space before the limit
+  const lastSpaceIndex = data.desc.lastIndexOf(' ', maxLength);
+
+  // Cut the string at the last space to avoid breaking a word
+  const truncatedDescription = data.desc.substring(0, lastSpaceIndex);
+
+  return (
+    <> {/* Use Fragment to wrap component and modal */}
+      <Container className="flex flex-wrap mb-20 lg:gap-10 lg:flex-nowrap ">
+        {/* Image Section */}
+        <div
+          className={`flex items-center justify-center w-full lg:w-3/5 ${imagePosition === "right" ? "lg:order-1" : ""}`}>
+          <div className="relative w-full aspect-w-1 aspect-h-1 lg:aspect-w-16 lg:aspect-h-9">
+            <Image
+              // Check if data.image is already an object (like StaticImageData) or just a URL string
+              src={typeof data.image === 'string' ? data.image : data.image.src}
+              alt={data.name || 'Spotlight Animal'} // Use actual name for alt text
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              className={"object-cover rounded-lg shadow-md"}
+              // Add blurDataURL only if data.image is StaticImageData or handle separately
+              blurDataURL={typeof data.image !== 'string' ? data.image.blurDataURL : undefined}
+              placeholder={typeof data.image !== 'string' ? "blur" : "empty"}
+              priority // Prioritize loading spotlight images
+            />
+          </div>
+        </div>
+
+        {/* Text Content Section */}
+        <div
+          className={`flex flex-wrap items-center w-full lg:w-2/5 ${imagePosition === "right" ? "lg:justify-end lg:pl-10" : "lg:pr-10" // Adjusted padding
+            }`}
+        >
+          <div>
+            <div className="flex flex-col w-full mt-4">
+              <h3 className="max-w-2xl mt-3 text-3xl font-bold leading-snug tracking-tight text-gray-800 lg:leading-tight lg:text-4xl dark:text-white">
+                {data.title}
+              </h3>
+
+              {/* Truncate description if too long */}
+              <p className="max-w-2xl py-4 text-lg leading-normal text-gray-500 lg:text-xl xl:text-xl dark:text-gray-300">
+                {truncatedDescription}...{' '}
+                <Link href={`/animal/${data.id}`} className="text-accent hover:underline font-semibold">
+                  Read More
+                </Link>
+              </p>
+            </div>
+
+            {/* Bullet Points */}
+            <div className="w-full mt-5">
+              {data.bullets.map((item, index) => (
+                <Spotlight key={index} title={item.title} icon={item.icon}>
+                  {item.desc}
+                </Spotlight>
+              ))}
+            </div>
+
+            <div className="w-full mt-8">
+              <button
+                onClick={() => setShowAdoptForm(true)}
+                className="bg-primary hover:bg-primary-800 w-full sm:w-auto px-6 py-3 text-white font-bold rounded-md transition duration-300"
+              >
+                Apply to Adopt {data.name}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </Container>
+
+      {showAdoptForm && (
+        <Modal onClose={() => setShowAdoptForm(false)}>
+          <AdoptionForm
+            animalName={data.name} // Pass name from data prop
+            animal_id={data.id}   // Pass id from data prop
+            onClose={() => setShowAdoptForm(false)}
+          />
+        </Modal>
+      )}
+    </>
+  );
+};
+
+
+// Spotlight bullet item component
+function Spotlight(props: any) {
+  return (
+    <div className="flex items-start mt-8 space-x-3">
+      <div className="flex items-center justify-center flex-shrink-0 mt-1 bg-primary-800 rounded-md w-11 h-11 ">
+        {React.cloneElement(props.icon, {
+          className: "w-7 h-7",
+        })}
+      </div>
+      <div>
+        <h4 className="text-xl font-medium text-gray-800 dark:text-gray-200">
+          {props.title}
+        </h4>
+        <p className="mt-1 text-gray-500 dark:text-gray-400">
+          {props.children}
+        </p>
+      </div>
+    </div>
+  );
+}
