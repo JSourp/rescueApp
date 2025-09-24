@@ -1,6 +1,8 @@
 import { Container } from "@/components/Container";
 import Link from "next/link";
+import Image from "next/image";
 import { Facebook, Instagram } from "@/components/Icons";
+import DogVillage from "@/../public/DogVillage.png";
 
 export default function DonatePage() {
     return (
@@ -34,6 +36,47 @@ export default function DonatePage() {
                         Donate Securely Now
                     </a>
                 </div>
+
+                {/* --- Future Vision Section Start --- */}
+                <div className="border-t pt-8 mt-8 border-gray-200 dark:border-gray-700">
+                    <h3 className="text-2xl font-semibold mb-4 text-center text-heading">
+                        Our Vision for the Future: A Rescue and Sanctuary
+                    </h3>
+                    <p className="text-gray-700 dark:text-gray-300 mb-6">
+                        While our foster network is the heart of our operations, our ultimate dream is to create a physical rescue and sanctuary — a safe haven where healing begins and second chances become a reality.
+                    </p>
+                    <p className="text-gray-700 dark:text-gray-300 mb-6">
+                        The first and most critical step in this journey is <strong>acquiring land</strong>. This land will be the foundation for a place where animals can decompress, rehabilitate, and live comfortably while they wait for their forever families.
+                    </p>
+                    <p className="text-gray-700 dark:text-gray-300 mb-6">
+                        One of our cornerstone projects will be a <strong>Dog Village</strong>, designed to be a stress-free, home-like environment that moves away from traditional kennel setups.
+                    </p>
+
+                    <figure className="mb-6">
+                        <Image
+                            src={DogVillage}
+                            alt="Rendering of the future Dog Village"
+                            className="w-full rounded-lg shadow-lg"
+                            placeholder="blur"
+                        />
+                        <figcaption className="text-sm text-gray-500 dark:text-gray-400 mt-2 italic text-center">
+                            Disclaimer: The image provided is an artist's rendering for illustrative purposes only. The final design, materials, and appearance may vary.
+                        </figcaption>
+                    </figure>
+
+                    <p className="text-gray-700 dark:text-gray-300 mb-6">
+                        Our vision doesn't stop there. The sanctuary will also include:
+                    </p>
+                    <ul className="list-disc list-inside space-y-2 mb-6 text-gray-700 dark:text-gray-300">
+                        <li>A dedicated, state-of-the-art <strong>cat building</strong> with enriching "catios" and free-roaming spaces.</li>
+                        <li>Peaceful, separate pastures for <strong>farm animals</strong> in need, including pigs, donkeys, mini-cows, and more.</li>
+                    </ul>
+
+                    <p className="text-gray-700 dark:text-gray-300">
+                        Every contribution towards this goal brings us one step closer to breaking ground. Your donation today helps us build a sanctuary that will save countless lives for decades to come.
+                    </p>
+                </div>
+                {/* --- Future Vision Section End --- */}
 
                 <h3 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200 border-t pt-6 border-gray-200 dark:border-gray-700">
                     Other Ways to Give
