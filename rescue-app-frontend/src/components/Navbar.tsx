@@ -99,10 +99,10 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Nav Links */}
-        <div className="hidden text-center lg:flex lg:items-center space-x-4 ml-4">
-          <ul className="items-center justify-end flex-1 pt-6 list-none lg:pt-0 lg:flex">
+        <div className="hidden lg:flex flex-1 justify-center items-center">
+          <ul className="flex items-center space-x-4">
             {navigation.map((item, index) => (
-              <li className="mr-3 nav__item" key={index}>
+              <li className="nav__item" key={index}>
                 <Link
                   key={item.name}
                   href={item.href}

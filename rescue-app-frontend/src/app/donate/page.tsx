@@ -75,8 +75,6 @@ export default function DonatePage() {
                     <p className="text-gray-700 dark:text-gray-300">
                         Every contribution towards this goal brings us one step closer to breaking ground. Your donation today helps us build a sanctuary that will save countless lives for decades to come.
                     </p>
-
-                    <p></p>
                 </div>
                 {/* --- Future Vision Section End --- */}
 
