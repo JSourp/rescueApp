@@ -116,14 +116,6 @@ export function Navbar() {
 
         {/* Right Side Buttons: Login/Logout */}
         <div className="hidden lg:flex flex-col lg:flex-row items-center lg:space-x-4 ml-4">
-          {/* Invisible placeholder for Donate Button spacing */}
-          <div className="px-5 py-2 rounded-md shadow mb-2 lg:mb-0" style={{ visibility: 'hidden' }}>
-            <span className="flex items-center space-x-2">
-              <HeartIcon />
-              <span>Donate</span>
-            </span>
-          </div>
-
           {/* Login / Logout Section */}
           <div className="relative text-sm text-gray-700 dark:text-gray-300">
             {isAuthLoading && (
