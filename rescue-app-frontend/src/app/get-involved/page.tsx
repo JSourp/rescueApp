@@ -56,7 +56,20 @@ export default function GetInvolvedPage() {
           </button>
         </div>
 
-        {/* Volunteering Section */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
+          <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
+            Volunteer Opportunities
+          </h2>
+          <p className="text-gray-700 dark:text-gray-300 mb-6">
+            As a new, foster-based rescue, our most critical need is for dedicated foster homes. At this time, we are not accepting applications for on-site or event volunteers.
+          </p>
+          <p className="text-gray-700 dark:text-gray-300 mb-6">
+            Once we are closer to securing a physical location, we will open up applications for a wide range of volunteer roles. Thank you for your understanding and your interest in helping us grow!
+          </p>
+        </div>
+
+        {/* Volunteering Section -- Once we are ready to start accepting applications */}
+        {/*
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
           <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
             Volunteer Your Time
@@ -69,7 +82,7 @@ export default function GetInvolvedPage() {
             className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow mt-auto w-full py-2 px-4">
             Apply to Volunteer
           </button>
-        </div>
+        </div> */}
 
         {/* Partner/Sponsor Section */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
