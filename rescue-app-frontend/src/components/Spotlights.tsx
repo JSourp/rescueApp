@@ -40,7 +40,7 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
   // --- Truncated Description Logic ---
 
   // 1. Set your desired character limit
-  const maxLength = 150;
+  const maxLength = 225;
 
   // 2. Check if the description is longer than the limit
   if (!data.desc || data.desc.length <= maxLength) {

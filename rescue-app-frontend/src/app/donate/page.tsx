@@ -29,8 +29,8 @@ export default function DonatePage() {
                 {/* Donorbox Link Button */}
                 <div className="mt-6 mb-8 text-center">
                     <a
-                        href=""
                         className="dbox-donation-button inline-block px-8 py-3 rounded-md shadow-lg text-lg font-semibold text-text-on-accent bg-accent hover:scale-105 transition-transform duration-300"
+                        href="https://donorbox.org/second-chance-794835?"
                         style={{ textDecoration: 'none' }}
                     >
                         Donate Securely Now
