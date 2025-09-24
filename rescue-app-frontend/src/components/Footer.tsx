@@ -98,13 +98,13 @@ export function Footer() {
                 <span className="sr-only">Instagram</span>
                 <Instagram />
               </a>
-              <a
+              {/* <a
                 href="https://facebook.com/"
                 target="_blank"
                 rel="noopener">
                 <span className="sr-only">Facebook</span>
                 <Facebook />
-              </a>
+              </a>*/}
               {/* <a
                 href="https://x.com/"
                 target="_blank"
