@@ -114,19 +114,8 @@ export function Navbar() {
           </ul>
         </div>
 
-        {/* Right Side Buttons: Donate and Login/Logout */}
+        {/* Right Side Buttons: Login/Logout */}
         <div className="hidden lg:flex flex-col lg:flex-row items-center lg:space-x-4 ml-4">
-          {/* Donate Button */}
-          <a
-            href="https://donorbox.org/second-chance-794835?"
-            className="dbox-donation-button px-5 py-2 rounded-md shadow text-text-on-accent bg-accent hover:scale-105 transition-transform duration-300 mb-2 lg:mb-0"
-            style={{ textDecoration: 'none' }}>
-            <span className="flex items-center space-x-2">
-              <HeartIcon />
-              <span>Donate</span>
-            </span>
-          </a>
-
           {/* Login / Logout Section */}
           <div className="relative text-sm text-gray-700 dark:text-gray-300">
             {isAuthLoading && (
@@ -247,15 +236,6 @@ export function Navbar() {
                     ))}
                   </div>{/* Actions in Mobile Menu */}
                   <div className="border-t border-gray-200 dark:border-gray-700 pt-4 pb-3 px-4 space-y-3">
-                    {/* Donate Button */}
-                    <DisclosureButton
-                      as="a"
-                      href="https://donorbox.org/second-chance-794835?"
-                      className="dbox-donation-button block w-full text-center px-5 py-2 text-text-on-accent bg-accent rounded-md shadow hover:scale-105 transition-transform duration-300 text-base font-medium"
-                      style={{ textDecoration: 'none' }}>
-                      Donate
-                    </DisclosureButton>
-
                     {/* User Actions */}
                     {!isAuthLoading || isLoadingRole && !authError && user && (
                       <>
