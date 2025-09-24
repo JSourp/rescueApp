@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import React, { useState, useEffect } from 'react';
 import { Container } from "@/components/Container";
 import Modal from '@/components/Modal';
@@ -36,6 +37,23 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
   // Determine image position for layout, fallback to left if not specified
   const imagePosition = props.imgPos || data.imgPos || "left";
 
+  // --- Truncated Description Logic ---
+
+  // 1. Set your desired character limit
+  const maxLength = 150;
+
+  // 2. Check if the description is longer than the limit
+  if (!data.desc || data.desc.length <= maxLength) {
+    // If it's short enough or null, just display the full description or nothing
+    return <p className="text-gray-600 dark:text-gray-300">{data.desc ?? ""}</p>;
+  }
+
+  // 3. If it's too long, find the last space before the limit
+  const lastSpaceIndex = data.desc.lastIndexOf(' ', maxLength);
+
+  // Cut the string at the last space to avoid breaking a word
+  const truncatedDescription = data.desc.substring(0, lastSpaceIndex);
+
   return (
     <> {/* Use Fragment to wrap component and modal */}
       <Container className="flex flex-wrap mb-20 lg:gap-10 lg:flex-nowrap ">
@@ -66,11 +84,15 @@ export const Spotlights = (props: Readonly<SpotlightsProps>) => {
           <div>
             <div className="flex flex-col w-full mt-4">
               <h3 className="max-w-2xl mt-3 text-3xl font-bold leading-snug tracking-tight text-gray-800 lg:leading-tight lg:text-4xl dark:text-white">
-                {data.title} {/* "Meet Sparky" */}
+                {data.title}
               </h3>
 
+              {/* Truncate description if too long */}
               <p className="max-w-2xl py-4 text-lg leading-normal text-gray-500 lg:text-xl xl:text-xl dark:text-gray-300">
-                {data.desc} {/* Animal's story */}
+                {truncatedDescription}...{' '}
+                <Link href={`/animal/${data.id}`} className="text-accent hover:underline font-semibold">
+                  Read More
+                </Link>
               </p>
             </div>
 
