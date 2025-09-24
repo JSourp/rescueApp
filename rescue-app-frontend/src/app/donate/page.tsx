@@ -60,15 +60,15 @@ export default function DonatePage() {
                             placeholder="blur"
                         />
                         <figcaption className="text-sm text-gray-500 dark:text-gray-400 mt-2 italic text-center">
-                            Disclaimer: The image provided is an artist's rendering for illustrative purposes only. The final design, materials, and appearance may vary.
+                            Disclaimer: The image provided is an artist&apos;s rendering for illustrative purposes only. The final design, materials, and appearance may vary.
                         </figcaption>
                     </figure>
 
                     <p className="text-gray-700 dark:text-gray-300 mb-6">
-                        Our vision doesn't stop there. The sanctuary will also include:
+                        Our vision doesn&apos;t stop there. The sanctuary will also include:
                     </p>
                     <ul className="list-disc list-inside space-y-2 mb-6 text-gray-700 dark:text-gray-300">
-                        <li>A dedicated, state-of-the-art <strong>cat building</strong> with enriching "catios" and free-roaming spaces.</li>
+                        <li>A dedicated, state-of-the-art <strong>cat building</strong> with enriching &quot;catios&quot; and free-roaming spaces.</li>
                         <li>Peaceful, separate pastures for <strong>farm animals</strong> in need, including pigs, donkeys, mini-cows, and more.</li>
                     </ul>
 
