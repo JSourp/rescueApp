@@ -60,7 +60,7 @@ export default function DonatePage() {
                             placeholder="blur"
                         />
                         <figcaption className="text-sm text-gray-500 dark:text-gray-400 mt-2 italic text-center">
-                            Disclaimer: The image provided is an artist&apos;s rendering for illustrative purposes only. The final design, materials, and appearance may vary.
+                            Disclaimer: The image provided is a rendering for illustrative purposes only. The final design, materials, and appearance may vary.
                         </figcaption>
                     </figure>
 
@@ -75,6 +75,8 @@ export default function DonatePage() {
                     <p className="text-gray-700 dark:text-gray-300">
                         Every contribution towards this goal brings us one step closer to breaking ground. Your donation today helps us build a sanctuary that will save countless lives for decades to come.
                     </p>
+
+                    <p></p>
                 </div>
                 {/* --- Future Vision Section End --- */}
 
