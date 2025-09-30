@@ -122,13 +122,13 @@ export default function DonatePage() {
                                 <span className="sr-only">Instagram</span>
                                 <Instagram />
                             </a>
-                            {/* <a
-                                href="https://facebook.com/"
+                            <a
+                                href="https://www.facebook.com/share/1DHVtUumuB/"
                                 target="_blank"
                                 rel="noopener">
                                 <span className="sr-only">Facebook</span>
                                 <Facebook />
-                            </a> */}
+                            </a>
                         </div>
                     </div>
                 </div>
