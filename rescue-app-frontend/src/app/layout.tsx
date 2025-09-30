@@ -11,6 +11,7 @@ import Script from 'next/script';
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { PopupWidget } from "@/components/PopupWidget";
+import { GoogleAnalytics } from '@next/third-parties/google';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -45,6 +46,7 @@ export default function RootLayout({
               data-reminder-widget-enabled="true"
             />
           </ThemeProvider>
+          <GoogleAnalytics gaId="G-9HC379M63R" />
         </body>
         <Script type="text/javascript" defer src="https://donorbox.org/install-popup-button.js" id="donorbox-popup-button-installer" />
         <Script type="text/javascript" defer src="https://donorbox.org/widget.js" id="donorbox-widget-installer" />
