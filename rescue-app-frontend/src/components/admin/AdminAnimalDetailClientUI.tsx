@@ -25,6 +25,7 @@ import DocumentUploadForm from '@/components/admin/DocumentUploadForm';
 import ReturnFromFosterModal from './ReturnFromFosterModal';
 import Modal from '@/components/Modal';
 import SelectFosterForAnimalModal from '@/components/admin/SelectFosterForAnimalModal';
+import SendContractModal from '@/components/admin/SendContractModal';
 
 // Define props received from the Server Component page
 interface AdminAnimalDetailClientUIProps {
@@ -107,6 +108,14 @@ export default function AdminAnimalDetailClientUI({
 	const [deleteDocError, setDeleteDocError] = useState<string | null>(null);
 	const [isPlaceWithFosterModalOpen, setIsPlaceWithFosterModalOpen] = useState(false);
 	const [isCurrentFosterReturnModalOpen, setIsCurrentFosterReturnModalOpen] = useState(false);
+
+	const [isContractModalOpen, setIsContractModalOpen] = useState(false);
+	const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+	const handleContractSent = () => {
+		setShowSuccessMessage(true);
+		setTimeout(() => setShowSuccessMessage(false), 5000); // Hide message after 5 seconds
+	};
 
 	// --- Data Refresh Function ---
 	const router = useRouter(); // Initialize router for refresh
@@ -464,6 +473,16 @@ export default function AdminAnimalDetailClientUI({
 									</button>
 								)}
 
+								{/* Send Adoption Contract */}
+								{['Admin', 'Staff'].includes(currentUserRole ?? '') && (
+									<button onClick={() => setIsContractModalOpen(true)} className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow py-3 px-6" title="Send Adoption Contract">
+										<span className="flex items-center space-x-2">
+											{/* <SuccessCheckmarkIcon className="w-5 h-5 inline" /> */}
+											<span>Send Adoption Contract</span>
+										</span>
+									</button>
+								)}
+
 								{/* Process Adoption Return Button - Conditional */}
 								{['Admin', 'Staff'].includes(currentUserRole ?? '') && ['Adopted'].includes(animal.adoptionStatus ?? '') && (
 									<button
@@ -675,6 +694,20 @@ export default function AdminAnimalDetailClientUI({
 						onPlacementSuccess={handlePlacementSuccess}
 					/>
 				</Modal>
+			)}
+
+			{isContractModalOpen && (
+				<SendContractModal
+					animal={animal}
+					onClose={() => setIsContractModalOpen(false)}
+					onSent={handleContractSent}
+				/>
+			)}
+
+			{showSuccessMessage && (
+				<div className="fixed bottom-5 right-5 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg">
+					Contract sent successfully!
+				</div>
 			)}
 		</>
 	);
