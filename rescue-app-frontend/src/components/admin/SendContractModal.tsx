@@ -58,7 +58,7 @@ const SendContractModal: React.FC<SendContractModalProps> = ({ animal, onClose, 
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
                         <label htmlFor="recipientEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Adopter's Email Address
+							Adopter&apos;s Email Address
                         </label>
                         <input
                             type="email"
