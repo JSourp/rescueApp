@@ -109,8 +109,8 @@ namespace rescueApp
                 string jotformBaseUrl = "https://form.jotform.com/252745581529062";
                 string jotformUrl = $"{jotformBaseUrl}?animalName={Uri.EscapeDataString(contractData.AnimalName)}&animalSpecies={Uri.EscapeDataString(contractData.AnimalSpecies)}&animalBreed={Uri.EscapeDataString(contractData.AnimalBreed)}&animalGender={Uri.EscapeDataString(contractData.AnimalGender)}&scarsId={contractData.ScarsId}";
 
-                string web3FormsAccessKey = Environment.GetEnvironmentVariable("WEB3FORMS_ACCESS_KEY");
-                if (string.IsNullOrEmpty(web3FormsAccessKey))
+				string? web3FormsAccessKey = Environment.GetEnvironmentVariable("NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY");
+				if (string.IsNullOrEmpty(web3FormsAccessKey))
                 {
                     _logger.LogError("WEB3FORMS_ACCESS_KEY environment variable is not set.");
                     return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Email service is not configured.");
