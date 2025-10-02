@@ -21,7 +21,7 @@ const SendContractModal: React.FC<SendContractModalProps> = ({ animal, onClose, 
         try {
             const { accessToken } = await getAccessToken();
 
-            const response = await fetch('/api/SendAdoptionContract', {
+			const response = await fetch('/api/send-contract', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
