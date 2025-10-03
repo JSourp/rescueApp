@@ -4,7 +4,6 @@ export interface Animal {
 	id: number;
 	animalType?: string | null;
 	name?: string | null;
-	species?: string | null;
 	breed?: string | null;
 	dateOfBirth?: string | null;
 	gender?: string | null;

@@ -83,7 +83,11 @@ export default function SelectFosterForAnimalModal({
 		}
 		setIsPlacing(true); setError(null); setSuccessMessage(null);
 		const token = await getAuth0AccessToken();
-		if (!token) { /* ... */ }
+
+		if (!token) {
+			setError("Authentication failed. Please log in again.");
+			return;
+		}
 
 		const payload = {
 			adoptionStatus: "Available - In Foster",
