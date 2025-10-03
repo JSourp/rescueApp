@@ -20,15 +20,6 @@ const nextConfig = {
 		 // Add any other external image domains you might use here in the future
 	  ],
 	},
-	async rewrites() {
-    return [
-      {
-        // This will match /api/ANYTHING... EXCEPT for /api/auth/...
-        source: '/api/:path((?!auth).*)',
-        destination: `${process.env.API_BASE_URL}/api/:path*`, // The :path* here will be populated by the value from the source
-      },
-    ]
-  },
   };
 
   module.exports = nextConfig;
