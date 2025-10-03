@@ -32,7 +32,7 @@ const SendContractModal: React.FC<SendContractModalProps> = ({ animal, onClose, 
 				animalSpecies: animal.species,
 				animalBreed: animal.breed,
 				animalGender: animal.gender,
-				scarsId: Number(animal.id),
+				scarsId: animal.id,
 			};
 
 			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;

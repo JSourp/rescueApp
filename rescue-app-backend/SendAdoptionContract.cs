@@ -117,16 +117,16 @@ namespace rescueApp
                 }
 
                 var emailContent = new
-                {
-                    access_key = web3FormsAccessKey,
-                    subject = $"Adoption Contract for {contractData.AnimalName}",
-                    from_name = "Second Chance Animal Rescue & Sanctuary",
-                    email_to = contractData.RecipientEmail,
-                    message = $"Hello,\n\nPlease complete the adoption contract for {contractData.AnimalName} by clicking the link below:\n\n{jotformUrl}\n\nThank you,\nSCARS Team"
-                };
+				{
+					access_key = web3FormsAccessKey,
+					subject = $"Adoption Contract for {contractData.AnimalName}",
+					from_name = "SCARS Adoption Team",
+					email = contractData.RecipientEmail,
+					message = $"Hello,\n\nPlease complete the adoption contract for {contractData.AnimalName} by clicking the link below:\n\n{jotformUrl}\n\nThank you,\nSCARS Team"
+				};
 
-                var jsonContent = new StringContent(JsonSerializer.Serialize(emailContent), Encoding.UTF8, "application/json");
-                var response = await httpClient.PostAsync("https://api.web3forms.com/submit", jsonContent);
+				var jsonContent = new StringContent(JsonSerializer.Serialize(emailContent), Encoding.UTF8, "application/json");
+				var response = await httpClient.PostAsync("https://api.web3forms.com/submit", jsonContent);
 
                 if (response.IsSuccessStatusCode)
                 {
