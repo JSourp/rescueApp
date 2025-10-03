@@ -29,7 +29,7 @@ const SendContractModal: React.FC<SendContractModalProps> = ({ animal, onClose, 
 			const payload = {
 				recipientEmail,
 				animalName: animal.name,
-				animalSpecies: animal.species,
+				animalSpecies: animal.animalType,
 				animalBreed: animal.breed,
 				animalGender: animal.gender,
 				scarsId: animal.id,
