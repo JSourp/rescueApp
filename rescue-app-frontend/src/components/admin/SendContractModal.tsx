@@ -30,7 +30,7 @@ const SendContractModal: React.FC<SendContractModalProps> = ({ animal, onClose, 
                 body: JSON.stringify({
                     recipientEmail,
                     animalName: animal.name,
-                    animalSpecies: animal.species,
+					//animalSpecies: animal.species,
                     animalBreed: animal.breed,
                     animalGender: animal.gender,
                     scarsId: animal.id,
