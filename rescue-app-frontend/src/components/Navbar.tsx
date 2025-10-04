@@ -234,34 +234,46 @@ export function Navbar() {
                         {item.name}
                       </DisclosureButton>
                     ))}
-                  </div>{/* Actions in Mobile Menu */}
-                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4 pb-3 px-4 space-y-3">
-                    {/* User Actions */}
-                    {!isAuthLoading || isLoadingRole && !authError && user && (
-                      <>
-                        {visibleDropdownItems.map((item) => (
-                          <Link
-                            key={item.name}
-                            href={item.href}
-                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                            {item.name}
-                          </Link>
-                        ))}
-                        <a href="/api/auth/logout"
-                          className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-red-500 dark:hover:text-red-400">
-                          Logout
-                        </a>
-                      </>
-                    )}
+                  </div>
+                  {/* Actions in Mobile Menu */}
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4 pb-3">
+                    {/* Check if user is logged in */}
+                    {!isAuthLoading && user ? (
+                      <div className="px-4">
+                        <div className="font-medium text-base text-gray-800 dark:text-gray-200">{user.name || user.nickname}</div>
+                        <div className="font-medium text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
 
-                    {/* Login Button (if not logged in) */}
-                    {!isAuthLoading && !authError && !user && (
-                      <DisclosureButton
-                        as={Link}
-                        href="/api/auth/login"
-                        className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-500 dark:hover:text-gray-400">
-                        Login
-                      </DisclosureButton>
+                        <div className="mt-3 space-y-1">
+                          {visibleDropdownItems.map((item) => (
+                            <DisclosureButton
+                              key={item.name}
+                              as={Link}
+                              href={item.href}
+                              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            >
+                              {item.name}
+                            </DisclosureButton>
+                          ))}
+                          <DisclosureButton
+                            as="a"
+                            href="/api/auth/logout"
+                            className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            Logout
+                          </DisclosureButton>
+                        </div>
+                      </div>
+                    ) : (
+                      // If not logged in, show Login button
+                      <div className="px-2 pt-2 pb-3 space-y-1">
+                        <DisclosureButton
+                          as={Link}
+                          href="/api/auth/login"
+                            className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            Login
+                          </DisclosureButton>
+                        </div>
                     )}
                   </div>
                 </DisclosurePanel>
