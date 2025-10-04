@@ -100,7 +100,9 @@ export default function EditAnimalForm({ animalId, initialAnimalName, onClose, o
 						animalType: fetchedAnimal.animalType || '',
 						name: fetchedAnimal.name || '',
 						breed: fetchedAnimal.breed || '',
-						dateOfBirth: fetchedAnimal.dateOfBirth ? format(new Date(fetchedAnimal.dateOfBirth), 'yyyy-MM-dd') : '',
+						dateOfBirth: fetchedAnimal.dateOfBirth
+							? format(new Date(new Date(fetchedAnimal.dateOfBirth).valueOf() + new Date(fetchedAnimal.dateOfBirth).getTimezoneOffset() * 60000), 'yyyy-MM-dd')
+							: '',
 						gender: fetchedAnimal.gender || '',
 						weight: fetchedAnimal.weight ?? '',
 						story: fetchedAnimal.story || '',
