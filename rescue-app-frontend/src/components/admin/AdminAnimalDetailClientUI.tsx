@@ -412,7 +412,7 @@ export default function AdminAnimalDetailClientUI({
 							<DetailItem label="Species" value={animal.animalType} />
 							<DetailItem label="Breed" value={animal.breed} />
 							<DetailItem label="Gender" value={animal.gender} />
-							<DetailItem label="Date of Birth" value={animal.dateOfBirth ? format(new Date(animal.dateOfBirth), 'PPP') : 'Unknown'} />
+							<DetailItem label="Date of Birth" value={animal.dateOfBirth ? format(new Date(animal.dateOfBirth + 'T00:00:00Z'), 'PPP') : 'Unknown'} />
 							<DetailItem label="Age" value={calculateAge(animal.dateOfBirth)} />
 							<DetailItem label="Weight" value={animal.weight ? `${animal.weight} lbs` : 'N/A'} />
 							<DetailItem label="Date Added" value={format(new Date(animal.dateCreated), 'PPP')} />
