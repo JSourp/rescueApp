@@ -35,7 +35,7 @@ export default function GetInvolvedPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Adoption Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col border border-gray-300 dark:border-transparent">
           <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
             Adopt a Friend
           </h2>
@@ -50,7 +50,7 @@ export default function GetInvolvedPage() {
         </div>
 
         {/* Fostering Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col border border-gray-300 dark:border-transparent">
           <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
             Foster an Animal
           </h2>
@@ -88,7 +88,7 @@ export default function GetInvolvedPage() {
         </div>
 
         {/* Donations Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent"> {/* Removed justify-self-center md:col-span-2 */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col border border-gray-300 dark:border-transparent"> {/* Removed justify-self-center md:col-span-2 */}
           <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4 flex items-center">
             <HeartIcon className="w-6 h-6 mr-2 text-secondary" />
             Make a Donation
@@ -104,7 +104,7 @@ export default function GetInvolvedPage() {
         </div>
 
         {/* Amazon Wishlist Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col border border-gray-300 dark:border-transparent">
           <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4 flex items-center">
             <GiftIcon className="w-6 h-6 mr-2 text-secondary" />
             Our Amazon Wishlist
@@ -121,7 +121,7 @@ export default function GetInvolvedPage() {
           </a>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col border border-gray-300 dark:border-transparent">
           <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
             Volunteer Opportunities
           </h2>
@@ -134,7 +134,7 @@ export default function GetInvolvedPage() {
         </div>
 
         {/* Volunteering Section -- Once we are ready to start accepting applications */}
-        {/* <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
+        {/* <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col border border-gray-300 dark:border-transparent">
           <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
             Volunteer Your Time
           </h2>
@@ -149,7 +149,7 @@ export default function GetInvolvedPage() {
         </div> */}
 
         {/* Partner/Sponsor Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col border border-gray-300 dark:border-transparent">
           <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
             Partner or Sponsor
           </h2>
