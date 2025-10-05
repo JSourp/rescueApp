@@ -75,7 +75,7 @@ export default function GetInvolvedPage() {
             </p>
             <div>
               <h3 className="text-xl font-semibold mb-2 text-center text-secondary-800 dark:text-secondary-200">How It Works:</h3>
-              <ol className="list-decimal list-inside space-y-2 text-left sm:text-center">
+              <ol className="list-decimal list-inside space-y-2 text-left">
                 <li><strong>Apply to Foster:</strong> You begin by filling out our standard Foster Application.</li>
                 <li><strong>Trial Period:</strong> You&apos;ll foster the animal for a set period (typically 2-3 weeks), and we&apos;ll provide all the supplies.</li>
                 <li><strong>Finalize the Adoption:</strong> If you&apos;ve fallen in love, we&apos;ll complete the official adoption. If not, the animal returns to our care, no hard feelings.</li>
