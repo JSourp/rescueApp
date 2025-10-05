@@ -31,8 +31,7 @@ export default function GetInvolvedPage() {
         Provide a Home: Adopt, Foster
         Provide Financial Support: Donate, Wishlist
         Provide Time/Skills: Volunteer, Partner
-       */}
-
+      */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Adoption Section */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col border border-gray-300 dark:border-transparent">
@@ -65,7 +64,7 @@ export default function GetInvolvedPage() {
         </div>
 
         {/* --- Foster-to-Adopt (full-width) --- */}
-        <div className="col-span-2 p-8 bg-secondary-50 dark:bg-gray-700 rounded-lg shadow-lg border border-secondary-200 dark:border-secondary-500">
+        <div className="md:col-span-2 p-8 bg-secondary-50 dark:bg-gray-700 rounded-lg shadow-lg border border-secondary-200 dark:border-secondary-500">
           <h2 className="text-3xl font-semibold mb-4 text-center text-secondary-800 dark:text-secondary-100">
             Foster-to-Adopt: The Best of Both Worlds
           </h2>
@@ -88,7 +87,7 @@ export default function GetInvolvedPage() {
         </div>
 
         {/* Donations Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col border border-gray-300 dark:border-transparent"> {/* Removed justify-self-center md:col-span-2 */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col border border-gray-300 dark:border-transparent">
           <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4 flex items-center">
             <HeartIcon className="w-6 h-6 mr-2 text-secondary" />
             Make a Donation
@@ -125,28 +124,10 @@ export default function GetInvolvedPage() {
           <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
             Volunteer Opportunities
           </h2>
-          <p className="text-gray-700 dark:text-gray-300 mb-6">
-            As a new, foster-based rescue, our most critical need is for dedicated foster homes. At this time, we are not accepting applications for on-site or event volunteers.
-          </p>
-          <p className="text-gray-700 dark:text-gray-300 mb-6">
-            Once we are closer to securing a physical location, we will open up applications for a wide range of volunteer roles. Thank you for your understanding and your interest in helping us grow!
+          <p className="text-gray-700 dark:text-gray-300 mb-6 flex-grow">
+            As a new, foster-based rescue, our most critical need is for dedicated foster homes. At this time, we are not accepting applications for on-site or event volunteers. Once we are closer to securing a physical location, we will open up applications for a wide range of volunteer roles. Thank you for your understanding and your interest in helping us grow!
           </p>
         </div>
-
-        {/* Volunteering Section -- Once we are ready to start accepting applications */}
-        {/* <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col border border-gray-300 dark:border-transparent">
-          <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
-            Volunteer Your Time
-          </h2>
-          <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
-            Our volunteers are the backbone of our rescue! From dog walking and cat socializing to helping at events or with administrative tasks, your time makes a huge difference. Let us know how you&apos;d like to help.
-          </p>
-          <button
-            onClick={() => setShowVolunteerForm(true)}
-            className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow mt-auto w-full py-2 px-4">
-            Apply to Volunteer
-          </button>
-        </div> */}
 
         {/* Partner/Sponsor Section */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col border border-gray-300 dark:border-transparent">
