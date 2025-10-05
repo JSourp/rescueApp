@@ -25,6 +25,14 @@ export default function GetInvolvedPage() {
         There are many ways to support Second Chance Animal Rescue & Sanctuary. Find the perfect fit for you!
       </p>
 
+      {/*
+      This layout follows the "Pyramid of Engagement"
+      For a rescue, the pyramid looks like this:
+        Provide a Home: Adopt, Foster
+        Provide Financial Support: Donate, Wishlist
+        Provide Time/Skills: Volunteer, Partner
+       */}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Adoption Section */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
@@ -56,47 +64,27 @@ export default function GetInvolvedPage() {
           </button>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
-          <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
-            Volunteer Opportunities
+        {/* --- Foster-to-Adopt (full-width) --- */}
+        <div className="col-span-2 p-8 bg-secondary-50 dark:bg-gray-700 rounded-lg shadow-lg border border-secondary-200 dark:border-secondary-500">
+          <h2 className="text-3xl font-semibold mb-4 text-center text-secondary-800 dark:text-secondary-100">
+            Foster-to-Adopt: The Best of Both Worlds
           </h2>
-          <p className="text-gray-700 dark:text-gray-300 mb-6">
-            As a new, foster-based rescue, our most critical need is for dedicated foster homes. At this time, we are not accepting applications for on-site or event volunteers.
-          </p>
-          <p className="text-gray-700 dark:text-gray-300 mb-6">
-            Once we are closer to securing a physical location, we will open up applications for a wide range of volunteer roles. Thank you for your understanding and your interest in helping us grow!
-          </p>
-        </div>
-
-        {/* Volunteering Section -- Once we are ready to start accepting applications */}
-        {/*
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
-          <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
-            Volunteer Your Time
-          </h2>
-          <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
-            Our volunteers are the backbone of our rescue! From dog walking and cat socializing to helping at events or with administrative tasks, your time makes a huge difference. Let us know how you&apos;d like to help.
-          </p>
-          <button
-            onClick={() => setShowVolunteerForm(true)}
-            className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow mt-auto w-full py-2 px-4">
-            Apply to Volunteer
-          </button>
-        </div> */}
-
-        {/* Partner/Sponsor Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
-          <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
-            Partner or Sponsor
-          </h2>
-          <p className="text-text-base dark:text-text-light mb-4 flex-grow">
-            As a new rescue, community partnerships and sponsorships are vital. Support from local businesses and individuals helps us provide essential care, supplies, and facilities. Contact us to learn about opportunities.
-          </p>
-          <button
-            onClick={() => setShowPartnershipSponsorshipForm(true)}
-            className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow mt-auto w-full py-2 px-4">
-            Inquire About Partnership/Sponsorship
-          </button>
+          <div className="max-w-3xl mx-auto text-gray-700 dark:text-gray-300 space-y-4">
+            <p className="text-center">
+              Not quite ready to make a lifelong commitment, but smitten with one of our animals? Our Foster-to-Adopt program is designed for you. It allows you and the animal to get to know each other in a real-world home environment before finalizing the adoption, ensuring it&apos;s a perfect match for everyone.
+            </p>
+            <div>
+              <h3 className="text-xl font-semibold mb-2 text-center text-secondary-800 dark:text-secondary-200">How It Works:</h3>
+              <ol className="list-decimal list-inside space-y-2 text-left sm:text-center">
+                <li><strong>Apply to Foster:</strong> You begin by filling out our standard Foster Application.</li>
+                <li><strong>Trial Period:</strong> You&apos;ll foster the animal for a set period (typically 2-3 weeks), and we&apos;ll provide all the supplies.</li>
+                <li><strong>Finalize the Adoption:</strong> If you&apos;ve fallen in love, we&apos;ll complete the official adoption. If not, the animal returns to our care, no hard feelings.</li>
+              </ol>
+            </div>
+            <p className="text-center pt-4 font-semibold">
+              Interested? The process starts with our Foster Application. Just make a note in the application that you&apos;re interested in the &quot;Foster-to-Adopt&quot; program!
+            </p>
+          </div>
         </div>
 
         {/* Donations Section */}
@@ -132,6 +120,49 @@ export default function GetInvolvedPage() {
             View Amazon Wishlist
           </a>
         </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
+        <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
+          Volunteer Opportunities
+        </h2>
+        <p className="text-gray-700 dark:text-gray-300 mb-6">
+          As a new, foster-based rescue, our most critical need is for dedicated foster homes. At this time, we are not accepting applications for on-site or event volunteers.
+        </p>
+        <p className="text-gray-700 dark:text-gray-300 mb-6">
+          Once we are closer to securing a physical location, we will open up applications for a wide range of volunteer roles. Thank you for your understanding and your interest in helping us grow!
+        </p>
+      </div>
+
+      {/* Volunteering Section -- Once we are ready to start accepting applications */}
+      {/*
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
+        <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
+          Volunteer Your Time
+        </h2>
+        <p className="text-gray-700 dark:text-gray-300 mb-4 flex-grow">
+          Our volunteers are the backbone of our rescue! From dog walking and cat socializing to helping at events or with administrative tasks, your time makes a huge difference. Let us know how you&apos;d like to help.
+        </p>
+        <button
+          onClick={() => setShowVolunteerForm(true)}
+          className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow mt-auto w-full py-2 px-4">
+          Apply to Volunteer
+        </button>
+      </div> */}
+
+      {/* Partner/Sponsor Section */}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col max-w-xxl border border-gray-300 dark:border-transparent">
+        <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
+          Partner or Sponsor
+        </h2>
+        <p className="text-text-base dark:text-text-light mb-4 flex-grow">
+          As a new rescue, community partnerships and sponsorships are vital. Support from local businesses and individuals helps us provide essential care, supplies, and facilities. Contact us to learn about opportunities.
+        </p>
+        <button
+          onClick={() => setShowPartnershipSponsorshipForm(true)}
+          className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow mt-auto w-full py-2 px-4">
+          Inquire About Partnership/Sponsorship
+        </button>
       </div>
 
       {/* --- Modals for Forms --- */}
