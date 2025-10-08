@@ -368,7 +368,7 @@ export default function AdminFosterApplicationsPage() {
 								Review Foster Application: {selectedApplicationSummary.applicantName}
 							</h3>
 						</div>
-						<div className="flex-grow p-6 bg-gray-50 dark:bg-gray-800 overflow-y-auto">
+						<div>
 							{isLoadingDetail && <div className="text-center py-4"><LoadingSpinner /> Loading details...</div>}
 							{updateError && !isLoadingDetail && <p className="text-sm text-red-500 mb-3">Error loading details: {updateError}</p>}
 
