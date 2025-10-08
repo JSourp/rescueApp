@@ -368,12 +368,12 @@ export default function AdminFosterApplicationsPage() {
 								Review Foster Application: {selectedApplicationSummary.applicantName}
 							</h3>
 						</div>
-						<div>
+						<div className="flex-grow p-6 bg-gray-50 dark:bg-gray-800 overflow-y-auto"> {/* Scrollable detail section */}
 							{isLoadingDetail && <div className="text-center py-4"><LoadingSpinner /> Loading details...</div>}
 							{updateError && !isLoadingDetail && <p className="text-sm text-red-500 mb-3">Error loading details: {updateError}</p>}
 
 							{!isLoadingDetail && applicationDetail && ( // Display details once loaded
-								<div className="space-y-3 text-sm max-h-[60vh] overflow-y-auto pr-2 mb-4"> {/* Scrollable detail section */}
+								<div className="space-y-3 text-sm">
 									<p><strong>Submission Date:</strong> {format(new Date(applicationDetail.submissionDate), 'PPP p')}</p>
 									<p><strong>Email:</strong> {applicationDetail.primaryEmail}</p>
 									<p><strong>Phone:</strong> {applicationDetail.primaryPhone} ({applicationDetail.primaryPhoneType})</p>
