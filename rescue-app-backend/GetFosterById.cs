@@ -129,7 +129,7 @@ namespace rescueApp
 					FirstName = fosterProfile.User.FirstName ?? string.Empty,
 					LastName = fosterProfile.User.LastName ?? string.Empty,
 					Email = fosterProfile.User.Email,
-					PrimaryPhone = fosterProfile.User.PrimaryPhone,
+					PrimaryPhone = fosterProfile.User.PrimaryPhone ?? fosterProfile.FosterApplication?.PrimaryPhone,
 					IsUserActive = fosterProfile.User.IsActive,
 					UserRole = fosterProfile.User.Role ?? string.Empty,
 

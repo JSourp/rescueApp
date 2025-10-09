@@ -104,6 +104,7 @@ namespace rescueApp
 
 				IQueryable<FosterProfile> query = _dbContext.FosterProfiles
 					.Include(fp => fp.User) // Include User data for name, email, phone
+					.Include(fp => fp.FosterApplication) // Also include the original application data
 					.Where(fp => fp.IsActiveFoster); // Typically list active fosters
 
 				// Apply Sorting
@@ -134,7 +135,7 @@ namespace rescueApp
 						FirstName = fp.User!.FirstName ?? string.Empty,
 						LastName = fp.User!.LastName ?? string.Empty,
 						Email = fp.User!.Email,
-						PrimaryPhone = fp.User!.PrimaryPhone,
+						PrimaryPhone = fp.User!.PrimaryPhone ?? fp.FosterApplication!.PrimaryPhone,
 						ApprovalDate = fp.ApprovalDate,
 						IsActiveFoster = fp.IsActiveFoster,
 						AvailabilityNotes = fp.AvailabilityNotes,

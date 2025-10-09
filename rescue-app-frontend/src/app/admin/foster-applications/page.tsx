@@ -362,69 +362,73 @@ export default function AdminFosterApplicationsPage() {
 			{/* Review/Update Application Modal */}
 			{isReviewModalOpen && selectedApplicationSummary && (
 				<Modal onClose={handleCloseReviewModal} preventBackdropClickClose={true}>
-					<div className="p-6">
-						<h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
-							Review Foster Application: {selectedApplicationSummary.applicantName}
-						</h3>
-						{isLoadingDetail && <div className="text-center py-4"><LoadingSpinner /> Loading details...</div>}
-						{updateError && !isLoadingDetail && <p className="text-sm text-red-500 mb-3">Error loading details: {updateError}</p>}
+					<div className="flex flex-col max-h-[85vh]">
+						<div className="flex-shrink-0 p-6 bg-gray-500 dark:bg-gray-600">
+							<h3 className="text-xl font-semibold mb-0 text-white text-center">
+								Review Foster Application: {selectedApplicationSummary.applicantName}
+							</h3>
+						</div>
+						<div className="flex-grow p-6 bg-gray-50 dark:bg-gray-800 overflow-y-auto"> {/* Scrollable detail section */}
+							{isLoadingDetail && <div className="text-center py-4"><LoadingSpinner /> Loading details...</div>}
+							{updateError && !isLoadingDetail && <p className="text-sm text-red-500 mb-3">Error loading details: {updateError}</p>}
 
-						{!isLoadingDetail && applicationDetail && ( // Display details once loaded
-							<div className="space-y-3 text-sm max-h-[60vh] overflow-y-auto pr-2 mb-4"> {/* Scrollable detail section */}
-								<p><strong>Submission Date:</strong> {format(new Date(applicationDetail.submissionDate), 'PPP p')}</p>
-								<p><strong>Email:</strong> {applicationDetail.primaryEmail}</p>
-								<p><strong>Phone:</strong> {applicationDetail.primaryPhone} ({applicationDetail.primaryPhoneType})</p>
+							{!isLoadingDetail && applicationDetail && ( // Display details once loaded
+								<div className="space-y-3 text-sm">
+									<p><strong>Submission Date:</strong> {format(new Date(applicationDetail.submissionDate), 'PPP p')}</p>
+									<p><strong>Email:</strong> {applicationDetail.primaryEmail}</p>
+									<p><strong>Phone:</strong> {applicationDetail.primaryPhone} ({applicationDetail.primaryPhoneType})</p>
 
-								{/* --- Display ALL fields from FosterApplicationDetailDto --- */}
-								<h4 className="font-semibold mt-3 pt-2 border-t">Applicant Info</h4>
-								<p>Name: {applicationDetail.firstName} ({applicationDetail.lastName})</p>
-								<p>Spouse/Partner: {applicationDetail.spousePartnerRoommate || 'N/A'}</p>
-								<p>Address: {applicationDetail.streetAddress}, {applicationDetail.aptUnit || ''} {applicationDetail.city}, {applicationDetail.stateProvince} {applicationDetail.zipPostalCode}</p>
-								<p>Adults in Home: {applicationDetail.adultsInHome}</p>
-								<p>Children in Home: {applicationDetail.childrenInHome || ''}</p>
-								<p>Has allergies: {applicationDetail.hasAllergies || ''}</p>
+									{/* --- Display ALL fields from FosterApplicationDetailDto --- */}
+									<h4 className="font-semibold mt-3 pt-2 border-t">Applicant Info</h4>
+									<p>Name: {applicationDetail.firstName} ({applicationDetail.lastName})</p>
+									<p>Spouse/Partner: {applicationDetail.spousePartnerRoommate || 'N/A'}</p>
+									<p>Address: {applicationDetail.streetAddress}, {applicationDetail.aptUnit || ''} {applicationDetail.city}, {applicationDetail.stateProvince} {applicationDetail.zipPostalCode}</p>
+									<p>Adults in Home: {applicationDetail.adultsInHome}</p>
+									<p>Children in Home: {applicationDetail.childrenInHome || ''}</p>
+									<p>Has allergies: {applicationDetail.hasAllergies || ''}</p>
 
-								<h4 className="font-semibold mt-3 pt-2 border-t">Home Environment</h4>
-								<p>Household aware of foster: {applicationDetail.householdAwareFoster}</p>
-								<p>Dwelling: {applicationDetail.dwellingType}, {applicationDetail.rentOrOwn}</p>
-								{applicationDetail.rentOrOwn === 'Rent' && <p>Landlord Permission: {applicationDetail.landlordPermission ? 'Yes' : 'No/Unstated'}</p>}
-								<p>Yard: {applicationDetail.yardType || 'N/A'}</p>
-								<p>Separation Plan: {applicationDetail.separationPlan}</p>
+									<h4 className="font-semibold mt-3 pt-2 border-t">Home Environment</h4>
+									<p>Household aware of foster: {applicationDetail.householdAwareFoster}</p>
+									<p>Dwelling: {applicationDetail.dwellingType}, {applicationDetail.rentOrOwn}</p>
+									{applicationDetail.rentOrOwn === 'Rent' && <p>Landlord Permission: {applicationDetail.landlordPermission ? 'Yes' : 'No/Unstated'}</p>}
+									<p>Yard: {applicationDetail.yardType || 'N/A'}</p>
+									<p>Separation Plan: {applicationDetail.separationPlan}</p>
 
-								<h4 className="font-semibold mt-3 pt-2 border-t">Current Pets</h4>
-								<p>Has Pets: {applicationDetail.hasCurrentPets}</p>
-								{applicationDetail.hasCurrentPets === 'Yes' && (
-									<>
-										<p>Details: {applicationDetail.currentPetsDetails}</p>
-										<p>S/N: {applicationDetail.currentPetsSpayedNeutered}</p>
-										<p>Vaccinations: {applicationDetail.currentPetsVaccinations}</p>
-									</>
-								)}
-								<p>Vet: {applicationDetail.vetClinicName || 'N/A'} - {applicationDetail.vetPhone || 'N/A'}</p>
+									<h4 className="font-semibold mt-3 pt-2 border-t">Current Pets</h4>
+									<p>Has Pets: {applicationDetail.hasCurrentPets}</p>
+									{applicationDetail.hasCurrentPets === 'Yes' && (
+										<>
+											<p>Details: {applicationDetail.currentPetsDetails}</p>
+											<p>S/N: {applicationDetail.currentPetsSpayedNeutered}</p>
+											<p>Vaccinations: {applicationDetail.currentPetsVaccinations}</p>
+										</>
+									)}
+									<p>Vet: {applicationDetail.vetClinicName || 'N/A'} - {applicationDetail.vetPhone || 'N/A'}</p>
 
-								<h4 className="font-semibold mt-3 pt-2 border-t">Foster Experience & Preferences</h4>
-								<p>Fostered Before: {applicationDetail.hasFosteredBefore}</p>
-								{applicationDetail.hasFosteredBefore === 'Yes' && <p>Prev. Details: {applicationDetail.previousFosterDetails}</p>}
-								<p>Why Foster: {applicationDetail.whyFoster}</p>
-								<p>Animal Types: {applicationDetail.fosterAnimalTypes}</p>
-								<p>Medical Willing: {applicationDetail.willingMedical}</p>
-								<p>Behavioral Willing: {applicationDetail.willingBehavioral}</p>
-								<p>Commitment: {applicationDetail.commitmentLength}</p>
-								<p>Transport: {applicationDetail.canTransport}</p>
-								{applicationDetail.canTransport === 'Maybe' && <p>Transport Notes: {applicationDetail.transportExplanation}</p>}
-								<p>Previous Pets: {applicationDetail.previousPetsDetails || 'N/A'}</p>
-								<p>Heard via: {applicationDetail.howHeard || 'N/A'}</p>
+									<h4 className="font-semibold mt-3 pt-2 border-t">Foster Experience & Preferences</h4>
+									<p>Fostered Before: {applicationDetail.hasFosteredBefore}</p>
+									{applicationDetail.hasFosteredBefore === 'Yes' && <p>Prev. Details: {applicationDetail.previousFosterDetails}</p>}
+									<p>Why Foster: {applicationDetail.whyFoster}</p>
+									<p>Animal Types: {applicationDetail.fosterAnimalTypes}</p>
+									<p>Medical Willing: {applicationDetail.willingMedical}</p>
+									<p>Behavioral Willing: {applicationDetail.willingBehavioral}</p>
+									<p>Commitment: {applicationDetail.commitmentLength}</p>
+									<p>Transport: {applicationDetail.canTransport}</p>
+									{applicationDetail.canTransport === 'Maybe' && <p>Transport Notes: {applicationDetail.transportExplanation}</p>}
+									<p>Previous Pets: {applicationDetail.previousPetsDetails || 'N/A'}</p>
+									<p>Heard via: {applicationDetail.howHeard || 'N/A'}</p>
 
-								<h4 className="font-semibold mt-3 pt-2 border-t">Waver</h4>
-								{applicationDetail.waiverAgreed && <p>Waver Signed By: {applicationDetail.eSignatureName}</p>}
+									<h4 className="font-semibold mt-3 pt-2 border-t">Waver</h4>
+									{applicationDetail.waiverAgreed && <p>Waver Signed By: {applicationDetail.eSignatureName}</p>}
 
-								<h4 className="font-semibold mt-3 pt-2 border-t">Admin Review</h4>
-								<p>Status: {applicationDetail.status}</p>
-								<p>Reviewed By: {applicationDetail.reviewedByName || 'N/A'}</p>
-								{applicationDetail.reviewDate && <p>Review Date: {format(new Date(applicationDetail.reviewDate), 'PPP p')}</p>}
-								<p className="whitespace-pre-wrap">Internal Notes (All): <br />{applicationDetail.internalNotes || <span className="italic">None</span>}</p>
-							</div>
-						)}
+									<h4 className="font-semibold mt-3 pt-2 border-t">Admin Review</h4>
+									<p>Status: {applicationDetail.status}</p>
+									<p>Reviewed By: {applicationDetail.reviewedByName || 'N/A'}</p>
+									{applicationDetail.reviewDate && <p>Review Date: {format(new Date(applicationDetail.reviewDate), 'PPP p')}</p>}
+									<p className="whitespace-pre-wrap">Internal Notes (All): <br />{applicationDetail.internalNotes || <span className="italic">None</span>}</p>
+								</div>
+							)}
+						</div>
 
 						{/* Status Update Section (only if detail loaded) */}
 						{!isLoadingDetail && applicationDetail && (
