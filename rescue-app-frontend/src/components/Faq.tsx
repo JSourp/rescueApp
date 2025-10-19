@@ -37,7 +37,7 @@ export const Faq = () => {
 const faqdata = [
   {
     question: "What is your adoption process?",
-    answer: "Our adoption process involves filling out an application, a brief interview, and a meet-and-greet to ensure a good match. While we don't have a set adoption fee, we encourage donations to help cover the costs of caring for our animals.",
+    answer: "Our adoption process involves filling out an application, a brief interview, and a meet-and-greet to ensure a good match. We prioritize the well-being of our animals and want to ensure they go to loving, responsible homes.",
   },
   {
     question: "How can I support your work?",
