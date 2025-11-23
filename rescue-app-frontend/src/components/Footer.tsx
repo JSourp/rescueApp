@@ -47,12 +47,10 @@ export function Footer() {
                 <UserGroupIcon />
                 <span>Get Involved</span>
               </Link>
-              {/* Uncomment the below link once an animal has been adopted
               <Link href="/graduates" className="flex items-center space-x-2 p-1 text-gray-500 rounded-md dark:text-gray-300 hover:text-text-link focus:text-text-link focus:outline-none">
                 <GraduationCapIcon />
                 <span>Our Graduates</span>
               </Link>
-              */}
 
               {/*
               <Link href="/color-palette-dev" className="flex items-center space-x-2 p-1 text-gray-500 rounded-md dark:text-gray-300 hover:text-text-link focus:text-text-link focus:outline-none">

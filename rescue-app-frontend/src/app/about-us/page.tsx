@@ -45,15 +45,12 @@ export default function AboutUsPage() {
           {/* Section: Our Why / Philosophy */}
           <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">Our Philosophy: Rescue and Sanctuary</h2>
 
-          {/* <p>
+          <p>
             We believe every animal deserves exactly that - a second chance. Our name reflects our core belief: we are both a rescue, focused on finding loving forever homes, and a sanctuary, providing a safe haven for animals who may need lifetime care.
             <Link href="/graduates" className="text-text-link hover:underline font-medium mx-1">
               See our success stories!
             </Link>
-            We learned from volunteering elsewhere - adopting the best practices and vowing to avoid the pitfalls that can fail animals. Our commitment is to each individual animal, treating them as our own for as long as they need us.
-          </p> */}
-          <p> {/* Replace the below paragraph with the above once an animal has been adopted */}
-            We believe every animal deserves exactly that - a second chance. Our name reflects our core belief: we are both a rescue, focused on finding loving forever homes, and a sanctuary, providing a safe haven for animals who may need lifetime care. We learned from volunteering elsewhere - adopting the best practices and vowing to avoid the pitfalls that can fail animals. Our commitment is to each individual animal, treating them as our own for as long as they need us.
+            Our commitment is to each individual animal, treating them as our own for as long as they need us.
           </p>
 
           <p>
