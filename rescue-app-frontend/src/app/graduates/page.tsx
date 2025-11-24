@@ -278,7 +278,9 @@ export default function GraduatesPage() {
 								/>
 								<div className="p-4 text-center min-h-[50px]">
 									<p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-										Adopted: {graduate.adoptionDate ? format(new Date(graduate.adoptionDate), 'MMM dd, yyyy') : 'Date N/A'}
+										Adopted: {graduate.adoptionDate
+											? format(new Date(new Date(graduate.adoptionDate).valueOf() + new Date(graduate.adoptionDate).getTimezoneOffset() * 60000), 'PPP')
+											: ''}
 									</p>
 								</div>
 								{/* </Link> */}
