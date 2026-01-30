@@ -10,6 +10,7 @@ RescueApp is a full-stack web application built with a modern technology set. It
 * [1. Technology Stack](#1-technology-stack)
 * [2. How Can I Use It? (Developer Setup Guide)](#2-how-can-i-use-it-developer-setup-guide)
 * [3. How Can I Use the Site? (Admin User Guide)](#3-how-can-i-use-the-site-admin-user-guide)
+* [4. Quick Start / Re-Installation Checklist](#4-quick-start-reinstallation-checklist)
 * [Versioning](#versioning)
 * [Contributing](#contributing-placeholder)
 * [License](#license-placeholder)
@@ -308,6 +309,10 @@ This guide assumes you are logged in as a user with the "Admin" or "Staff" role.
 * Update your name if needed.
 
 This guide covers the main administrative workflows. As new features are added, this section will be expanded!
+
+## 4. Quick Start / Re-Installation Checklist
+*Use this checklist when setting up the project on a new machine.*
+*TODO*
 
 ## Versioning
 
