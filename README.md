@@ -10,7 +10,7 @@ RescueApp is a full-stack web application built with a modern technology set. It
 * [1. Technology Stack](#1-technology-stack)
 * [2. How Can I Use It? (Developer Setup Guide)](#2-how-can-i-use-it-developer-setup-guide)
 * [3. How Can I Use the Site? (Admin User Guide)](#3-how-can-i-use-the-site-admin-user-guide)
-* [4. Quick Start / Re-Installation Checklist](#4-quick-start-reinstallation-checklist)
+* [4. Quick Start / Re-Installation Checklist](#4-quick-start--re-installation-checklist)
 * [Versioning](#versioning)
 * [Contributing](#contributing-placeholder)
 * [License](#license-placeholder)
