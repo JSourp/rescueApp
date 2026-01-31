@@ -17,8 +17,8 @@ using Microsoft.IdentityModel.Tokens;
 using rescueApp.Data;
 using rescueApp.Models;
 using rescueApp.Models.Requests;
-using SendGrid;
-using SendGrid.Helpers.Mail;
+using System.Net;
+using System.Net.Mail;
 
 // Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
@@ -130,50 +130,67 @@ namespace rescueApp
 				return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Invalid request data.");
 			}
 
-			// --- 3. Send Email Logic ---
+			// --- 3. Send Email Logic (Via SMTP) ---
 			try
-            {
-				string? sendGridApiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
-				if (string.IsNullOrEmpty(sendGridApiKey))
+			{
+				// Retrieve settings
+				string smtpHost = Environment.GetEnvironmentVariable("SMTP_HOST") ?? "smtp-relay.brevo.com";
+				int smtpPort = int.Parse(Environment.GetEnvironmentVariable("SMTP_PORT") ?? "587");
+				string smtpUser = Environment.GetEnvironmentVariable("SMTP_USERNAME") ?? "";
+				string smtpPass = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? "";
+
+				if (string.IsNullOrEmpty(smtpUser) || string.IsNullOrEmpty(smtpPass))
 				{
-					_logger.LogError("SENDGRID_API_KEY environment variable is not set.");
-					return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Email service is not configured.");
-                }
+					_logger.LogError("SMTP credentials not configured.");
+					return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Email configuration error.");
+				}
 
-				var client = new SendGridClient(sendGridApiKey);
-				var from = new EmailAddress("contact@scars-az.com", "SCARS Adoption Team");
-				var to = new EmailAddress(contractData.RecipientEmail);
-				var subject = $"Adoption Contract for {contractData.AnimalName}";
-
+				// Prepare content
 				string jotformBaseUrl = "https://form.jotform.com/252745581529062";
 				string jotformUrl = $"{jotformBaseUrl}?animalName={Uri.EscapeDataString(contractData.AnimalName)}&animalSpecies={Uri.EscapeDataString(contractData.AnimalSpecies)}&animalBreed={Uri.EscapeDataString(contractData.AnimalBreed)}&animalGender={Uri.EscapeDataString(contractData.AnimalGender)}&scarsId={contractData.ScarsId}";
 
-				var plainTextContent = $"Hello,\n\nPlease complete the adoption contract for {contractData.AnimalName} by clicking the link below:\n\n{jotformUrl}\n\nThank you,\nSCARS Team";
-				var htmlContent = $"<p>Hello,</p><p>Please complete the adoption contract for <strong>{contractData.AnimalName}</strong> by clicking the link below:</p><p><a href='{jotformUrl}'>Click Here to Sign the Contract</a></p><p>Thank you,<br>SCARS Team</p>";
+				string subject = $"Adoption Contract for {contractData.AnimalName}";
+				string htmlContent = $@"
+					<p>Hello,</p>
+					<p>Please complete the adoption contract for <strong>{contractData.AnimalName}</strong> by clicking the link below:</p>
+					<p><a href='{jotformUrl}'>Click Here to Sign the Contract</a></p>
+					<p>Thank you,<br>SCARS Team</p>";
 
-				var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
-				var response = await client.SendEmailAsync(msg);
+				// Configure Message
+				using (var message = new MailMessage())
+				{
+					message.From = new MailAddress("contact@scars-az.com", "SCARS Adoption Team");
+					message.To.Add(new MailAddress(contractData.RecipientEmail));
+					message.Subject = subject;
+					message.Body = htmlContent;
+					message.IsBodyHtml = true;
 
-				if (response.IsSuccessStatusCode)
-                {
-					_logger.LogInformation("Contract email sent successfully via SendGrid to {RecipientEmail}", contractData.RecipientEmail);
-					var successResponse = req.CreateResponse(HttpStatusCode.OK);
-                    await successResponse.WriteStringAsync("{\"message\": \"Contract email sent successfully.\"}");
-                    return successResponse;
-                }
-                else
-                {
-					string errorBody = await response.Body.ReadAsStringAsync();
-					_logger.LogError("Failed to send email via SendGrid. Status: {StatusCode}, Body: {ErrorBody}", response.StatusCode, errorBody);
-					return await CreateErrorResponse(req, HttpStatusCode.ServiceUnavailable, "Failed to send email.");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An unexpected error occurred while sending the contract email.");
-                return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An internal error occurred.");
-            }
-        }
+					// Configure Client
+					using (var client = new SmtpClient(smtpHost, smtpPort))
+					{
+						client.EnableSsl = true;
+						client.Credentials = new NetworkCredential(smtpUser, smtpPass);
+
+						await client.SendMailAsync(message);
+					}
+				}
+
+				_logger.LogInformation("Contract email sent successfully via SMTP to {RecipientEmail}", contractData.RecipientEmail);
+				var successResponse = req.CreateResponse(HttpStatusCode.OK);
+				await successResponse.WriteStringAsync("{\"message\": \"Contract email sent successfully.\"}");
+				return successResponse;
+			}
+			catch (SmtpException smtpEx)
+			{
+				_logger.LogError(smtpEx, "SMTP Error sending email: {Message}", smtpEx.Message);
+				return await CreateErrorResponse(req, HttpStatusCode.ServiceUnavailable, "Failed to send email via SMTP provider.");
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Unexpected error sending email.");
+				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An internal error occurred.");
+			}
+		}
 
 		// --- Token Validation Logic shared helper/service ---
 		private async Task<ClaimsPrincipal?> ValidateTokenAndGetPrincipal(AzureFuncHttp.HttpRequestData req)
