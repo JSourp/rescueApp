@@ -33,6 +33,15 @@ export function Footer() {
             <p className="mt-5 text-sm text-gray-500 dark:text-gray-400">
               Registered 501(c)(3) EIN: 33-5038937
             </p>
+            <p className="mt-5 text-sm font-medium text-gray-700 dark:text-gray-300">
+              Questions? Reach out to us: <br />
+              <a href="tel:6024054903" className="text-text-link hover:underline">
+                (602) 405-4903
+              </a>
+              <span className="font-normal text-gray-500 dark:text-gray-400 ml-2">
+                (Call or text - text preferred)
+              </span>
+            </p>
           </div>
 
           {/* --- Column 2: Learn More / Navigation Links --- */}

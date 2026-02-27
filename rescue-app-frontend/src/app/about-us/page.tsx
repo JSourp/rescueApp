@@ -11,6 +11,7 @@ export default function AboutUsPage() {
     "Jon Sourp",
     "Kelsey Johnson",
     "Jordan Brunelle",
+    "Valorie Voytoski",
   ];
 
   const ein = "33-5038937";
@@ -85,9 +86,14 @@ export default function AboutUsPage() {
 
           {/* Section: Non-Profit Status */}
           <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">Our Commitment to You</h2>
-          {/* "with 501(c)(3) status" once obtained */}
           <p>
-            Second Chance Animal Rescue and Sanctuary is a registered non-profit organization [pending 501(c)(3) status]. Our Employer Identification Number (EIN) is: <strong>{ein}</strong>. We promise to be responsible stewards of your generous support and maintain open communication about our operations and finances.
+            Second Chance Animal Rescue and Sanctuary is a registered non-profit organization with 501(c)(3) status. Our Employer Identification Number (EIN) is: <strong>{ein}</strong>. We promise to be responsible stewards of your generous support and maintain open communication about our operations and finances.
+          </p>
+
+          {/* Contact */}
+          <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mt-8">Get in Touch</h2>
+          <p>
+            Have a question about an animal or want to learn more about our rescue? We&apos;d love to hear from you. You can reach us at <strong><a href="tel:6024054903" className="text-text-link hover:underline">(602) 405-4903</a></strong>. Feel free to call or text, though texting is strongly preferred. As a fully volunteer/foster-run organization, we are often hands-on with the animals or at our day jobs, making a text much easier for us to reply to quickly!
           </p>
 
           {/* Call to Action */}
