@@ -503,12 +503,11 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
             </div>
 
             {/* Location Acknowledgement */}
-            <div className="mb-4 p-3 bg-accent-100 dark:bg-accent-900 border border-accent-300 dark:border-accent-700 rounded">
+            {/* <div className="mb-4 p-3 bg-accent-100 dark:bg-accent-900 border border-accent-300 dark:border-accent-700 rounded">
               <p className="text-sm font-semibold text-accent-800 dark:text-accent-200 mb-2">Location Note:</p>
               <p className="text-sm text-accent-700 dark:text-accent-300 mb-3">
                 The Second Chance shelter facility is located in the west valley (Glendale, AZ) near the intersection of Cactus Rd and 67th Ave. Please confirm this location is feasible for you to volunteer at regularly.
               </p>
-              {/* Using a single required checkbox for simplicity */}
               <div className="flex items-center">
                 <input
                   type="checkbox"
@@ -519,7 +518,7 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
                 <label htmlFor="location_acknowledgement" className={checkboxLabelClasses}>I understand and the location works for me.</label>
               </div>
               {errors.location_acknowledgement && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.location_acknowledgement.message}</p>}
-            </div>
+            </div> */}
 
             {/* Reason for Volunteering */}
             <div className="mb-4">
