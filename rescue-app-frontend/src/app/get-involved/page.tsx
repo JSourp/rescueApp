@@ -123,11 +123,16 @@ export default function GetInvolvedPage() {
         {/* Volunteer Section */}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex flex-col border border-gray-300 dark:border-transparent">
           <h2 className="text-text-base dark:text-text-light text-2xl font-semibold mb-4">
-            Volunteer Opportunities
+            Volunteer Your Time
           </h2>
-          <p className="text-gray-700 dark:text-gray-300 mb-6 flex-grow">
-            As a new, foster-based rescue, our most critical need is for dedicated foster homes. At this time, we are not accepting applications for on-site or event volunteers. Once we are closer to securing a physical location, we will open up applications for a wide range of volunteer roles. Thank you for your understanding and your interest in helping us grow!
+          <p className="text-text-base dark:text-text-light mb-4 flex-grow">
+            While we are currently a fully foster-based rescue, volunteers are still the backbone of our organization! Right now, our biggest volunteer need is for <strong>Cat & Kitten Socializers</strong>. We are looking for individuals willing to visit our local foster homes to help safely socialize our rescues. It is a wonderful way to earn volunteer hours just by playing with kittens!
           </p>
+          <button
+            onClick={() => setShowVolunteerForm(true)}
+            className="text-text-on-primary bg-primary hover:bg-primary-800 transition duration-300 rounded-md shadow mt-auto w-full py-2 px-4">
+            Apply to Volunteer
+          </button>
         </div>
 
         {/* Volunteering Section -- Once we are ready to start accepting applications
