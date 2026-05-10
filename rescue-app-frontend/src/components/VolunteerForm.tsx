@@ -77,6 +77,7 @@ interface VolunteerFormData {
   comfort_level_special_needs: 'Yes' | 'Maybe' | 'No' | '';
   areas_of_interest?: string[];
   other_skills?: string;
+  location_acknowledgement: boolean | string;
   volunteer_reason?: string;
   emergency_contact_name: string;
   emergency_contact_phone: string;
@@ -112,6 +113,7 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
       primary_phone_type: '', secondary_phone_type: '', how_heard: '',
       age_confirmation: '', previous_volunteer_experience: '',
       comfort_level_special_needs: '', areas_of_interest: [], other_skills: '',
+      location_acknowledgement: false, volunteer_reason: '',
       emergency_contact_name: '', emergency_contact_phone: '',
       crime_conviction_check: '', policy_acknowledgement: false,
       waiver_agreed: false,
@@ -195,6 +197,7 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
         comfortLevelSpecialNeeds: data.comfort_level_special_needs,
         areasOfInterest: data.areas_of_interest?.join(', '),
         otherSkills: data.other_skills,
+        locationAcknowledgement: data.location_acknowledgement,
         volunteerReason: data.volunteer_reason,
         emergencyContactName: data.emergency_contact_name,
         emergencyContactPhone: data.emergency_contact_phone,
@@ -229,6 +232,7 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
         const web3formsPayload = {
           ...data, // Send original snake_case form data to web3forms
           areas_of_interest: data.areas_of_interest?.join(', '),
+          location_acknowledgement: data.location_acknowledgement ? 'Yes' : 'No',
           policy_acknowledgement: data.policy_acknowledgement ? 'Yes' : 'No',
           waiver_agreed: data.waiver_agreed ? 'Yes' : 'No',
           access_key: process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY,
@@ -493,6 +497,24 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
               </label>
               <textarea id="other_skills" rows={3} {...register("other_skills")} className={`${inputBaseClasses} ${inputBorderClasses(!!errors.other_skills)} h-auto`} placeholder="e.g., Graphic design, plumbing, bookkeeping..." />
             </div>
+
+            {/* Location Acknowledgement */}
+            {/* <div className="mb-4 p-3 bg-accent-100 dark:bg-accent-900 border border-accent-300 dark:border-accent-700 rounded">
+              <p className="text-sm font-semibold text-accent-800 dark:text-accent-200 mb-2">Location Note:</p>
+              <p className="text-sm text-accent-700 dark:text-accent-300 mb-3">
+                The Second Chance shelter facility is located in the west valley (Glendale, AZ) near the intersection of Cactus Rd and 67th Ave. Please confirm this location is feasible for you to volunteer at regularly.
+              </p>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="location_acknowledgement"
+                  {...register("location_acknowledgement", { required: "Please acknowledge the location information" })}
+                  className={`h-4 w-4 text-orange-600 border-gray-300 dark:border-gray-600 rounded focus:ring-orange-500 dark:bg-gray-700 ${errors.location_acknowledgement ? 'border-red-500' : ''}`}
+                />
+                <label htmlFor="location_acknowledgement" className={checkboxLabelClasses}>I understand and the location works for me.</label>
+              </div>
+              {errors.location_acknowledgement && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.location_acknowledgement.message}</p>}
+            </div> */}
 
             {/* Reason for Volunteering */}
             <div className="mb-4">

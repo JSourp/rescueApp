@@ -107,6 +107,7 @@ namespace rescueApp
                 ComfortLevelSpecialNeeds = appRequest.ComfortLevelSpecialNeeds,
                 AreasOfInterest = appRequest.AreasOfInterest,
                 OtherSkills = appRequest.OtherSkills,
+                LocationAcknowledgement = appRequest.LocationAcknowledgement ?? false,
                 VolunteerReason = appRequest.VolunteerReason,
                 EmergencyContactName = appRequest.EmergencyContactName!,
                 EmergencyContactPhone = appRequest.EmergencyContactPhone!,
