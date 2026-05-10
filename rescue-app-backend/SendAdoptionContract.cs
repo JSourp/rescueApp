@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -17,8 +18,6 @@ using Microsoft.IdentityModel.Tokens;
 using rescueApp.Data;
 using rescueApp.Models;
 using rescueApp.Models.Requests;
-using System.Net;
-using System.Net.Mail;
 
 // Alias for Http Trigger type
 using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
