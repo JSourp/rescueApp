@@ -133,10 +133,10 @@ export default function VolunteerForm({ onClose }: VolunteerFormProps) {
     setSubmitMessage("");
     console.log("Volunteer Form Data:", data);
 
-    if (data.location_acknowledgement !== true && data.location_acknowledgement !== 'accepted') {
-      setSubmitMessage("Please acknowledge the location information.");
-      return;
-    }
+    //if (data.location_acknowledgement !== true && data.location_acknowledgement !== 'accepted') {
+    //  setSubmitMessage("Please acknowledge the location information.");
+    //  return;
+    //}
     if (!data.policy_acknowledgement) {
       setSubmitMessage("Please acknowledge the volunteer agreement.");
       return;
