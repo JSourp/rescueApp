@@ -29,7 +29,7 @@ namespace rescueApp.Models.Requests
         [MaxLength(10)] public string? ComfortLevelSpecialNeeds { get; set; }
         public string? AreasOfInterest { get; set; }
         public string? OtherSkills { get; set; }
-        [Required(ErrorMessage = "Location acknowledgement is required.")] // Validation for boolean
+        //[Required(ErrorMessage = "Location acknowledgement is required.")] // Validation for boolean
         public bool? LocationAcknowledgement { get; set; }
         public string? VolunteerReason { get; set; }
         [MaxLength(255)] public string? EmergencyContactName { get; set; }

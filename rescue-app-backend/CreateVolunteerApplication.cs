@@ -63,7 +63,7 @@ namespace rescueApp
                     return await CreateErrorResponse(req, HttpStatusCode.BadRequest, $"Invalid application data: {errors}");
                 }
                 // Specific logic checks
-                if (appRequest.LocationAcknowledgement != true) return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Location acknowledgement is required.");
+                //if (appRequest.LocationAcknowledgement != true) return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Location acknowledgement is required.");
                 if (appRequest.PolicyAcknowledgement != true) return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Policy acknowledgement is required.");
                 if (appRequest.AgeConfirmation?.ToLower() != "yes") return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Volunteers must confirm they are 18 or older.");
                 if (appRequest.WaiverAgreed != true) return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "Waiver agreement is required.");
