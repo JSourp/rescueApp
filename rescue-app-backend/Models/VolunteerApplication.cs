@@ -37,7 +37,6 @@ namespace rescueApp.Models
         [MaxLength(10)] public string? ComfortLevelSpecialNeeds { get; set; }
         public string? AreasOfInterest { get; set; } // Comma-separated from string[]
         public string? OtherSkills { get; set; }
-        public bool LocationAcknowledgement { get; set; }
         public string? VolunteerReason { get; set; }
         [MaxLength(255)] public string EmergencyContactName { get; set; } = string.Empty;
         [MaxLength(30)] public string EmergencyContactPhone { get; set; } = string.Empty;

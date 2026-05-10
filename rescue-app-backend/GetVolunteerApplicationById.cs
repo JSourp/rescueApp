@@ -137,7 +137,6 @@ namespace rescueApp
 					ComfortLevelSpecialNeeds = applicationEntity.ComfortLevelSpecialNeeds,
 					AreasOfInterest = applicationEntity.AreasOfInterest,
 					OtherSkills = applicationEntity.OtherSkills,
-					LocationAcknowledgement = applicationEntity.LocationAcknowledgement,
 					VolunteerReason = applicationEntity.VolunteerReason,
 					EmergencyContactName = applicationEntity.EmergencyContactName,
 					EmergencyContactPhone = applicationEntity.EmergencyContactPhone,

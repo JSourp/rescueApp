@@ -156,7 +156,6 @@ export default async function AdminVolunteerApplicationReviewPage({ params }: { 
                         <DetailItem label="Comfort with Special Needs">{application.comfortLevelSpecialNeeds}</DetailItem>
                         <DetailItem label="Areas of Interest" isTextArea>{application.areasOfInterest}</DetailItem>
                         <DetailItem label="Other Skills" isTextArea>{application.otherSkills}</DetailItem>
-                        <DetailItem label="Location Acknowledged" isBoolean>{application.locationAcknowledgement}</DetailItem>
                         <DetailItem label="Reason for Volunteering">{application.volunteerReason}</DetailItem>
                         <DetailItem label="Emergency Contact">{application.emergencyContactName} - {application.emergencyContactPhone}</DetailItem>
                         <DetailItem label="Crime Conviction Check">{application.crimeConvictionCheck}</DetailItem>

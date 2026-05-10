@@ -27,7 +27,6 @@ export interface VolunteerApplicationDetail {
     comfortLevelSpecialNeeds?: string | null; // "Yes", "Maybe", "No"
     areasOfInterest?: string | null; // Comma-separated string
     otherSkills?: string | null;
-    locationAcknowledgement: boolean;
     volunteerReason?: string | null;
     emergencyContactName: string;
     emergencyContactPhone: string;

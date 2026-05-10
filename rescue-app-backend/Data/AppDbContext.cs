@@ -266,7 +266,6 @@ public class AppDbContext : DbContext
       entity.Property(e => e.Id).UseIdentityByDefaultColumn();
       entity.Property(e => e.SubmissionDate).HasDefaultValueSql("CURRENT_TIMESTAMP");
       entity.Property(e => e.Status).HasDefaultValue("Pending Review");
-      entity.Property(e => e.LocationAcknowledgement).HasDefaultValue(false);
       entity.Property(e => e.PolicyAcknowledgement).HasDefaultValue(false);
       entity.Property(e => e.WaiverAgreed).HasDefaultValue(false);
 
