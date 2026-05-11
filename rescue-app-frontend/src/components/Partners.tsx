@@ -18,6 +18,10 @@ export const Partners = () => {
 					</div>
 
 					<div className="flex flex-wrap justify-center gap-5 mt-10 md:justify-around">
+						<div className="flex items-center justify-center p-4">
+							<img src="/img/brands/adoptapet.png" alt="Adopt-a-Pet" className="max-h-12 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition duration-300" />
+						</div>
+						{/*
 						<div className="pt-2 text-gray-400 dark:text-gray-400">
 							<AmazonLogo />
 						</div>
@@ -33,6 +37,7 @@ export const Partners = () => {
 						<div className="pt-2 text-gray-400 dark:text-gray-400">
 							<SonyLogo />
 						</div>
+						*/}
 					</div>
 				</div>
 			</Container>
