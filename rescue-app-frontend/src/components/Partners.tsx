@@ -21,8 +21,8 @@ export const Partners = () => {
 						<Image
 							src="/img/brands/AdoptaPet.png"
 							alt="Adopt-a-Pet"
-							width={256}
-							height={256}
+							width={170}
+							height={170}
 							className="grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition duration-300"
 						/>
 						{/*
