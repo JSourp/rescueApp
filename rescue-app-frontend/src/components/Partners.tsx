@@ -19,7 +19,9 @@ export const Partners = () => {
 					</div>
 
 					<div className="flex flex-wrap justify-center gap-5 mt-10 md:justify-around">
-						<Link href="https://www.adoptapet.com/shelter/286783#available-pets">
+						<Link href="https://www.adoptapet.com/shelter/286783#available-pets"
+							target="_blank" rel="noopener noreferrer"
+						>
 							<Image
 								src="/img/brands/AdoptaPet.png"
 								alt="Adopt-a-Pet"

@@ -5,6 +5,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Mail;
+using Azure.Storage.Blobs;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -223,7 +225,90 @@ namespace rescueApp
                 await _dbContext.SaveChangesAsync();
 
 
-                // 10. Commit Transaction
+                // 10. Email documents to Adopter
+                try
+                {
+                    // 10a. Fetch the documents for this animal from the database
+                    var animalDocs = await _dbContext.AnimalDocuments
+                        .Where(d => d.AnimalId == adoptionRequest.AnimalId)
+                        .ToListAsync();
+
+                    // 10b. Check if there are documents AND we have an adopter email
+                    if (animalDocs.Any() && !string.IsNullOrEmpty(reqData.AdopterEmail))
+                    {
+                        _logger.LogInformation("Found {Count} documents. Preparing to email adopter...", animalDocs.Count);
+
+                        string smtpHost = Environment.GetEnvironmentVariable("SMTP_HOST") ?? "smtp-relay.brevo.com";
+                        int smtpPort = int.Parse(Environment.GetEnvironmentVariable("SMTP_PORT") ?? "587");
+                        string smtpUser = Environment.GetEnvironmentVariable("SMTP_USERNAME") ?? "";
+                        string smtpPass = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? "";
+                        string blobConnStr = Environment.GetEnvironmentVariable("AzureBlobStorageConnectionString") ?? "";
+
+                        var blobServiceClient = new BlobServiceClient(blobConnStr);
+                        // Verify this matches your actual container name in Azure
+                        var containerClient = blobServiceClient.GetBlobContainerClient("animal-documents");
+
+                        using (var message = new MailMessage())
+                        {
+                            message.From = new MailAddress("contact@scars-az.com", "SCARS Adoption Team");
+                            message.To.Add(new MailAddress("contact@scars-az.com"));
+                            //message.To.Add(new MailAddress(reqData.AdopterEmail));
+                            //message.CC.Add(new MailAddress("contact@scars-az.com"));
+                            message.Subject = "Adoption Documents for your new pet!";
+                            message.Body = $@"
+                                <p>Congratulations on finalizing your adoption!</p>
+                                <p>For your convenience and records, we have attached all the medical and rescue documents we have on file for your new family member.</p>
+                                <p>Thank you for choosing to adopt,<br>The SCARS Team</p>";
+                            message.IsBodyHtml = true;
+
+                            var streamsToDispose = new List<Stream>();
+
+                            // 3. Download and attach each file
+                            foreach (var doc in animalDocs)
+                            {
+                                // Note: Change 'doc.FileName' if blob names are stored under a different property
+                                var blobClient = containerClient.GetBlobClient(doc.FileName);
+
+                                if (await blobClient.ExistsAsync())
+                                {
+                                    var downloadInfo = await blobClient.DownloadStreamingAsync();
+
+                                    // Attach the stream
+                                    var attachment = new Attachment(downloadInfo.Value.Content, doc.FileName, doc.ContentType ?? "application/pdf");
+                                    message.Attachments.Add(attachment);
+
+                                    // Keep track of the stream so we can close it after sending
+                                    streamsToDispose.Add(downloadInfo.Value.Content);
+                                }
+                            }
+
+                            // 4. Send the email
+                            using (var client = new SmtpClient(smtpHost, smtpPort))
+                            {
+                                client.EnableSsl = true;
+                                client.Credentials = new NetworkCredential(smtpUser, smtpPass);
+                                await client.SendMailAsync(message);
+                            }
+
+                            // 5. Clean up streams to prevent memory leaks
+                            foreach (var stream in streamsToDispose)
+                            {
+                                stream.Dispose();
+                            }
+
+                            _logger.LogInformation("Successfully emailed documents to {Email}", reqData.AdopterEmail);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // We wrap this in a try-catch so that if the email fails (e.g. attachments are too large),
+                    // it DOES NOT crash the actual database adoption process. The animal will still be marked as adopted!
+                    _logger.LogError(ex, "Adoption was finalized, but failed to email documents.");
+                }
+
+
+                // 11. Commit Transaction
                 await transaction.CommitAsync();
 
                 _logger.LogInformation("Successfully recorded adoption for Animal ID: {animal_id}. Adopter ID: {adopter_id}, History ID: {HistoryId}",
@@ -231,11 +316,11 @@ namespace rescueApp
                     adopter.Id,
                     newAdoptionRecord.Id);
 
-                // 11. Create Success Response using a DTO ---
+                // 12. Create Success Response using a DTO ---
                 var response = req.CreateResponse(HttpStatusCode.Created);
                 response.Headers.Add("Location", $"/api/adoptionhistory/{newAdoptionRecord.Id}"); // Location of new resource
 
-                // 12. Create a simple object/DTO to return, avoiding potential cycles
+                // 13. Create a simple object/DTO to return, avoiding potential cycles
                 var responseDto = new
                 {
                     id = newAdoptionRecord.Id,
