@@ -18,12 +18,10 @@ export const Partners = () => {
 					</div>
 
 					<div className="flex flex-wrap justify-center gap-5 mt-10 md:justify-around">
-						<Image
+						<img
 							src="/img/brands/AdoptaPet.png"
 							alt="Adopt-a-Pet"
-							width={120}
-							height={120}
-							className="max-h-12 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition duration-300"
+							className="max-h-12 aspect-square grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition duration-300"
 						/>
 						{/*
 						<div className="pt-2 text-gray-400 dark:text-gray-400">
