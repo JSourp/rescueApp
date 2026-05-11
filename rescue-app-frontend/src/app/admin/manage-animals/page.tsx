@@ -134,7 +134,17 @@ export default function AdminAnimalsPage() {
 	const [animalTypeFilter, setAnimalTypeFilter] = useState<string>('');
 	const [breedFilter, setBreedFilter] = useState<string>('');
 	const [animalTypes, setAnimalTypes] = useState<string[]>([]);
-	const [statusFilters, setStatusFilters] = useState<string[]>([]);
+	const [statusFilters, setStatusFilters] = useState<string[]>([
+		"Not Yet Available",
+		"Available",
+		"Available - In Foster",
+		"Adoption Pending",
+		"Behavioral Hold",
+		"Behavioral Hold - With Trainer",
+		"Medical Hold",
+		"Medical Hold - In Foster",
+		"Stray Hold"
+	]);
 	const [sortBy, setSortBy] = useState('date_created_desc');
 	const sortingOptions = [
 		{ value: 'date_created_desc', label: 'Date Added' }, // Default sort
