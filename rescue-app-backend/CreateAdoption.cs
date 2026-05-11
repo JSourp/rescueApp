@@ -254,7 +254,7 @@ namespace rescueApp
                             message.To.Add(new MailAddress("contact@scars-az.com"));
                             //message.To.Add(new MailAddress(reqData.AdopterEmail));
                             //message.CC.Add(new MailAddress("contact@scars-az.com"));
-                            message.Subject = "Adoption Documents for your new pet!";
+                            message.Subject = $"Adoption Documents for {animalToAdopt.Name ?? "your new pet"}!";
                             message.Body = $@"
                                 <p>Congratulations on finalizing your adoption!</p>
                                 <p>For your convenience and records, we have attached all the medical and rescue documents we have on file for your new family member.</p>
