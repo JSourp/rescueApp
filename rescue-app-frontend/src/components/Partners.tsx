@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Container } from "@/components/Container";
 import {
 	AmazonLogo,
@@ -18,13 +19,15 @@ export const Partners = () => {
 					</div>
 
 					<div className="flex flex-wrap justify-center gap-5 mt-10 md:justify-around">
-						<Image
-							src="/img/brands/AdoptaPet.png"
-							alt="Adopt-a-Pet"
-							width={170}
-							height={170}
-							className="grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition duration-300"
-						/>
+						<Link href="https://www.adoptapet.com/shelter/286783#available-pets">
+							<Image
+								src="/img/brands/AdoptaPet.png"
+								alt="Adopt-a-Pet"
+								width={170}
+								height={170}
+								className="grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition duration-300"
+							/>
+						</Link>
 						{/*
 						<div className="pt-2 text-gray-400 dark:text-gray-400">
 							<AmazonLogo />
