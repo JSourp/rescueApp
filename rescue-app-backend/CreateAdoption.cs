@@ -234,7 +234,7 @@ namespace rescueApp
                         .ToListAsync();
 
                     // 10b. Check if there are documents AND we have an adopter email
-                    if (animalDocs.Any() && !string.IsNullOrEmpty(reqData.AdopterEmail))
+                    if (animalDocs.Any() && !string.IsNullOrEmpty(adoptionRequest.AdopterEmail))
                     {
                         _logger.LogInformation("Found {Count} documents. Preparing to email adopter...", animalDocs.Count);
 
@@ -251,9 +251,8 @@ namespace rescueApp
                         using (var message = new MailMessage())
                         {
                             message.From = new MailAddress("contact@scars-az.com", "SCARS Adoption Team");
-                            message.To.Add(new MailAddress("contact@scars-az.com"));
-                            //message.To.Add(new MailAddress(reqData.AdopterEmail));
-                            //message.CC.Add(new MailAddress("contact@scars-az.com"));
+                            message.To.Add(new MailAddress(adoptionRequest.AdopterEmail));
+                            message.CC.Add(new MailAddress("contact@scars-az.com"));
                             message.Subject = $"Adoption Documents for {animalToAdopt.Name ?? "your new pet"}!";
                             message.Body = $@"
                                 <p>Congratulations on finalizing your adoption!</p>
@@ -296,7 +295,7 @@ namespace rescueApp
                                 stream.Dispose();
                             }
 
-                            _logger.LogInformation("Successfully emailed documents to {Email}", reqData.AdopterEmail);
+                            _logger.LogInformation("Successfully emailed documents to {Email}", adoptionRequest.AdopterEmail);
                         }
                     }
                 }
