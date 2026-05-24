@@ -9,6 +9,7 @@ namespace rescueApp.Models.DTOs
         public string PrimaryPhone { get; set; } = string.Empty;
         public string? Status { get; set; }
         public string? ReviewedBy { get; set; }
+        public string? WhichAnimal { get; set; }
         public DateTime? ReviewDate { get; set; }
     }
 }

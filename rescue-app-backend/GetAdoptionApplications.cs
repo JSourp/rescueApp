@@ -84,6 +84,7 @@ namespace rescueApp
                     PrimaryEmail = app.PrimaryEmail,
                     PrimaryPhone = app.PrimaryPhone,
                     Status = app.Status,
+                    WhichAnimal = app.WhichAnimalText ?? "General Application",
                     ReviewedBy = app.ReviewedByUser != null ? $"{app.ReviewedByUser.FirstName} {app.ReviewedByUser.LastName}" : null,
                     ReviewDate = app.ReviewDate
                 }).ToListAsync();

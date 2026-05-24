@@ -29,6 +29,7 @@ interface AdoptionApplicationListItem {
     primaryEmail: string;
     primaryPhone: string;
     status: string;
+    whichAnimal?: string;
     reviewedBy?: string;
     reviewDate?: string;
 }
@@ -332,9 +333,9 @@ export default function AdminAdoptionApplicationsPage() {
                             <thead>
                                 <tr>
                                     <th className={thClasses}>Applicant</th>
+                                    <th className={thClasses}>Animal</th>
                                     <th className={thClasses}>Submitted</th>
                                     <th className={thClasses}>Status</th>
-                                    <th className={thClasses}>Reviewed By</th>
                                     <th className={thClasses}>Actions</th>
                                 </tr>
                             </thead>
@@ -346,15 +347,14 @@ export default function AdminAdoptionApplicationsPage() {
                                             <div className="text-xs text-gray-500 dark:text-gray-400">{app.primaryEmail}</div>
                                             <div className="text-xs text-gray-500 dark:text-gray-400">{app.primaryPhone}</div>
                                         </td>
+                                        <td className={tdClasses}>
+                                            {app.whichAnimal}
+                                        </td>
                                         <td className={tdClasses}>{format(new Date(app.submissionDate), 'P p')}</td>
                                         <td className={tdClasses}>
                                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${app.status === 'Approved' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : app.status === 'Rejected' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'}`}>
                                                 {app.status}
                                             </span>
-                                        </td>
-                                        <td className={tdClasses}>
-                                            {app.reviewedBy || 'N/A'}
-                                            {app.reviewDate && <div className="text-xs">({format(new Date(app.reviewDate), 'P')})</div>}
                                         </td>
                                         <td className={tdClasses}>
                                             <button onClick={() => handleReviewClick(app)} className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold">
