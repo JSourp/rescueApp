@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
+using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 using rescueApp.Data;
 using rescueApp.Models;
 using rescueApp.Models.DTOs;
