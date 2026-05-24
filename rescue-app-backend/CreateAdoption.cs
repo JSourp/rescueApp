@@ -144,6 +144,25 @@ namespace rescueApp
             using var transaction = await _dbContext.Database.BeginTransactionAsync();
             try
             {
+                // Check if an Application ID was provided
+                if (adoptionRequest.AdoptionApplicationId.HasValue)
+                {
+                    var app = await _dbContext.AdoptionApplications.FindAsync(adoptionRequest.AdoptionApplicationId.Value);
+                    if (app == null) return await CreateErrorResponse(req, HttpStatusCode.NotFound, "Application not found.");
+
+                    // Hydrate the request object with application data
+                    adoptionRequest.AdopterFirstName = app.FirstName;
+                    adoptionRequest.AdopterLastName = app.LastName;
+                    adoptionRequest.AdopterEmail = app.PrimaryEmail;
+                    adoptionRequest.AdopterPrimaryPhone = app.PrimaryPhone;
+                    adoptionRequest.AdopterPrimaryPhoneType = app.PrimaryPhoneType;
+                    adoptionRequest.AdopterStreetAddress = app.StreetAddress;
+                    adoptionRequest.AdopterCity = app.City;
+                    adoptionRequest.AdopterStateProvince = app.StateProvince;
+                    adoptionRequest.AdopterZipPostalCode = app.ZipPostalCode;
+                    adoptionRequest.SpousePartnerRoommate = app.SpousePartnerRoommate;
+                }
+
                 // 4. Find Animal & Check Status
                 var animalToAdopt = await _dbContext.Animals.FindAsync(adoptionRequest.AnimalId);
                 if (animalToAdopt == null)
