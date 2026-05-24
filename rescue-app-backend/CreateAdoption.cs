@@ -228,15 +228,14 @@ namespace rescueApp
                 // 10. Email documents to Adopter
                 try
                 {
-                    // 10a. Fetch the documents for this animal from the database
-                    var animalDocs = await _dbContext.AnimalDocuments
-                        .Where(d => d.AnimalId == adoptionRequest.AnimalId)
-                        .ToListAsync();
-
-                    // 10b. Check if there are documents AND we have an adopter email
-                    if (animalDocs.Any() && !string.IsNullOrEmpty(adoptionRequest.AdopterEmail))
+                    if (!string.IsNullOrEmpty(adoptionRequest.AdopterEmail))
                     {
-                        _logger.LogInformation("Found {Count} documents. Preparing to email adopter...", animalDocs.Count);
+                        _logger.LogInformation("Preparing to send Finalize Adoption email to {Email}...", adoptionRequest.AdopterEmail);
+
+                        // 1. Fetch the documents for this animal from the database
+                        var animalDocs = await _dbContext.AnimalDocuments
+                            .Where(d => d.AnimalId == adoptionRequest.AnimalId)
+                            .ToListAsync();
 
                         string smtpHost = Environment.GetEnvironmentVariable("SMTP_HOST") ?? "smtp-relay.brevo.com";
                         int smtpPort = int.Parse(Environment.GetEnvironmentVariable("SMTP_PORT") ?? "587");
@@ -244,44 +243,58 @@ namespace rescueApp
                         string smtpPass = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? "";
                         string blobConnStr = Environment.GetEnvironmentVariable("AzureBlobStorageConnectionString") ?? "";
 
-                        var blobServiceClient = new BlobServiceClient(blobConnStr);
-                        // Verify this matches your actual container name in Azure
-                        var containerClient = blobServiceClient.GetBlobContainerClient("animal-documents");
-
                         using (var message = new MailMessage())
                         {
                             message.From = new MailAddress("contact@scars-az.com", "SCARS Adoption Team");
                             message.To.Add(new MailAddress(adoptionRequest.AdopterEmail));
                             message.CC.Add(new MailAddress("contact@scars-az.com"));
-                            message.Subject = $"Adoption Documents for {animalToAdopt.Name ?? "your new pet"}!";
-                            message.Body = $@"
+                            message.Subject = "Adoption Finalized! Welcome to the SCARS family.";
+
+                            // Build the email body based on whether there are attachments
+                            string bodyHtml = $@"
                                 <p>Congratulations on finalizing your adoption!</p>
-                                <p>For your convenience and records, we have attached all the medical and rescue documents we have on file for your new family member.</p>
-                                <p>Thank you for choosing to adopt,<br>The SCARS Team</p>";
+                                <p>We are so incredibly thrilled for you and your new family member.</p>";
+
+                            if (animalDocs.Any())
+                            {
+                                bodyHtml += "<p>For your convenience and records, we have attached the medical and rescue documents we have on file for your pet.</p>";
+                            }
+
+                            bodyHtml += "<p>Thank you for choosing to adopt,<br>The SCARS Team</p>";
+                            message.Body = bodyHtml;
                             message.IsBodyHtml = true;
 
                             var streamsToDispose = new List<Stream>();
 
-                            // 3. Download and attach each file
-                            foreach (var doc in animalDocs)
+                            // 2. Download and attach each file (if any exist)
+                            if (animalDocs.Any() && !string.IsNullOrEmpty(blobConnStr))
                             {
-                                // Note: Change 'doc.FileName' if blob names are stored under a different property
-                                var blobClient = containerClient.GetBlobClient(doc.FileName);
+                                var blobServiceClient = new BlobServiceClient(blobConnStr);
+                                var containerClient = blobServiceClient.GetBlobContainerClient("animal-documents");
 
-                                if (await blobClient.ExistsAsync())
+                                foreach (var doc in animalDocs)
                                 {
-                                    var downloadInfo = await blobClient.DownloadStreamingAsync();
+                                    // Use BlobName to fetch from Azure, but FileName for the email attachment
+                                    var blobClient = containerClient.GetBlobClient(doc.BlobName);
 
-                                    // Attach the stream
-                                    var attachment = new Attachment(downloadInfo.Value.Content, doc.FileName, doc.ContentType ?? "application/pdf");
-                                    message.Attachments.Add(attachment);
+                                    if (await blobClient.ExistsAsync())
+                                    {
+                                        var downloadInfo = await blobClient.DownloadStreamingAsync();
 
-                                    // Keep track of the stream so we can close it after sending
-                                    streamsToDispose.Add(downloadInfo.Value.Content);
+                                        // Defaulting to application/pdf, but the recipient's computer will open it based on the extension in doc.FileName
+                                        var attachment = new Attachment(downloadInfo.Value.Content, doc.FileName, "application/pdf");
+                                        message.Attachments.Add(attachment);
+
+                                        streamsToDispose.Add(downloadInfo.Value.Content);
+                                    }
+                                    else
+                                    {
+                                        _logger.LogWarning("Could not find blob {BlobName} in Azure to attach.", doc.BlobName);
+                                    }
                                 }
                             }
 
-                            // 4. Send the email
+                            // 3. Send the email
                             using (var client = new SmtpClient(smtpHost, smtpPort))
                             {
                                 client.EnableSsl = true;
@@ -289,21 +302,19 @@ namespace rescueApp
                                 await client.SendMailAsync(message);
                             }
 
-                            // 5. Clean up streams to prevent memory leaks
+                            // 4. Clean up streams
                             foreach (var stream in streamsToDispose)
                             {
                                 stream.Dispose();
                             }
 
-                            _logger.LogInformation("Successfully emailed documents to {Email}", adoptionRequest.AdopterEmail);
+                            _logger.LogInformation("Successfully emailed adoption confirmation to {Email}", adoptionRequest.AdopterEmail);
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    // We wrap this in a try-catch so that if the email fails (e.g. attachments are too large),
-                    // it DOES NOT crash the actual database adoption process. The animal will still be marked as adopted!
-                    _logger.LogError(ex, "Adoption was finalized, but failed to email documents.");
+                    _logger.LogError(ex, "Adoption was finalized, but failed to send the confirmation email.");
                 }
 
 

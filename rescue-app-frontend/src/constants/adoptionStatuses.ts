@@ -13,5 +13,6 @@ export const adoptionStatuses = [
 	"Not Yet Available",
 	"Returned to Owner",
 	"Stray Hold",
+	"TNR",
 	"Transferred",
 ];
