@@ -110,7 +110,7 @@ namespace rescueApp
 
 				IQueryable<AdoptionApplication> query = _dbContext.AdoptionApplications
 					.Include(app => app.ReviewedByUser);
-					//.Where(a => a.Status == "Approved"); //Add this later, once we build the approval process out.
+					.Where(a => a.Status == "Approved");
 
 				// Apply Filters
 				if (!string.IsNullOrWhiteSpace(statusFilter))
