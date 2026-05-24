@@ -359,10 +359,8 @@ export default function AdminAdoptionApplicationsPage() {
                                             <div className="text-xs text-gray-500 dark:text-gray-400">{app.primaryEmail}</div>
                                             <div className="text-xs text-gray-500 dark:text-gray-400">{app.primaryPhone}</div>
                                         </td>
-                                        <td className={tdClasses}>
-                                            {app.whichAnimal && app.whichAnimal.length > 10
-                                                ? `${app.whichAnimal.slice(0, 10)}...`
-                                                : app.whichAnimal || "General"}
+                                        <td className={`${tdClasses} max-w-[120px] truncate`} title={app.whichAnimal}>
+                                            {app.whichAnimal}
                                         </td>
                                         <td className={tdClasses}>{format(new Date(app.submissionDate), 'P p')}</td>
                                         <td className={tdClasses}>
