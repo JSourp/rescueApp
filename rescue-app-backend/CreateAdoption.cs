@@ -163,6 +163,16 @@ namespace rescueApp
                     adoptionRequest.SpousePartnerRoommate = app.SpousePartnerRoommate;
                 }
 
+                // Validation: Now that fields are filled (either by user or by hydration), validate them
+                var validationResults = new List<ValidationResult>();
+                var validationContext = new ValidationContext(adoptionRequest, serviceProvider: null, items: null);
+                if (!Validator.TryValidateObject(adoptionRequest, validationContext, validationResults, true))
+                {
+                    string errors = string.Join("; ", validationResults.Select(vr => $"{vr.MemberNames.FirstOrDefault()}: {vr.ErrorMessage}"));
+                    await transaction.RollbackAsync(); // Always rollback on validation failure
+                    return await CreateErrorResponse(req, HttpStatusCode.BadRequest, $"Invalid adoption data: {errors}");
+                }
+
                 // 4. Find Animal & Check Status
                 var animalToAdopt = await _dbContext.Animals.FindAsync(adoptionRequest.AnimalId);
                 if (animalToAdopt == null)
