@@ -83,13 +83,8 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 				<select {...register("adoptionApplicationId", { required: "Required" })} className={inputBaseClasses}>
 					<option value="">-- Choose an application --</option>
 					{applications.map(app => {
-						// Debugging: uncomment the line below to see what the data actually looks like in your browser console
-						console.log("Application item:", app);
-
-						// Use a fallback to ensure we show SOMETHING
-						const displayName = `${app.firstName || app.first_name || ''} ${app.lastName || app.last_name || ''}`;
-						const displayEmail = app.email || app.primary_email || 'No Email';
-
+						const displayName = `${app.applicantName || ''}`;
+						const displayEmail = app.primaryEmail || 'No Email';
 						return (
 							<option key={app.id} value={app.id}>
 								{displayName} ({displayEmail})
