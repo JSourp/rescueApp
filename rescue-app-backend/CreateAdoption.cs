@@ -168,15 +168,29 @@ namespace rescueApp
                     return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Current user context lost.");
                 }
 
-                // 5. Find or Create Adopter
-                var adopter = await FindOrCreateAdopterAsync(adoptionRequest, currentUser.Id);
-                if (adopter == null)
-                {
-                    _logger.LogError("Failed to find or create adopter record.");
-                    await transaction.RollbackAsync();
-                    return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Failed to process adopter information.");
-                }
+                // 5. Find Application and Adopter
+                var application = await _dbContext.AdoptionApplications.FindAsync(adoptionRequest.AdoptionApplicationId);
+                if (application == null) return await CreateErrorResponse(req, HttpStatusCode.NotFound, "Application not found.");
 
+                // Create Adopter directly from Application data
+                var adopter = new Adopter
+                {
+                    AdopterFirstName = application.FirstName,
+                    AdopterLastName = application.LastName,
+                    AdopterEmail = application.Email,
+                    AdopterPrimaryPhone = application.PrimaryPhone,
+                    AdopterPrimaryPhoneType = application.PrimaryPhoneType,
+                    AdopterSecondaryPhone = application.SecondaryPhone,
+                    AdopterSecondaryPhoneType = application.SecondaryPhoneType,
+                    AdopterStreetAddress = application.StreetAddress,
+                    AdopterAptUnit = application.AptUnit,
+                    AdopterCity = application.City,
+                    AdopterStateProvince = application.StateProvince,
+                    AdopterZipPostalCode = application.ZipPostalCode,
+                    SpousePartnerRoommate = application.SpousePartnerRoommate,
+                    CreatedByUserId = currentUser!.Id
+                };
+                _dbContext.Adopters.Add(adopter);
 
                 // 6. Check Active Adoption History
                 bool alreadyActivelyAdopted = await _dbContext.AdoptionHistories
