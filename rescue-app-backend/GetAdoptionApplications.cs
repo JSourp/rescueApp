@@ -55,6 +55,7 @@ namespace rescueApp
             {
                 var queryParams = HttpUtility.ParseQueryString(req.Url.Query);
                 string? statusFilter = queryParams["status"];
+                string? animalFilter = queryParams["animal"];
                 string? sortBy = queryParams["sortBy"]?.ToLowerInvariant() ?? "submissiondate_desc";
 
                 IQueryable<AdoptionApplication> query = _dbContext.AdoptionApplications.Include(app => app.ReviewedByUser);
@@ -62,6 +63,11 @@ namespace rescueApp
                 if (!string.IsNullOrWhiteSpace(statusFilter))
                 {
                     query = query.Where(app => app.Status.ToLower() == statusFilter.ToLower());
+                }
+
+                if (!string.IsNullOrWhiteSpace(animalFilter))
+                {
+                    query = query.Where(app => app.WhichAnimalText != null && app.WhichAnimalText.Contains(animalFilter));
                 }
 
                 bool descending = sortBy.EndsWith("_desc");

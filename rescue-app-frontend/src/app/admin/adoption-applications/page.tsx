@@ -143,6 +143,7 @@ export default function AdminAdoptionApplicationsPage() {
     const [isLoadingRole, setIsLoadingRole] = useState<boolean>(true);
 
     const [statusFilter, setStatusFilter] = useState<string>('Pending Review');
+    const [animalFilter, setAnimalFilter] = useState<string>('');
     const [sortBy, setSortBy] = useState('submissionDate_desc');
     const sortingOptions = [
         { value: 'submissionDate_desc', label: 'Submission Date (Newest)' },
@@ -194,14 +195,14 @@ export default function AdminAdoptionApplicationsPage() {
             return;
         }
         try {
-            const filters = { status: statusFilter };
+            const filters = { status: statusFilter, animal: animalFilter };
             const fetchedApps = await fetchAdoptionApplications(filters, sortBy, token);
             setApplications(fetchedApps);
         } catch (err) {
             setErrorData(err instanceof Error ? err.message : 'Failed to load applications');
         }
         finally { setIsLoadingData(false); }
-    }, [statusFilter, sortBy, isAuthLoading, isLoadingRole, currentUserProfile]);
+    }, [statusFilter, animalFilter, sortBy, isAuthLoading, isLoadingRole, currentUserProfile]);
 
     useEffect(() => { loadApplications(); }, [loadApplications]);
 
@@ -313,6 +314,17 @@ export default function AdminAdoptionApplicationsPage() {
                             <option value="">All Statuses</option>
                             {applicationStatuses.map(status => <option key={status} value={status}>{status}</option>)}
                         </select>
+                    </div>
+                    <div>
+                        <label htmlFor="animalFilter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filter by Animal</label>
+                        <input
+                            type="text"
+                            id="animalFilter"
+                            placeholder="Type animal name..."
+                            value={animalFilter}
+                            onChange={(e) => setAnimalFilter(e.target.value)}
+                            className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 text-sm"
+                        />
                     </div>
                     <div>
                         <label htmlFor="sortBy" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sort By</label>
