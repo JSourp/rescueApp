@@ -172,25 +172,38 @@ namespace rescueApp
                 var application = await _dbContext.AdoptionApplications.FindAsync(adoptionRequest.AdoptionApplicationId);
                 if (application == null) return await CreateErrorResponse(req, HttpStatusCode.NotFound, "Application not found.");
 
-                // Create Adopter directly from Application data
-                var adopter = new Adopter
+                Adopter adopter;
+
+                if (adoptionRequest.AdoptionApplicationId.HasValue)
                 {
-                    AdopterFirstName = application.FirstName,
-                    AdopterLastName = application.LastName,
-                    AdopterEmail = application.Email,
-                    AdopterPrimaryPhone = application.PrimaryPhone,
-                    AdopterPrimaryPhoneType = application.PrimaryPhoneType,
-                    AdopterSecondaryPhone = application.SecondaryPhone,
-                    AdopterSecondaryPhoneType = application.SecondaryPhoneType,
-                    AdopterStreetAddress = application.StreetAddress,
-                    AdopterAptUnit = application.AptUnit,
-                    AdopterCity = application.City,
-                    AdopterStateProvince = application.StateProvince,
-                    AdopterZipPostalCode = application.ZipPostalCode,
-                    SpousePartnerRoommate = application.SpousePartnerRoommate,
-                    CreatedByUserId = currentUser!.Id
-                };
-                _dbContext.Adopters.Add(adopter);
+                    // Path A: Pull from existing Approved Application
+                    var appData = await _dbContext.AdoptionApplications.FindAsync(adoptionRequest.AdoptionApplicationId.Value);
+                    if (appData == null) return await CreateErrorResponse(req, HttpStatusCode.NotFound, "Application not found.");
+
+                    // Map data from the Application to a new Adopter object
+                    // Note: Check your AdoptionApplication.cs for the exact property names (e.g., PrimaryEmail vs Email)
+                    adopter = new Adopter
+                    {
+                        AdopterFirstName = appData.FirstName,
+                        AdopterLastName = appData.LastName,
+                        AdopterEmail = appData.PrimaryEmail,
+                        AdopterPrimaryPhone = appData.PrimaryPhone,
+                        AdopterPrimaryPhoneType = appData.PrimaryPhoneType,
+                        AdopterStreetAddress = appData.StreetAddress,
+                        AdopterCity = appData.City,
+                        AdopterStateProvince = appData.StateProvince,
+                        AdopterZipPostalCode = appData.ZipPostalCode,
+                        CreatedByUserId = currentUser!.Id
+                    };
+                    _dbContext.Adopters.Add(adopter);
+                }
+                else
+                {
+                    // Path B: Use your existing helper for manual entry
+                    var foundAdopter = await FindOrCreateAdopterAsync(adoptionRequest, currentUser.Id);
+                    if (foundAdopter == null) throw new Exception("Failed to process adopter.");
+                    adopter = foundAdopter;
+                }
 
                 // 6. Check Active Adoption History
                 bool alreadyActivelyAdopted = await _dbContext.AdoptionHistories
@@ -388,7 +401,6 @@ namespace rescueApp
 
             _logger.LogInformation("Attempting to find adopter case-insensitively with email: {Email}", inputEmail);
 
-            // Use EF.Functions.ILike with the snake_case MODEL property 'adopter_email'
             var existingAdopter = await _dbContext.Adopters
                 .FirstOrDefaultAsync(a => EF.Functions.ILike(a.AdopterEmail, inputEmail));
 

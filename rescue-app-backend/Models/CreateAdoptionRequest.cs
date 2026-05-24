@@ -62,6 +62,7 @@ namespace rescueApp.Models
         public string? SpousePartnerRoommate { get; set; }
 
         // Optional fields below
+        public int? AdoptionApplicationId { get; set; }
         public DateTime? AdoptionDate { get; set; }
         public string? Notes { get; set; }
         public string? HowHeard { get; set; }

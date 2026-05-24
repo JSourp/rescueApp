@@ -22,6 +22,7 @@ using rescueApp.Data;
 using rescueApp.Models;
 using rescueApp.Models.DTOs;
 
+
 namespace rescueApp
 {
     public class GetApprovedAdoptionApplications
