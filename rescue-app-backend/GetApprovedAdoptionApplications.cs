@@ -109,7 +109,7 @@ namespace rescueApp
 				string? sortBy = queryParams["sortBy"]?.ToLowerInvariant() ?? "submissiondate_desc"; // Default sort
 
 				IQueryable<AdoptionApplication> query = _dbContext.AdoptionApplications
-					.Include(app => app.ReviewedByUser);
+					.Include(app => app.ReviewedByUser)
 					.Where(a => a.Status == "Approved");
 
 				// Apply Filters
