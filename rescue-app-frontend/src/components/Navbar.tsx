@@ -18,6 +18,7 @@ interface DropdownMenuItem {
 
 const allDropdownMenuItems: DropdownMenuItem[] = [
   { name: "Manage Animals", href: "/admin/manage-animals", allowedRoles: ["Admin", "Staff", "Volunteer", "Foster"] },
+  { name: "Adoption Applications", href: "/admin/adoption-applications", allowedRoles: ["Admin", "Staff"] },
   { name: "Fosters List", href: "/admin/fosters", allowedRoles: ["Admin", "Staff"] },
   { name: "Foster Applications", href: "/admin/foster-applications", allowedRoles: ["Admin", "Staff"] },
   { name: "Volunteer Applications", href: "/admin/volunteer-applications", allowedRoles: ["Admin", "Staff"] },
