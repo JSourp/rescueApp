@@ -91,7 +91,7 @@ export function Navbar() {
         {/* Logo */}
         <Link href="/">
           <Image
-            src="/img/placeholder-image.png"
+            src="/img/SCARS_Logo.svg"
             alt="Second Chance Animal Rescue & Sanctuary"
             width={250} // Keep intrinsic
             height={250}
