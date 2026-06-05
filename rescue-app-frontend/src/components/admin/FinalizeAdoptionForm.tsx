@@ -33,7 +33,11 @@ export default function FinalizeAdoptionForm({ animal, onClose, onAdoptionComple
 			const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/adoption-applications`, {
 				headers: { 'Authorization': `Bearer ${token}` }
 			});
-			if (res.ok) setApplications(await res.json());
+			if (res.ok) {
+				const data = await res.json();
+				// Only include applications that are Pending Review
+				setApplications((data || []).filter((a: any) => a?.status === 'Pending Review'));
+			}
 		};
 		fetchApps();
 	}, []);

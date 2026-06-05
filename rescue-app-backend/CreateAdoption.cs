@@ -248,6 +248,17 @@ namespace rescueApp
 
 
                 // 9. Save ALL Changes ONCE
+                // If this adoption was created from an application, mark that application as Approved
+                if (adoptionRequest.AdoptionApplicationId.HasValue)
+                {
+                    var applicationToUpdate = await _dbContext.AdoptionApplications.FindAsync(adoptionRequest.AdoptionApplicationId.Value);
+                    if (applicationToUpdate != null)
+                    {
+                        applicationToUpdate.Status = "Approved";
+                        applicationToUpdate.ReviewedByUserId = currentUser.Id;
+                        applicationToUpdate.ReviewDate = DateTime.UtcNow;
+                    }
+                }
                 await _dbContext.SaveChangesAsync();
 
 
