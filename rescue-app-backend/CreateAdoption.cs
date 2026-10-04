@@ -5,6 +5,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Mail;
+using Azure.Storage.Blobs;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -142,6 +144,35 @@ namespace rescueApp
             using var transaction = await _dbContext.Database.BeginTransactionAsync();
             try
             {
+                // Check if an Application ID was provided
+                if (adoptionRequest.AdoptionApplicationId.HasValue)
+                {
+                    var app = await _dbContext.AdoptionApplications.FindAsync(adoptionRequest.AdoptionApplicationId.Value);
+                    if (app == null) return await CreateErrorResponse(req, HttpStatusCode.NotFound, "Application not found.");
+
+                    // Hydrate the request object with application data
+                    adoptionRequest.AdopterFirstName = app.FirstName;
+                    adoptionRequest.AdopterLastName = app.LastName;
+                    adoptionRequest.AdopterEmail = app.PrimaryEmail;
+                    adoptionRequest.AdopterPrimaryPhone = app.PrimaryPhone;
+                    adoptionRequest.AdopterPrimaryPhoneType = app.PrimaryPhoneType;
+                    adoptionRequest.AdopterStreetAddress = app.StreetAddress;
+                    adoptionRequest.AdopterCity = app.City;
+                    adoptionRequest.AdopterStateProvince = app.StateProvince;
+                    adoptionRequest.AdopterZipPostalCode = app.ZipPostalCode;
+                    adoptionRequest.SpousePartnerRoommate = app.SpousePartnerRoommate;
+                }
+
+                // Validation: Now that fields are filled (either by user or by hydration), validate them
+                var validationResults = new List<ValidationResult>();
+                var validationContext = new ValidationContext(adoptionRequest, serviceProvider: null, items: null);
+                if (!Validator.TryValidateObject(adoptionRequest, validationContext, validationResults, true))
+                {
+                    string errors = string.Join("; ", validationResults.Select(vr => $"{vr.MemberNames.FirstOrDefault()}: {vr.ErrorMessage}"));
+                    await transaction.RollbackAsync(); // Always rollback on validation failure
+                    return await CreateErrorResponse(req, HttpStatusCode.BadRequest, $"Invalid adoption data: {errors}");
+                }
+
                 // 4. Find Animal & Check Status
                 var animalToAdopt = await _dbContext.Animals.FindAsync(adoptionRequest.AnimalId);
                 if (animalToAdopt == null)
@@ -166,15 +197,12 @@ namespace rescueApp
                     return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Current user context lost.");
                 }
 
-                // 5. Find or Create Adopter
+                // 5. Get or Create the Adopter
+                // Because the adoptionRequest is already fully populated (either manually or via the Application ID above),
+                // we can just pass it straight into the helper. It will automatically find the existing user by email
+                // or create a new one if they don't exist!
                 var adopter = await FindOrCreateAdopterAsync(adoptionRequest, currentUser.Id);
-                if (adopter == null)
-                {
-                    _logger.LogError("Failed to find or create adopter record.");
-                    await transaction.RollbackAsync();
-                    return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Failed to process adopter information.");
-                }
-
+                if (adopter == null) throw new Exception("Failed to process adopter.");
 
                 // 6. Check Active Adoption History
                 bool alreadyActivelyAdopted = await _dbContext.AdoptionHistories
@@ -220,10 +248,142 @@ namespace rescueApp
 
 
                 // 9. Save ALL Changes ONCE
+                // If this adoption was created from an application, mark that application as Approved
+                if (adoptionRequest.AdoptionApplicationId.HasValue)
+                {
+                    var applicationToUpdate = await _dbContext.AdoptionApplications.FindAsync(adoptionRequest.AdoptionApplicationId.Value);
+                    if (applicationToUpdate != null)
+                    {
+                        applicationToUpdate.Status = "Approved";
+                        applicationToUpdate.ReviewedByUserId = currentUser.Id;
+                        applicationToUpdate.ReviewDate = DateTime.UtcNow;
+                    }
+                }
                 await _dbContext.SaveChangesAsync();
 
 
-                // 10. Commit Transaction
+                // 10. Email documents to Adopter
+                try
+                {
+                    if (!string.IsNullOrEmpty(adoptionRequest.AdopterEmail))
+                    {
+                        _logger.LogInformation("Preparing to send Finalize Adoption email to {Email}...", adoptionRequest.AdopterEmail);
+
+                        // 1. Fetch the documents for this animal from the database
+                        var animalDocs = await _dbContext.AnimalDocuments
+                            .Where(d => d.AnimalId == adoptionRequest.AnimalId)
+                            .ToListAsync();
+
+                        string smtpHost = Environment.GetEnvironmentVariable("SMTP_HOST") ?? "smtp-relay.brevo.com";
+                        int smtpPort = int.Parse(Environment.GetEnvironmentVariable("SMTP_PORT") ?? "587");
+                        string smtpUser = Environment.GetEnvironmentVariable("SMTP_USERNAME") ?? "";
+                        string smtpPass = Environment.GetEnvironmentVariable("SMTP_PASSWORD") ?? "";
+                        string blobConnStr = Environment.GetEnvironmentVariable("AzureBlobStorageConnectionString") ?? "";
+
+                        using (var message = new MailMessage())
+                        {
+                            message.From = new MailAddress("contact@scars-az.com", "SCARS Adoption Team");
+                            message.To.Add(new MailAddress(adoptionRequest.AdopterEmail));
+                            message.CC.Add(new MailAddress("contact@scars-az.com"));
+                            message.Subject = "Adoption Finalized! Welcome to the SCARS family.";
+
+                            // Build the email body based on whether there are attachments
+                            string bodyHtml = $@"
+                                <p>Congratulations on finalizing your adoption!</p>
+                                <p>We are so incredibly thrilled for you and your new family member.</p>";
+
+                            if (animalDocs.Any())
+                            {
+                                bodyHtml += "<p>For your convenience and records, we have attached the medical and rescue documents we have on file for the latest addition to your family.</p>";
+                            }
+
+                            bodyHtml += @"
+                                <br><br>
+                                <p>As a growing rescue, word of mouth is our superpower. If you had a great experience adopting with us, would you mind taking 60 seconds to leave a Google review? Your review helps other adopters find us, builds trust in our mission, and directly helps more animals find their forever homes!</p>
+                                <p style='text-align: center; margin: 30px 0;'>
+                                    <a href=""https://g.page/r/CbsdeYY2vfnMEBM/review""
+                                        style=""
+                                            color: #FFFFFF;
+                                            background-color: #53723e;
+                                            border-radius: 0.375rem;
+                                            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+                                            padding: 0.75rem 1.25rem;
+                                            font-weight: 500;
+                                            font-size: 1.125rem;
+                                            text-decoration: none;
+                                            display: inline-block;
+                                            border: none;
+                                            cursor: pointer;
+                                            min-width: 200px;
+                                            max-width: 320px;
+                                            width: 100%;
+                                        ""
+                                        role=""button""
+                                        aria-label=""Leave a Google Review""
+                                        >
+                                        Leave a Google Review
+                                    </a>
+                                </p>
+                                <p>Thank you for being part of the SCARS family. Give your new family member some extra love from us today!</p>";
+
+                            message.Body = bodyHtml;
+                            message.IsBodyHtml = true;
+
+                            var streamsToDispose = new List<Stream>();
+
+                            // 2. Download and attach each file (if any exist)
+                            if (animalDocs.Any() && !string.IsNullOrEmpty(blobConnStr))
+                            {
+                                var blobServiceClient = new BlobServiceClient(blobConnStr);
+                                var containerClient = blobServiceClient.GetBlobContainerClient("animal-documents");
+
+                                foreach (var doc in animalDocs)
+                                {
+                                    // Use BlobName to fetch from Azure, but FileName for the email attachment
+                                    var blobClient = containerClient.GetBlobClient(doc.BlobName);
+
+                                    if (await blobClient.ExistsAsync())
+                                    {
+                                        var downloadInfo = await blobClient.DownloadStreamingAsync();
+
+                                        // Defaulting to application/pdf, but the recipient's computer will open it based on the extension in doc.FileName
+                                        var attachment = new Attachment(downloadInfo.Value.Content, doc.FileName, "application/pdf");
+                                        message.Attachments.Add(attachment);
+
+                                        streamsToDispose.Add(downloadInfo.Value.Content);
+                                    }
+                                    else
+                                    {
+                                        _logger.LogWarning("Could not find blob {BlobName} in Azure to attach.", doc.BlobName);
+                                    }
+                                }
+                            }
+
+                            // 3. Send the email
+                            using (var client = new SmtpClient(smtpHost, smtpPort))
+                            {
+                                client.EnableSsl = true;
+                                client.Credentials = new NetworkCredential(smtpUser, smtpPass);
+                                await client.SendMailAsync(message);
+                            }
+
+                            // 4. Clean up streams
+                            foreach (var stream in streamsToDispose)
+                            {
+                                stream.Dispose();
+                            }
+
+                            _logger.LogInformation("Successfully emailed adoption confirmation to {Email}", adoptionRequest.AdopterEmail);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Adoption was finalized, but failed to send the confirmation email.");
+                }
+
+
+                // 11. Commit Transaction
                 await transaction.CommitAsync();
 
                 _logger.LogInformation("Successfully recorded adoption for Animal ID: {animal_id}. Adopter ID: {adopter_id}, History ID: {HistoryId}",
@@ -231,11 +391,11 @@ namespace rescueApp
                     adopter.Id,
                     newAdoptionRecord.Id);
 
-                // 11. Create Success Response using a DTO ---
+                // 12. Create Success Response using a DTO ---
                 var response = req.CreateResponse(HttpStatusCode.Created);
                 response.Headers.Add("Location", $"/api/adoptionhistory/{newAdoptionRecord.Id}"); // Location of new resource
 
-                // 12. Create a simple object/DTO to return, avoiding potential cycles
+                // 13. Create a simple object/DTO to return, avoiding potential cycles
                 var responseDto = new
                 {
                     id = newAdoptionRecord.Id,
@@ -279,7 +439,6 @@ namespace rescueApp
 
             _logger.LogInformation("Attempting to find adopter case-insensitively with email: {Email}", inputEmail);
 
-            // Use EF.Functions.ILike with the snake_case MODEL property 'adopter_email'
             var existingAdopter = await _dbContext.Adopters
                 .FirstOrDefaultAsync(a => EF.Functions.ILike(a.AdopterEmail, inputEmail));
 

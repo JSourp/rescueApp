@@ -9,18 +9,25 @@ import { getAuth0AccessToken } from '@/utils/auth';
 import { UserProfile } from '@/types/userProfile';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
 import { HeartIcon } from "@/components/Icons";
+import SendJotformModal from "@/components/admin/SendJotformModal";
 
 interface DropdownMenuItem {
   name: string;
-  href: string;
+  href?: string;
   allowedRoles: string[];
+  action?: "send-jotform";
+  formId?: string;
+  formTitle?: string;
 }
 
 const allDropdownMenuItems: DropdownMenuItem[] = [
   { name: "Manage Animals", href: "/admin/manage-animals", allowedRoles: ["Admin", "Staff", "Volunteer", "Foster"] },
+  { name: "Adoption Applications", href: "/admin/adoption-applications", allowedRoles: ["Admin", "Staff"] },
   { name: "Fosters List", href: "/admin/fosters", allowedRoles: ["Admin", "Staff"] },
   { name: "Foster Applications", href: "/admin/foster-applications", allowedRoles: ["Admin", "Staff"] },
   { name: "Volunteer Applications", href: "/admin/volunteer-applications", allowedRoles: ["Admin", "Staff"] },
+  { name: "Found Animal Transfer to Rescue", allowedRoles: ["Admin"], action: "send-jotform", formId: "260725402790051", formTitle: "Found Animal Transfer to Rescue" },
+  { name: "Transfer of Ownership Agreement", allowedRoles: ["Admin"], action: "send-jotform", formId: "252758223440051", formTitle: "Transfer of Ownership Agreement" },
   { name: "My Profile", href: "/profile", allowedRoles: ["Admin", "Staff", "Volunteer", "Foster", "Guest"] },
 ];
 
@@ -28,6 +35,7 @@ export function Navbar() {
   const { user, error: authError, isLoading: isAuthLoading } = useUser();
   const [userRole, setUserRole] = useState<string>("Guest"); // Default to Guest
   const [isLoadingRole, setIsLoadingRole] = useState<boolean>(true); // For profile fetching state
+  const [selectedJotform, setSelectedJotform] = useState<{ formId: string; formTitle: string } | null>(null);
 
   const navigation = [
     { name: "Available Animals", href: "/available-animals" },
@@ -162,14 +170,25 @@ export function Navbar() {
 
                 {/* Dropdown Menu */}
                 <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  {visibleDropdownItems.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                      {item.name}
-                    </Link>
-                  ))}
+                  {visibleDropdownItems.map((item) =>
+                    item.action === "send-jotform" && item.formId && item.formTitle ? (
+                      <button
+                        key={item.name}
+                        type="button"
+                        onClick={() => setSelectedJotform({ formId: item.formId!, formTitle: item.formTitle! })}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        {item.name}
+                      </button>
+                    ) : (
+                      <Link
+                        key={item.name}
+                        href={item.href!}
+                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        {item.name}
+                      </Link>
+                    )
+                  )}
                   <a href="/api/auth/logout"
                     className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-md">
                     Logout
@@ -181,7 +200,6 @@ export function Navbar() {
 
           <ThemeChanger />
         </div>
-
 
         {/* Mobile Menu Toggle */}
         <div className="lg:hidden">
@@ -244,16 +262,27 @@ export function Navbar() {
                         <div className="font-medium text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
 
                         <div className="mt-3 space-y-1">
-                          {visibleDropdownItems.map((item) => (
-                            <DisclosureButton
-                              key={item.name}
-                              as={Link}
-                              href={item.href}
-                              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                            >
-                              {item.name}
-                            </DisclosureButton>
-                          ))}
+                          {visibleDropdownItems.map((item) =>
+                            item.action === "send-jotform" && item.formId && item.formTitle ? (
+                              <button
+                                key={item.name}
+                                type="button"
+                                onClick={() => setSelectedJotform({ formId: item.formId!, formTitle: item.formTitle! })}
+                                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                              >
+                                {item.name}
+                              </button>
+                            ) : (
+                              <DisclosureButton
+                                key={item.name}
+                                as={Link}
+                                href={item.href!}
+                                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                              >
+                                {item.name}
+                              </DisclosureButton>
+                            )
+                          )}
                           <DisclosureButton
                             as="a"
                             href="/api/auth/logout"
@@ -281,6 +310,14 @@ export function Navbar() {
             )}
           </Disclosure>
         </div>
+
+        {selectedJotform && (
+          <SendJotformModal
+            formId={selectedJotform.formId}
+            formTitle={selectedJotform.formTitle}
+            onClose={() => setSelectedJotform(null)}
+          />
+        )}
       </nav>
     </div>
   );

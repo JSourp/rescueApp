@@ -117,9 +117,7 @@ export default function Home() {
         </SectionTitle>
         <Faq />
 
-        {/* Removing Partners section for now
         <Partners />
-        */}
       </Container>
     </>
   );

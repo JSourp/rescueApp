@@ -68,8 +68,12 @@ export default function AboutUsPage() {
           </p>
 
           {/* Section: Euthanasia Stance */}
+          <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">A True &quot;No-Kill&quot; Rescue</h2>
           <p>
-            Our unwavering commitment is to provide life-saving care and a path to a brighter future. Difficult end-of-life decisions are considered only as an absolute final resort to prevent untreatable suffering, made with immense compassion and collective agreement by the full team, always prioritizing what is truly kindest for the individual animal.
+            We are proudly a no-kill rescue, but we believe in total transparency rather than hiding behind industry percentages. To us, &quot;no-kill&quot; means exactly what it sounds like: our unwavering commitment is to provide life-saving care and a path to a brighter future for every animal we take in.
+          </p>
+          <p>
+            Difficult end-of-life decisions are never made for space, time, or convenience. They are considered only as an absolute final resort to prevent terminal, untreatable suffering. These decisions are made with immense compassion, collective agreement by the full board, and always prioritize what is truly kindest for the individual animal.
           </p>
 
           {/* Section: Meet the Team */}

@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
@@ -9,46 +12,48 @@ using System.Web;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
+using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 using rescueApp.Data;
 using rescueApp.Models;
 using rescueApp.Models.DTOs;
 
-// Alias for Http Trigger type
-using AzureFuncHttp = Microsoft.Azure.Functions.Worker.Http;
 
 namespace rescueApp
 {
-	public class GetVolunteerApplicationById
-	{
+    public class GetApprovedAdoptionApplications
+    {
 		private readonly AppDbContext _dbContext;
-		private readonly ILogger<GetVolunteerApplicationById> _logger;
+		private readonly ILogger<GetApprovedAdoptionApplications> _logger;
 		private readonly string _auth0Domain = Environment.GetEnvironmentVariable("AUTH0_ISSUER_BASE_URL") ?? string.Empty;
 		private readonly string _auth0Audience = Environment.GetEnvironmentVariable("AUTH0_AUDIENCE") ?? string.Empty;
 		private static ConfigurationManager<OpenIdConnectConfiguration>? _configManager;
 		private static TokenValidationParameters? _validationParameters;
 
-		public GetVolunteerApplicationById(AppDbContext dbContext, ILogger<GetVolunteerApplicationById> logger)
+		public GetApprovedAdoptionApplications(AppDbContext dbContext, ILogger<GetApprovedAdoptionApplications> logger)
 		{
 			_dbContext = dbContext;
 			_logger = logger;
-			if (string.IsNullOrEmpty(_auth0Domain) || string.IsNullOrEmpty(_auth0Audience)) { _logger.LogError("Auth0 Domain/Audience not configured for GetVolunteerApplicationById."); }
+			if (string.IsNullOrEmpty(_auth0Domain) || string.IsNullOrEmpty(_auth0Audience))
+			{
+				_logger.LogError("Auth0 Domain/Audience not configured.");
+			}
 		}
 
-		[Function("GetVolunteerApplicationById")]
-		public async Task<AzureFuncHttp.HttpResponseData> Run(
+        [Function("GetApprovedAdoptionApplications")]
+        public async Task<HttpResponseData> Run(
 			// Security is handled by internal Auth0 Bearer token validation and role-based authorization.
-			[HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "volunteer-applications/{applicationId:int}")] AzureFuncHttp.HttpRequestData req,
-			int applicationId)
-		{
-			_logger.LogInformation("C# HTTP trigger function processed GetVolunteerApplicationById request for ID: {ApplicationId}.", applicationId);
+            [HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "adoption-applications")] AzureFuncHttp.HttpRequestData req)
+        {
+			_logger.LogInformation("C# HTTP trigger function processed GetApprovedAdoptionApplications request.");
 
 			User? currentUser;
 			ClaimsPrincipal? principal;
-			string? auth0UserId;
+			string? auth0UserId = null;
 
 			// --- 1. Authentication & Authorization ---
 			try
@@ -90,79 +95,106 @@ namespace rescueApp
 				_logger.LogInformation("User {UserId} with role {UserRole} authorized.", currentUser.Id, currentUser.Role);
 
 			}
-			catch (Exception ex)
+			catch (Exception ex) // Catch potential exceptions during auth/authz
 			{
 				_logger.LogError(ex, "Error during authentication/authorization in CreateAnimal.");
 				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "Authentication/Authorization error.");
 			}
 
-			// --- Get ---
 			try
 			{
-				var applicationEntity = await _dbContext.VolunteerApplications
-					.Include(app => app.ReviewedByUser) // Include user who reviewed it
-					.AsNoTracking() // Good for read-only queries
-					.FirstOrDefaultAsync(app => app.Id == applicationId); // Use PascalCase model property
+				// --- 2. Get Query Parameters ---
+				var queryParams = HttpUtility.ParseQueryString(req.Url.Query);
+				string? statusFilter = queryParams["status"]; // e.g., "Pending Review", "Approved"
+				string? sortBy = queryParams["sortBy"]?.ToLowerInvariant() ?? "submissiondate_desc"; // Default sort
 
-				if (applicationEntity == null)
+				IQueryable<AdoptionApplication> query = _dbContext.AdoptionApplications
+					.Include(app => app.ReviewedByUser)
+					.Where(a => a.Status == "Approved");
+
+				// Apply Filters
+				if (!string.IsNullOrWhiteSpace(statusFilter))
 				{
-					_logger.LogWarning("Volunteer application not found with ID: {ApplicationId}", applicationId);
-					return await CreateErrorResponse(req, HttpStatusCode.NotFound, $"Volunteer application with ID {applicationId} not found.");
+					_logger.LogInformation("Filtering adoption applications by status: {Status}", statusFilter);
+					query = query.Where(app => app.Status != null && app.Status.ToLower() == statusFilter.ToLower());
+				}
+				// Add more filters as needed (e.g., by date range)
+
+				// Apply Sorting
+				bool descending = sortBy.EndsWith("_desc");
+				string sortField = sortBy.Replace("_desc", "").Replace("_asc", "");
+
+				switch (sortField)
+				{
+					case "submissiondate":
+						query = descending ? query.OrderByDescending(app => app.SubmissionDate) : query.OrderBy(app => app.SubmissionDate);
+						break;
+					case "applicantname": // Sort by last name, then first name
+						query = descending
+							? query.OrderByDescending(app => app.LastName).ThenByDescending(app => app.FirstName)
+							: query.OrderBy(app => app.LastName).ThenBy(app => app.FirstName);
+						break;
+					case "status":
+						query = descending ? query.OrderByDescending(app => app.Status) : query.OrderBy(app => app.Status);
+						break;
+					default:
+						query = query.OrderByDescending(app => app.SubmissionDate); // Default
+						break;
 				}
 
-				// Map Entity to DTO
-				var applicationDetailDto = new VolunteerApplicationDetailDto
-				{
-					Id = applicationEntity.Id,
-					SubmissionDate = applicationEntity.SubmissionDate,
-					Status = applicationEntity.Status,
-					FirstName = applicationEntity.FirstName,
-					LastName = applicationEntity.LastName,
-					SpousePartnerRoommate = applicationEntity.SpousePartnerRoommate,
-					StreetAddress = applicationEntity.StreetAddress,
-					AptUnit = applicationEntity.AptUnit,
-					City = applicationEntity.City,
-					StateProvince = applicationEntity.StateProvince,
-					ZipPostalCode = applicationEntity.ZipPostalCode,
-					PrimaryPhone = applicationEntity.PrimaryPhone,
-					PrimaryPhoneType = applicationEntity.PrimaryPhoneType,
-					SecondaryPhone = applicationEntity.SecondaryPhone,
-					SecondaryPhoneType = applicationEntity.SecondaryPhoneType,
-					PrimaryEmail = applicationEntity.PrimaryEmail,
-					SecondaryEmail = applicationEntity.SecondaryEmail,
-					HowHeard = applicationEntity.HowHeard,
-					AgeConfirmation = applicationEntity.AgeConfirmation,
-					PreviousVolunteerExperience = applicationEntity.PreviousVolunteerExperience,
-					PreviousExperienceDetails = applicationEntity.PreviousExperienceDetails,
-					ComfortLevelSpecialNeeds = applicationEntity.ComfortLevelSpecialNeeds,
-					AreasOfInterest = applicationEntity.AreasOfInterest,
-					OtherSkills = applicationEntity.OtherSkills,
-					VolunteerReason = applicationEntity.VolunteerReason,
-					EmergencyContactName = applicationEntity.EmergencyContactName,
-					EmergencyContactPhone = applicationEntity.EmergencyContactPhone,
-					CrimeConvictionCheck = applicationEntity.CrimeConvictionCheck,
-					PolicyAcknowledgement = applicationEntity.PolicyAcknowledgement,
-					WaiverAgreed = applicationEntity.WaiverAgreed,
-					ESignatureName = applicationEntity.ESignatureName,
-					WaiverAgreementTimestamp = applicationEntity.WaiverAgreementTimestamp,
-					ReviewedByUserId = applicationEntity.ReviewedByUserId,
-					ReviewedByName = applicationEntity.ReviewedByUser != null ? $"{applicationEntity.ReviewedByUser.FirstName} {applicationEntity.ReviewedByUser.LastName}" : null,
-					ReviewDate = applicationEntity.ReviewDate,
-					InternalNotes = applicationEntity.InternalNotes
-				};
+				// Project to DTO
+				var applicationsDto = await query
+					.Select(app => new AdoptionApplicationListItemDto
+					{
+						Id = app.Id,
+						SubmissionDate = app.SubmissionDate,
+						ApplicantName = $"{app.FirstName} {app.LastName}",
+						PrimaryEmail = app.PrimaryEmail,
+						PrimaryPhone = app.PrimaryPhone,
+						Status = app.Status,
+						ReviewedBy = app.ReviewedByUser != null ? $"{app.ReviewedByUser.FirstName} {app.ReviewedByUser.LastName}" : null,
+						ReviewDate = app.ReviewDate
+					})
+					.ToListAsync();
 
-				// --- Return Response ---
+				_logger.LogInformation("Returning {Count} adoption applications.", applicationsDto.Count);
+
 				var response = req.CreateResponse(HttpStatusCode.OK);
-				var jsonResponse = JsonSerializer.Serialize(applicationDetailDto, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-				await response.WriteStringAsync(jsonResponse);
+				response.Headers.Add("Content-Type", "application/json; charset=utf-8");
+				try
+				{
+					var jsonPayload = JsonSerializer.Serialize(applicationsDto, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+					await response.WriteStringAsync(jsonPayload);
+					_logger.LogInformation("Successfully serialized and sent {Count} adoption applications.", applicationsDto.Count);
+				}
+				catch (JsonException jsonEx)
+				{
+					_logger.LogError(jsonEx, "JSON SERIALIZATION FAILED for adoption applications. Count: {Count}", applicationsDto.Count);
+					// Return a 500 with a specific error
+					response = req.CreateResponse(HttpStatusCode.InternalServerError);
+					await response.WriteStringAsync("Error serializing application data.");
+				}
+				catch (Exception writeEx)
+				{
+					_logger.LogError(writeEx, "Error writing JSON payload to response for adoption applications.");
+					response = req.CreateResponse(HttpStatusCode.InternalServerError);
+					await response.WriteStringAsync("Error writing response.");
+				}
 				return response;
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "Error fetching volunteer application ID {ApplicationId}.", applicationId);
-				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An error occurred while fetching the volunteer application.");
+				_logger.LogError(ex, "Error fetching adoption applications.");
+				return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "An error occurred while fetching adoption applications.");
 			}
-		}
+
+
+
+
+        }
+
+
+
 
 		// --- Token Validation Logic shared helper/service ---
 		private async Task<ClaimsPrincipal?> ValidateTokenAndGetPrincipal(AzureFuncHttp.HttpRequestData req)
