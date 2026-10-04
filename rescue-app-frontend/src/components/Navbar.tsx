@@ -201,7 +201,6 @@ export function Navbar() {
           <ThemeChanger />
         </div>
 
-
         {/* Mobile Menu Toggle */}
         <div className="lg:hidden">
           <Disclosure>
@@ -311,15 +310,15 @@ export function Navbar() {
             )}
           </Disclosure>
         </div>
+
+        {selectedJotform && (
+          <SendJotformModal
+            formId={selectedJotform.formId}
+            formTitle={selectedJotform.formTitle}
+            onClose={() => setSelectedJotform(null)}
+          />
+        )}
       </nav>
-    </div>
-      {selectedJotform && (
-        <SendJotformModal
-          formId={selectedJotform.formId}
-          formTitle={selectedJotform.formTitle}
-          onClose={() => setSelectedJotform(null)}
-        />
-      )}
     </div>
   );
 }
