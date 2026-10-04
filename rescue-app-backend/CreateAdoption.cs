@@ -297,7 +297,7 @@ namespace rescueApp
                                 bodyHtml += "<p>For your convenience and records, we have attached the medical and rescue documents we have on file for the latest addition to your family.</p>";
                             }
 
-                            bodyHtml += @""
+                            bodyHtml += @"
                                 <br><br>
                                 <p>As a growing rescue, word of mouth is our superpower. If you had a great experience adopting with us, would you mind taking 60 seconds to leave a Google review? Your review helps other adopters find us, builds trust in our mission, and directly helps more animals find their forever homes!</p>
                                 <p style='text-align: center; margin: 30px 0;'>
@@ -324,7 +324,7 @@ namespace rescueApp
                                         Leave a Google Review
                                     </a>
                                 </p>
-                                <p>Thank you for being part of the SCARS family. Give your new family member some extra love from us today!</p>"";
+                                <p>Thank you for being part of the SCARS family. Give your new family member some extra love from us today!</p>";
 
                             message.Body = bodyHtml;
                             message.IsBodyHtml = true;
